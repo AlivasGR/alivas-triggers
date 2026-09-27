@@ -1,0 +1,269 @@
+{
+  "_id": "TLX94HnzF9aI1MO2",
+  "name": "Suggestion",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "321",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Suggestion (PHB 2024 p. 321). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 2,
+    "school": "enc",
+    "properties": [
+      "vocal",
+      "material",
+      "concentration"
+    ],
+    "materials": {
+      "value": "a drop of honey",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "1",
+        "type": "creature",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "30",
+      "units": "ft"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "8",
+      "units": "hour",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "sourceItem": "class:wizard",
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "save",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "damage": {
+          "onSave": "half",
+          "parts": []
+        },
+        "save": {
+          "ability": [
+            "wis"
+          ],
+          "dc": {
+            "calculation": "spellcasting"
+          },
+          "visible": true
+        },
+        "effects": [
+          {
+            "_id": "suggestionxxxxxx",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "suggestion"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/control/silhouette-hold-change-blue.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "XPHB",
+      "hash": "suggestion_xphb",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Bard",
+        "Sorcerer",
+        "Warlock",
+        "Wizard",
+        "Witch"
+      ]
+    },
+    "dnd5e": {},
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Suggestion",
+          "type": "spell",
+          "book": "PHB 2024",
+          "page": "321"
+        },
+        {
+          "name": "Suggestion",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplSuggestion"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "suggestionxxxxxx",
+      "name": "Pursuing Suggestion",
+      "img": "icons/magic/control/silhouette-hold-change-blue.webp",
+      "description": "<p>Charmed; pursues the suggestion. Ends when the target takes damage, when the suggested activity is completed, or after 8 hours (or when the caster's Concentration ends).</p>",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [
+        "charmed"
+      ],
+      "disabled": false,
+      "duration": {
+        "value": 8,
+        "units": "hours",
+        "expiry": null,
+        "expired": false
+      },
+      "origin": null,
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "pursuing-suggestion"
+        },
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Suggestion",
+              "event": "damaged",
+              "action": {
+                "type": "note"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "type": "base",
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790404238839,
+        "modifiedTime": 1790460443389,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!TLX94HnzF9aI1MO2.suggestionxxxxxx"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238839,
+    "modifiedTime": 1790404238839,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!TLX94HnzF9aI1MO2"
+}

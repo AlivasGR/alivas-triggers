@@ -1,0 +1,292 @@
+{
+  "_id": "X9J2ej2nEnUhbJnU",
+  "name": "Mind Sliver",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "298",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Mind Sliver (PHB 2024 p. 298). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 0,
+    "school": "enc",
+    "properties": [
+      "vocal"
+    ],
+    "ability": "int",
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "1",
+        "type": "creature",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "60",
+      "units": "ft"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "0",
+      "units": "inst",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "recovery": [],
+      "spent": 0
+    },
+    "method": "spell",
+    "prepared": 2,
+    "sourceItem": "class:wizard",
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "save",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "damage": {
+          "parts": [
+            {
+              "number": 1,
+              "denomination": 6,
+              "types": [
+                "psychic"
+              ],
+              "scaling": {
+                "mode": "whole",
+                "number": 1
+              },
+              "custom": {
+                "enabled": false
+              },
+              "modifiers": []
+            }
+          ],
+          "onSave": "none"
+        },
+        "save": {
+          "ability": [
+            "int"
+          ],
+          "dc": {
+            "calculation": "spellcasting"
+          },
+          "visible": true
+        },
+        "effects": [
+          {
+            "_id": "mindSliverxxxxxx",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "mind-sliver"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/light/beam-rays-magenta.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "XPHB",
+      "hash": "mind%20sliver_xphb",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Sorcerer",
+        "Warlock",
+        "Wizard"
+      ],
+      "parentClassName": "Wizard",
+      "parentClassSource": "XPHB",
+      "parentSubclassName": "Bladesinger",
+      "parentSubclassSource": "FRHoF"
+    },
+    "tidy5e-sheet": {
+      "parentClass": "wizard"
+    },
+    "dnd5e": {},
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Mind Sliver",
+          "type": "spell",
+          "book": "PHB 2024",
+          "page": "298"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "mindSliverxxxxxx",
+      "name": "Slivered",
+      "img": "icons/magic/light/beam-rays-magenta.webp",
+      "description": "<p>Subtract 1d4 from the next saving throw made before the end of the caster's next turn.</p>",
+      "system": {
+        "changes": [
+          {
+            "key": "system.rolls.ability.save.bonus",
+            "type": "add",
+            "value": "-1d4",
+            "phase": "initial",
+            "_id": "aTmB4tD4iYJveZIY",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": "sourceEnd",
+        "expired": false
+      },
+      "origin": null,
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "slivered"
+        },
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Mind Sliver",
+              "event": "save",
+              "action": {
+                "type": "note"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "type": "base",
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790404238809,
+        "modifiedTime": 1790460200226,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!X9J2ej2nEnUhbJnU.mindSliverxxxxxx"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238808,
+    "modifiedTime": 1790404238808,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!X9J2ej2nEnUhbJnU"
+}

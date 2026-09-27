@@ -1,0 +1,264 @@
+{
+  "_id": "Ao1O4lyT3VkgFn4W",
+  "name": "Bladesong",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "FRHoF",
+      "page": "26",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Bladesong (FRHoF p. 26). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Wizard 3 (Bladesinger)",
+    "uses": {
+      "max": "max(1, @abilities.int.mod)",
+      "recovery": [
+        {
+          "period": "lr",
+          "type": "recoverAll"
+        }
+      ],
+      "spent": 0
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "OGRFKsk2wgQvn95n": {
+        "_id": "OGRFKsk2wgQvn95n",
+        "type": "utility",
+        "name": "Bladesong",
+        "img": "https://cdn.5e.tools/2024/img/classes/FRHoF/Bladesinger%20Wizard.webp",
+        "activation": {
+          "type": "bonus",
+          "value": 1,
+          "override": true
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "value": "1",
+          "units": "minute",
+          "override": true,
+          "expiry": null,
+          "concentration": false
+        },
+        "range": {
+          "units": "self",
+          "override": true
+        },
+        "target": {
+          "affects": {
+            "type": "self",
+            "choice": false
+          },
+          "override": true,
+          "prompt": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "effects": [
+          {
+            "_id": "u9bg1dIYoJqQEljd",
+            "uuid": null,
+            "level": {}
+          }
+        ]
+      }
+    },
+    "identifier": "bladesong",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "https://cdn.5e.tools/2024/img/classes/FRHoF/Bladesinger%20Wizard.webp",
+  "flags": {
+    "plutonium": {
+      "page": "subclassFeature",
+      "source": "FRHoF",
+      "hash": "bladesong_wizard_xphb_bladesinger_frhof_3_frhof"
+    },
+    "dnd5e": {
+      "sourceId": "Actor.HjYm6cA5R0StVADa.Item.Ao1O4lyT3VkgFn4W",
+      "advancementOrigin": "XArEavkGgnSRUNSM.cGEMICxraaaQ3OCk"
+    },
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Bladesong",
+          "type": "feat",
+          "book": "FRHoF",
+          "page": "26"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "name": "Bladesong",
+      "img": "https://cdn.5e.tools/2024/img/classes/FRHoF/Bladesinger%20Wizard.webp",
+      "origin": null,
+      "type": "base",
+      "_id": "u9bg1dIYoJqQEljd",
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.ac.bonus",
+            "type": "add",
+            "value": "max(1, @abilities.int.mod)",
+            "phase": "initial",
+            "_id": "4kQlYJW2WutsO0iB",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "system.attributes.movement.speeds.walk",
+            "type": "add",
+            "value": 10,
+            "phase": "initial",
+            "_id": "BZ6nrHhd54lzcuq4",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "system.skills.acr.roll.mode",
+            "type": "add",
+            "value": 1,
+            "phase": "initial",
+            "_id": "dxhUyxF4M0Mto1d8",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "system.attributes.concentration.roll.bonus",
+            "type": "add",
+            "value": "@abilities.int.mod",
+            "phase": "initial",
+            "_id": "q7WKqqRWT7IDfKPZ",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "attack",
+            "type": "dnd5e.bonus",
+            "value": "max(0, @abilities.int.mod - @mod)",
+            "conditions": "[{\"k\":\"activity.attack.type.classification\",\"v\":\"weapon\"},{\"k\":\"item.prof.multiplier\",\"o\":\"gte\",\"v\":1}]",
+            "phase": "initial",
+            "_id": "OujAABoT98H47FSv",
+            "replacement": ""
+          },
+          {
+            "key": "damage",
+            "type": "dnd5e.bonus",
+            "value": "max(0, @abilities.int.mod - @mod)",
+            "conditions": "[{\"k\":\"activity.attack.type.classification\",\"v\":\"weapon\"},{\"k\":\"item.prof.multiplier\",\"o\":\"gte\",\"v\":1}]",
+            "phase": "initial",
+            "_id": "63LKRGUu4BHGOSVk",
+            "replacement": ""
+          }
+        ],
+        "rider": {
+          "statuses": []
+        },
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": "Actor.HjYm6cA5R0StVADa.Item.Ao1O4lyT3VkgFn4W",
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false
+      },
+      "disabled": false,
+      "start": null,
+      "duration": {
+        "value": 1,
+        "units": "minutes",
+        "expiry": null,
+        "expired": false
+      },
+      "description": "<p><b>Agility</b> AC + Int (min +1), Speed +10 ft, Advantage on Acrobatics. <b>Bladework</b> weapon attacks with proficiency may use Int for attack and damage. <b>Focus</b> + Int to Concentration saves.</p><p>Ends early if Incapacitated, you don armor or a Shield, or you attack two-handed — delete this effect.</p>",
+      "tint": "#ffffff",
+      "transfer": false,
+      "statuses": [],
+      "showIcon": 2,
+      "folder": null,
+      "sort": 0,
+      "flags": {
+        "dnd5e": {
+          "riders": {}
+        },
+        "dae": {
+          "disableCondition": "",
+          "stackable": "noneName",
+          "expiryMode": "default",
+          "durationExpression": "",
+          "macroRepeat": "none",
+          "disableIncapacitated": false,
+          "specialDuration": [],
+          "phaseStamped": true
+        },
+        "core": {
+          "overlay": false
+        }
+      },
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790404238825,
+        "modifiedTime": 1790458345795,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!Ao1O4lyT3VkgFn4W.u9bg1dIYoJqQEljd"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238825,
+    "modifiedTime": 1790458495011,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!Ao1O4lyT3VkgFn4W"
+}

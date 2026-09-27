@@ -1,0 +1,158 @@
+{
+  "_id": "nHy9HtIKzF7N5NZP",
+  "name": "Alert",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "200",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Alert (PHB 2024 p. 200). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "feat",
+      "subtype": "origin"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {},
+    "identifier": "alert",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "img": "icons/creatures/eyes/human-single-blue.webp",
+  "flags": {
+    "plutonium": {
+      "page": "feats.html",
+      "source": "XPHB",
+      "hash": "alert_xphb"
+    },
+    "dnd5e": {
+      "sourceId": "Actor.cr1ND0w4BTvINbsz.Item.nHy9HtIKzF7N5NZP",
+      "advancementOrigin": "XM50CpCXaThkrO2z.zhrH7ckUVLifhVgK"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Alert",
+          "type": "feat",
+          "book": "PHB 2024",
+          "page": "200"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "raAKBcywltk8S4Up",
+      "name": "Alert",
+      "img": "icons/creatures/eyes/human-single-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "flags.dnd5e.initiativeAlert",
+            "type": "add",
+            "value": true,
+            "priority": 7,
+            "phase": "initial"
+          }
+        ]
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "origin": "Actor.cr1ND0w4BTvINbsz.Item.nHy9HtIKzF7N5NZP",
+      "transfer": true,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "alert"
+        },
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Alert (Initiative Swap)",
+              "event": "initiative",
+              "filter": [
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "bearer.statuses.incapacitated",
+                    "o": "gte",
+                    "v": 1
+                  }
+                }
+              ],
+              "action": {
+                "type": "swapInitiative",
+                "to": {
+                  "who": "choose",
+                  "pool": "combat",
+                  "side": "ally",
+                  "self": false,
+                  "able": true
+                }
+              }
+            }
+          ]
+        }
+      },
+      "type": "base",
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.365",
+        "systemId": "dnd5e",
+        "systemVersion": "5.3.3",
+        "createdTime": 1787404816122,
+        "modifiedTime": 1787404816122,
+        "lastModifiedBy": "CHvpDhaxd1Ovxmxa",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!nHy9HtIKzF7N5NZP.raAKBcywltk8S4Up"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1787404816122,
+    "modifiedTime": 1787409617472,
+    "lastModifiedBy": "CHvpDhaxd1Ovxmxa",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!nHy9HtIKzF7N5NZP"
+}

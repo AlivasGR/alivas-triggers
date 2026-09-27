@@ -1,0 +1,196 @@
+{
+  "_id": "cspellPatch00001",
+  "name": "Counterspell",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "258",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Counterspell (PHB 2024 p. 258). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 3,
+    "school": "abj",
+    "properties": [
+      "somatic"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "contiguous": false,
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "1",
+        "type": "creature",
+        "choice": false
+      }
+    },
+    "range": {
+      "value": "60",
+      "units": "ft"
+    },
+    "activation": {
+      "type": "reaction",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "0",
+      "units": "inst",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "counterspellUse1": {
+        "_id": "counterspellUse1",
+        "type": "utility",
+        "name": "Counterspell",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "expiry": null,
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false,
+          "formula": "",
+          "name": ""
+        }
+      }
+    },
+    "identifier": "counterspell"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/unholy/hands-cloud-light-pink.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "XPHB",
+      "hash": "counterspell_xphb",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Sorcerer",
+        "Warlock",
+        "Wizard"
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Counterspell",
+          "type": "spell",
+          "book": "PHB 2024",
+          "page": "258"
+        },
+        {
+          "name": "Counterspell",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplCounterspe"
+        },
+        {
+          "name": "Counterspell",
+          "type": "spell"
+        }
+      ]
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "spellCast",
+          "who": "other",
+          "range": 60,
+          "sight": true,
+          "filter": [
+            {
+              "k": "subjectIsEnemy",
+              "v": true
+            },
+            {
+              "k": "hasComponents",
+              "v": true
+            }
+          ],
+          "outcome": {
+            "type": "counter",
+            "ability": "con",
+            "dc": "source"
+          }
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "createdTime": 1790544318897,
+    "modifiedTime": 1790544318898,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!cspellPatch00001"
+}

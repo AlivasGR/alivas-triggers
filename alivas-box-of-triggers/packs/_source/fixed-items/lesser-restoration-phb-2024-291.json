@@ -1,0 +1,196 @@
+{
+  "_id": "sgXTmxTxjVXfzJhC",
+  "name": "Lesser Restoration",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "291",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Lesser Restoration (PHB 2024 p. 291). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 2,
+    "school": "abj",
+    "properties": [
+      "vocal",
+      "somatic"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "creature",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "touch"
+    },
+    "activation": {
+      "type": "bonus",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "0",
+      "units": "inst"
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "dnd5eactivity006": {
+        "_id": "dnd5eactivity006",
+        "type": "utility",
+        "name": "Cast",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {},
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "prompt": true,
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "img": null,
+        "sort": 0,
+        "effects": [],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "removeStatus",
+                "statuses": [
+                  "blinded",
+                  "deafened",
+                  "paralyzed",
+                  "poisoned"
+                ],
+                "to": {
+                  "who": "targets"
+                },
+                "choose": true
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    },
+    "identifier": "lesser-restoration"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/life/heart-cross-blue.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "XPHB",
+      "hash": "lesser%20restoration_xphb",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Bard",
+        "Cleric",
+        "Druid",
+        "Ranger",
+        "Paladin",
+        "Artificer"
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Lesser Restoration",
+          "type": "spell",
+          "book": "PHB 2024",
+          "page": "291"
+        },
+        {
+          "name": "Lesser Restoration",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplLesserRest"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1787423256239,
+    "modifiedTime": 1787425739091,
+    "lastModifiedBy": "CHvpDhaxd1Ovxmxa",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!sgXTmxTxjVXfzJhC"
+}

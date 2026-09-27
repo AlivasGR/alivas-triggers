@@ -1,0 +1,180 @@
+{
+  "_id": "TO0gsg3ZLHOzXTow",
+  "name": "Vengeful Blade",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "IllR",
+      "page": "34",
+      "license": "",
+      "rules": "2014",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Vengeful Blade (IllR p. 34). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 0,
+    "school": "evo",
+    "properties": [
+      "somatic",
+      "material"
+    ],
+    "materials": {
+      "value": "a melee weapon worth at least 1 gp",
+      "consumed": false,
+      "cost": 1,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "self",
+      "special": ""
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "0",
+      "units": "inst",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 1,
+    "sourceItem": "class:wizard",
+    "activities": {
+      "lxnTiEoBsepxHbqu": {
+        "_id": "lxnTiEoBsepxHbqu",
+        "type": "damage",
+        "name": "Detonate",
+        "img": "icons/magic/death/weapon-sword-skull-purple.webp",
+        "activation": {
+          "type": "special",
+          "override": true,
+          "condition": ""
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": true
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "damage": {
+          "critical": {
+            "allow": false
+          },
+          "parts": [
+            {
+              "custom": {
+                "enabled": true,
+                "formula": "(floor((@details.level + 1) / 6) + 1)d8"
+              },
+              "types": [
+                "necrotic"
+              ],
+              "number": null,
+              "denomination": null,
+              "bonus": "",
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              },
+              "modifiers": []
+            }
+          ]
+        }
+      }
+    },
+    "identifier": "vengeful-blade",
+    "ability": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/death/weapon-sword-skull-purple.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "IllriggerRevised",
+      "hash": "vengeful%20blade_illriggerrevised",
+      "propDroppable": "spell",
+      "spellClassNames": []
+    },
+    "dnd5e": {
+      "last": {
+        "dnd5eactivity000": {
+          "damageType": {
+            "0": "necrotic"
+          },
+          "ability": "int"
+        },
+        "lxnTiEoBsepxHbqu": {
+          "damageType": {
+            "0": "necrotic"
+          }
+        }
+      }
+    },
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Vengeful Blade",
+          "type": "spell",
+          "book": "IllR",
+          "page": "34"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238834,
+    "modifiedTime": 1790457927044,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!TO0gsg3ZLHOzXTow"
+}

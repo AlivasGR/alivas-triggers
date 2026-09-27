@@ -1,0 +1,209 @@
+{
+  "_id": "C6x1aooaHl7HMWFe",
+  "name": "Accelerate/Decelerate",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "VSS'24",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Accelerate/Decelerate (VSS'24). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 1,
+    "school": "trs",
+    "properties": [
+      "vocal",
+      "somatic",
+      "material"
+    ],
+    "materials": {
+      "value": "a drop of oil or molasses",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "1",
+        "type": "",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "60",
+      "units": "ft"
+    },
+    "activation": {
+      "type": "reaction",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "0",
+      "units": "inst"
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "accelDecelUse001": {
+        "_id": "accelDecelUse001",
+        "type": "utility",
+        "name": "Accelerate/Decelerate",
+        "sort": 0,
+        "activation": {
+          "type": "reaction",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": true
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "prompt": false,
+          "override": false,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false,
+          "formula": "",
+          "name": ""
+        }
+      }
+    },
+    "identifier": "accelerate-decelerate"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "ValdaSpire24",
+      "hash": "accelerate%2fdecelerate_valdaspire24",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Bard",
+        "Cleric",
+        "Sorcerer",
+        "Wizard"
+      ]
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitBy",
+          "who": "any",
+          "range": 60,
+          "sight": true,
+          "configure": true,
+          "label": "Accelerate",
+          "filter": [
+            {
+              "k": "subjectIsEnemy",
+              "v": true
+            }
+          ],
+          "detail": "the attack deals extra damage of its type: 2d6, +1d6 per slot level above 1 (doubled on a critical hit)",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(@castLevel + 1)d6",
+            "critDouble": true
+          }
+        },
+        {
+          "window": "hitBy",
+          "who": "any",
+          "range": 60,
+          "sight": true,
+          "configure": true,
+          "label": "Decelerate",
+          "filter": [
+            {
+              "k": "subjectIsAlly",
+              "v": true
+            }
+          ],
+          "detail": "the damage is reduced by 2d6, +1d6 per slot level above 1",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "reduce",
+            "formula": "(@castLevel + 1)d6",
+            "critDouble": false
+          }
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Accelerate/Decelerate",
+          "type": "spell",
+          "book": "VSS'24",
+          "page": ""
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1787423105949,
+    "modifiedTime": 1787425744393,
+    "lastModifiedBy": "CHvpDhaxd1Ovxmxa",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!C6x1aooaHl7HMWFe"
+}

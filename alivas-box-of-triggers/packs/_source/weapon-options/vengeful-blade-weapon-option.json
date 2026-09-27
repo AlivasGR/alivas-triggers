@@ -1,0 +1,203 @@
+{
+  "_id": "vbWeaponOption01",
+  "_key": "!items!vbWeaponOption01",
+  "name": "Vengeful Blade (Weapon Option)",
+  "type": "feat",
+  "img": "icons/magic/death/weapon-sword-skull-purple.webp",
+  "system": {
+    "description": {
+      "value": "<p><strong>Drag this onto a melee weapon’s sheet.</strong> The weapon gains a permanent <em>Vengeful Blade</em> attack next to its normal one: a normal attack with that weapon that adds the cantrip’s extra necrotic damage and applies <em>Vengeful Aura</em> on a hit (until the start of your next turn; if the target attacks or casts a spell, it takes the detonation damage automatically and the aura ends).</p><p>Requires the caster to know <em>Vengeful Blade</em> (the patched version with the <em>Detonate</em> activity). Dropping it on the same weapon again reinstalls it.</p>",
+      "chat": ""
+    },
+    "source": {
+      "book": "IllR",
+      "page": "34",
+      "rules": "2014",
+      "custom": "",
+      "license": ""
+    },
+    "identifier": "vengeful-blade-weapon-option",
+    "type": {
+      "value": "",
+      "subtype": ""
+    },
+    "activities": {
+      "vbWeaponAttack01": {
+        "_id": "vbWeaponAttack01",
+        "type": "attack",
+        "activation": {
+          "type": "action",
+          "value": 1,
+          "condition": "",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "description": {
+          "value": "",
+          "chatFlavor": "Vengeful Blade (cantrip, Illrigger Revised)"
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false,
+          "prompt": true
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "attack": {
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          },
+          "bonus": "",
+          "flat": false
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": true,
+          "parts": [
+            {
+              "custom": {
+                "enabled": true,
+                "formula": "(floor((@details.level + 1) / 6))d8"
+              },
+              "types": [
+                "necrotic"
+              ],
+              "number": null,
+              "denomination": null,
+              "bonus": "",
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              },
+              "modifiers": []
+            }
+          ]
+        },
+        "img": "icons/magic/death/weapon-sword-skull-purple.webp",
+        "sort": 50000,
+        "effects": [
+          {
+            "_id": "vbWeaponAura0001"
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "name": "Vengeful Blade"
+      }
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    }
+  },
+  "effects": [
+    {
+      "name": "Vengeful Aura",
+      "img": "icons/magic/death/weapon-sword-skull-purple.webp",
+      "transfer": false,
+      "statuses": [],
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": "sourceStart",
+        "expired": false
+      },
+      "description": "<p>Radiates a dark aura until the start of the caster's next turn. If this creature makes an attack or casts a spell before then, it takes necrotic damage (<b>Vengeful Blade › Detonate</b>) and the aura ends.</p>",
+      "_id": "vbWeaponAura0001",
+      "type": "base",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "disabled": false,
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Vengeful Aura",
+              "event": [
+                "attack",
+                "spell"
+              ],
+              "action": {
+                "type": "rollActivity",
+                "item": "vengeful-blade",
+                "activity": "Detonate"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vbWeaponOption01.vbWeaponAura0001"
+    }
+  ],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "weaponOption": {
+        "id": "vengeful-blade",
+        "melee": true
+      }
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "sort": 0
+}

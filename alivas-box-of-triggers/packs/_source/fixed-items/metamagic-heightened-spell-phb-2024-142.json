@@ -1,0 +1,249 @@
+{
+  "_id": "Lq8SRMk0GBE2RzFO",
+  "name": "Metamagic: Heightened Spell",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "142",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Metamagic: Heightened Spell (PHB 2024 p. 142). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Sorcerer 2",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": "metamagic"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Heightened Spell",
+        "type": "utility",
+        "activation": {
+          "type": "",
+          "condition": "",
+          "override": false
+        },
+        "consumption": {
+          "targets": [],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "type": "self",
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "description": {},
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "heightenPending1"
+          }
+        ],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "pay": {
+              "cost": 2,
+              "from": [
+                "metamagic-adept",
+                "sorcery-points"
+              ]
+            }
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        }
+      }
+    },
+    "identifier": "metamagic-heightened-spell",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "https://assets.forge-vtt.com/bazaar/core/icons/magic/fire/explosion-mushroom-nuke-orange.webp",
+  "flags": {
+    "plutonium": {
+      "page": "optionalfeatures.html",
+      "source": "XPHB",
+      "hash": "heightened%20spell_xphb"
+    },
+    "dnd5e": {
+      "sourceId": "Actor.UwSROiEoVQxk3Fax.Item.Lq8SRMk0GBE2RzFO",
+      "advancementOrigin": "aDXwFeLmEQcJDAtr.ndiwEJMgpjMsS0Ed"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Metamagic: Heightened Spell",
+          "type": "feat",
+          "book": "PHB 2024",
+          "page": "142"
+        },
+        {
+          "name": "Metamagic Adept: Heightened Spell",
+          "type": "feat",
+          "book": "PHB 2024",
+          "page": "142"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "heightenPending1",
+      "name": "Heightened Spell (next spell)",
+      "img": "icons/magic/control/buff-flight-wings-runes-purple.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Your next spell that forces a saving throw: choose one of its targets — it has Disadvantage on the save.</p>",
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Heightened Spell",
+              "event": "spell",
+              "filter": [
+                {
+                  "k": "activityType",
+                  "v": "save"
+                }
+              ],
+              "action": {
+                "type": "giveEffect",
+                "effect": "heightenedTgt001",
+                "to": {
+                  "who": "choose",
+                  "pool": "targets"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!Lq8SRMk0GBE2RzFO.heightenPending1"
+    },
+    {
+      "_id": "heightenedTgt001",
+      "name": "Heightened",
+      "img": "icons/magic/control/debuff-energy-hold-levitate-pink.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Disadvantage on the saving throw against the heightened spell.</p>",
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "save",
+            "type": "dnd5e.advantage",
+            "value": "-1",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Heightened",
+              "event": "save",
+              "action": {
+                "type": "note"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!Lq8SRMk0GBE2RzFO.heightenedTgt001"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1787422423241,
+    "modifiedTime": 1787423188487,
+    "lastModifiedBy": "CHvpDhaxd1Ovxmxa",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!Lq8SRMk0GBE2RzFO"
+}

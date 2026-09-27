@@ -1,0 +1,303 @@
+{
+  "_id": "O6sF6BlyJiBEjimC",
+  "name": "Shield",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "316",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Shield (PHB 2024 p. 316). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 1,
+    "school": "abj",
+    "properties": [
+      "vocal",
+      "somatic"
+    ],
+    "ability": "int",
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "self"
+    },
+    "activation": {
+      "type": "reaction",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "round",
+      "expiry": null
+    },
+    "uses": {
+      "max": "1",
+      "recovery": [
+        {
+          "period": "lr",
+          "type": "recoverAll"
+        }
+      ],
+      "spent": 0
+    },
+    "method": "atwill",
+    "prepared": 2,
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "utility",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "shieldxxxxxxxxxx",
+            "level": {},
+            "uuid": null
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "consumption": {
+          "targets": [
+            {
+              "value": "1",
+              "type": "itemUses",
+              "scaling": {}
+            }
+          ],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "img": null,
+        "sort": 0,
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "shield"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/equipment/shield/kite-wooden-oak-glow.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "XPHB",
+      "hash": "shield_xphb",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Sorcerer",
+        "Wizard"
+      ]
+    },
+    "dnd5e": {},
+    "alivas-box-of-triggers": {
+      "version": 3,
+      "match": [
+        {
+          "name": "Shield",
+          "type": "spell",
+          "book": "PHB 2024",
+          "page": "316"
+        },
+        {
+          "name": "Shield",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplShield0000"
+        },
+        {
+          "name": "Shield",
+          "type": "spell"
+        }
+      ]
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitBy",
+          "who": "self",
+          "outcome": {
+            "type": "acBonus",
+            "value": 5
+          }
+        },
+        {
+          "window": "spellCast",
+          "who": "other",
+          "filter": [
+            {
+              "k": "identifier",
+              "v": "magic-missile"
+            },
+            {
+              "k": "targetsMe",
+              "v": true
+            }
+          ],
+          "detail": "cast it before the missiles land: no damage from Magic Missile",
+          "outcome": {
+            "type": "none"
+          }
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "shieldxxxxxxxxxx",
+      "name": "Imperceptible Barrier",
+      "img": "icons/equipment/shield/kite-wooden-oak-glow.webp",
+      "description": "<p>+5 AC until the start of your next turn (including against the attack that triggered it); no damage from Magic Missile.</p>",
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.ac.bonus",
+            "type": "add",
+            "value": 5,
+            "priority": 7,
+            "phase": "initial",
+            "_id": "czLjRZUKXPEHYU9w",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": true,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": "sourceStart",
+        "expired": false
+      },
+      "origin": null,
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "imperceptible-barrier"
+        },
+        "alivas-engine-of-triggers": {
+          "ignoreDamageFrom": [
+            "magic-missile",
+            "Magic Missile"
+          ]
+        }
+      },
+      "type": "base",
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790404238817,
+        "modifiedTime": 1790460200514,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!O6sF6BlyJiBEjimC.shieldxxxxxxxxxx"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238817,
+    "modifiedTime": 1790404238817,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!O6sF6BlyJiBEjimC"
+}

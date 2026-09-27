@@ -1,0 +1,379 @@
+{
+  "_id": "fSXYEZRILAsBeqRA",
+  "name": "After Image",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "VSS'24",
+      "page": "0",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for After Image (VSS'24 p. 0). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 3,
+    "school": "ill",
+    "properties": [
+      "vocal",
+      "somatic",
+      "material"
+    ],
+    "materials": {
+      "value": "a silver {@item Mirror|XPHB} worth 50+ GP",
+      "consumed": false,
+      "cost": 50,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "self"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "10",
+      "units": "minute",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 1,
+    "sourceItem": "class:wizard",
+    "activities": {
+      "dnd5eactivity006": {
+        "_id": "dnd5eactivity006",
+        "type": "utility",
+        "name": "Cast",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false,
+            "type": "self"
+          },
+          "prompt": true,
+          "override": true
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "img": null,
+        "sort": 0,
+        "effects": [
+          {
+            "_id": "tlV6eIjdOxzrvNtZ",
+            "uuid": null,
+            "level": {}
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      },
+      "DtlhYXWE7D3u7pLe": {
+        "type": "utility",
+        "_id": "DtlhYXWE7D3u7pLe",
+        "img": "icons/svg/d6-grey.svg",
+        "sort": 100000,
+        "activation": {
+          "type": "special",
+          "override": true,
+          "condition": ""
+        },
+        "behaviors": [],
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "description": {
+          "value": "",
+          "chatFlavor": "3+: duplicate is hit instead and destroyed"
+        },
+        "duration": {
+          "units": "inst",
+          "expiry": null,
+          "concentration": false,
+          "override": true
+        },
+        "effects": [],
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false,
+          "prompt": true
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": true,
+          "formula": "1d6",
+          "name": "Duplicate Check (3+: duplicate is hit and destroyed)"
+        },
+        "name": "Duplicate Check"
+      }
+    },
+    "identifier": "after-image"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/defensive/illusion-evasion-echo-purple.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "ValdaSpire24",
+      "hash": "after%20image_valdaspire24",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Ranger",
+        "Sorcerer",
+        "Warlock",
+        "Wizard",
+        "Investigator"
+      ]
+    },
+    "dnd5e": {},
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "After Image",
+          "type": "spell",
+          "book": "VSS'24",
+          "page": "0"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "name": "After Image",
+      "img": "icons/magic/defensive/illusion-evasion-echo-purple.webp",
+      "transfer": false,
+      "statuses": [],
+      "duration": {
+        "value": 10,
+        "units": "minutes",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "description": "<p>Lasts the spell's full 10 minutes. When you're hit by an attack roll, a d6 is rolled automatically: on 3+ the duplicate is hit instead and destroyed — this effect is then named <b>After Image (no duplicates)</b> and stops rolling. The duplicate reappears automatically if you move 15+ ft on your turn (in combat) or gain the Dodging status. Attackers that are Blinded or have Blindsight or Truesight are unaffected.</p>",
+      "_id": "tlV6eIjdOxzrvNtZ",
+      "type": "base",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "disabled": false,
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "After Image",
+              "event": "hit",
+              "filter": [
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "statuses.blinded",
+                    "o": "gte",
+                    "v": 1
+                  }
+                },
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "attributes.senses.ranges.blindsight",
+                    "o": "gt",
+                    "v": 0
+                  }
+                },
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "attributes.senses.ranges.truesight",
+                    "o": "gt",
+                    "v": 0
+                  }
+                }
+              ],
+              "action": {
+                "type": "duplicates",
+                "count": 1,
+                "threshold": 3
+              },
+              "then": "keep"
+            },
+            {
+              "label": "After Image",
+              "event": "moved",
+              "filter": [
+                {
+                  "k": "ownTurn",
+                  "v": true
+                },
+                {
+                  "k": "movedThisTurn",
+                  "o": "gte",
+                  "v": 15
+                }
+              ],
+              "action": {
+                "type": "restoreDuplicates",
+                "count": 1
+              },
+              "reason": "moved 15+ ft on their turn"
+            },
+            {
+              "label": "After Image",
+              "event": "statusGained",
+              "filter": [
+                {
+                  "k": "gainedStatuses",
+                  "o": "has",
+                  "v": "dodging"
+                }
+              ],
+              "action": {
+                "type": "restoreDuplicates",
+                "count": 1
+              },
+              "reason": "takes the Dodge action"
+            }
+          ]
+        }
+      },
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790457178829,
+        "modifiedTime": 1790461804868,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!fSXYEZRILAsBeqRA.tlV6eIjdOxzrvNtZ"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238833,
+    "modifiedTime": 1790457394008,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!fSXYEZRILAsBeqRA"
+}

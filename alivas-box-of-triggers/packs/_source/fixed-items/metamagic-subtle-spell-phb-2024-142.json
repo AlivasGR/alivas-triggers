@@ -1,0 +1,192 @@
+{
+  "_id": "6nbCuzBWS492KSqg",
+  "name": "Metamagic Adept: Subtle Spell",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "142",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Metamagic Adept: Subtle Spell (PHB 2024 p. 142). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": "metamagic"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Subtle Spell",
+        "type": "utility",
+        "activation": {
+          "type": "",
+          "condition": "",
+          "override": false
+        },
+        "consumption": {
+          "targets": [],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "type": "self",
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "description": {},
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "subtlePending001"
+          }
+        ],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "pay": {
+              "cost": 1,
+              "from": [
+                "metamagic-adept",
+                "sorcery-points"
+              ]
+            }
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        }
+      }
+    },
+    "identifier": "metamagic-adept-subtle-spell",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "https://assets.forge-vtt.com/bazaar/core/icons/creatures/slimes/slime-movement-swirling-blue.webp",
+  "flags": {
+    "plutonium": {
+      "page": "optionalfeatures.html",
+      "source": "XPHB",
+      "hash": "subtle%20spell_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Metamagic: Subtle Spell",
+          "type": "feat",
+          "book": "PHB 2024",
+          "page": "142"
+        },
+        {
+          "name": "Metamagic Adept: Subtle Spell",
+          "type": "feat",
+          "book": "PHB 2024",
+          "page": "142"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "subtlePending001",
+      "name": "Subtle Spell (next spell)",
+      "img": "icons/magic/perception/silhouette-stealth-shadow.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Your next spell is cast without Verbal, Somatic or Material components — it can't be Counterspelled.</p>",
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "noComponents": true,
+          "triggers": [
+            {
+              "label": "Subtle Spell",
+              "event": "spell",
+              "action": {
+                "type": "note"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!6nbCuzBWS492KSqg.subtlePending001"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1787405918803,
+    "modifiedTime": 1787423183777,
+    "lastModifiedBy": "CHvpDhaxd1Ovxmxa",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!6nbCuzBWS492KSqg"
+}

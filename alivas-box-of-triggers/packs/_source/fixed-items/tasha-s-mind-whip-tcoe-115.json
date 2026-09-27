@@ -1,0 +1,234 @@
+{
+  "_id": "ASxvqplCbtIq5d43",
+  "name": "Tasha's Mind Whip",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "TCoE",
+      "page": "115",
+      "license": "",
+      "rules": "2014",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Tasha's Mind Whip (TCoE p. 115). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 2,
+    "school": "enc",
+    "properties": [
+      "vocal"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "1",
+        "type": "creature",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "90",
+      "units": "ft",
+      "special": ""
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "round"
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "dnd5eactivity001": {
+        "_id": "dnd5eactivity001",
+        "type": "save",
+        "name": "",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {},
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "prompt": true,
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "save": {
+          "ability": [
+            "int"
+          ],
+          "dc": {
+            "calculation": "spellcasting"
+          }
+        },
+        "damage": {
+          "onSave": "half",
+          "parts": [
+            {
+              "types": [
+                "psychic"
+              ],
+              "number": 3,
+              "denomination": 6,
+              "bonus": "",
+              "scaling": {
+                "mode": "",
+                "number": 1
+              },
+              "custom": {
+                "enabled": false
+              }
+            }
+          ]
+        },
+        "img": null,
+        "sort": 0,
+        "effects": [
+          {
+            "_id": "mindWhipped00001",
+            "onSave": false
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    },
+    "identifier": "tashas-mind-whip",
+    "ability": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/weapons/misc/whip-red-yellow.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "TCE",
+      "hash": "tasha's%20mind%20whip_tce",
+      "propDroppable": "spell",
+      "spellClassNames": []
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Tasha's Mind Whip",
+          "type": "spell",
+          "book": "TCoE",
+          "page": "115"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "mindWhipped00001",
+      "name": "Mind Whipped",
+      "img": "icons/weapons/misc/whip-red-yellow.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Can't take Reactions until the end of its next turn. On its next turn it gets only one of: its move, an action, or a Bonus Action.</p>",
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "noReactions": true,
+          "triggers": [
+            {
+              "label": "Mind Whip",
+              "event": "turnStart",
+              "action": {
+                "type": "note",
+                "text": "This turn it gets only one of: its move, an action, or a Bonus Action."
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!ASxvqplCbtIq5d43.mindWhipped00001"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1787425697813,
+    "modifiedTime": 1787425740851,
+    "lastModifiedBy": "CHvpDhaxd1Ovxmxa",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!ASxvqplCbtIq5d43"
+}

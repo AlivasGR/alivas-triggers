@@ -1,0 +1,127 @@
+{
+  "_id": "tUTeV7Ae0csUVZER",
+  "name": "Musician",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "201",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Musician (PHB 2024 p. 201). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "",
+    "uses": {
+      "max": "1",
+      "recovery": [
+        {
+          "period": "sr",
+          "type": "recoverAll"
+        }
+      ],
+      "spent": 0
+    },
+    "type": {
+      "value": "feat",
+      "subtype": "origin"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {},
+    "identifier": "musician",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "img": "systems/dnd5e/icons/svg/items/feature.svg",
+  "flags": {
+    "plutonium": {
+      "page": "feats.html",
+      "source": "XPHB",
+      "hash": "musician_xphb"
+    },
+    "dnd5e": {
+      "sourceId": "Actor.cr1ND0w4BTvINbsz.Item.tUTeV7Ae0csUVZER",
+      "advancementOrigin": "M2FLUw0mLfi7a2cr.hRaVRsft9am5h4yy"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Musician",
+          "type": "feat",
+          "book": "PHB 2024",
+          "page": "201"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "encouragingSong1",
+      "name": "Encouraging Song",
+      "img": "systems/dnd5e/icons/svg/items/feature.svg",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>When you finish a Short or Long Rest: give Heroic Inspiration to allies who hear your song (up to your Proficiency Bonus).</p>",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Encouraging Song",
+              "event": "rest",
+              "action": {
+                "type": "inspire",
+                "to": {
+                  "who": "choose",
+                  "side": "ally",
+                  "count": "@prof",
+                  "self": false,
+                  "actorType": "character"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!tUTeV7Ae0csUVZER.encouragingSong1"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1787404816122,
+    "modifiedTime": 1787409615232,
+    "lastModifiedBy": "CHvpDhaxd1Ovxmxa",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!tUTeV7Ae0csUVZER"
+}

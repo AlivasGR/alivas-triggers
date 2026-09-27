@@ -1,0 +1,282 @@
+{
+  "_id": "Mx0q5rCuQGsZMj1M",
+  "name": "Mirror Image",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "299",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Mirror Image (PHB 2024 p. 299). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 2,
+    "school": "ill",
+    "properties": [
+      "vocal",
+      "somatic"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "self"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 1,
+    "sourceItem": "class:wizard",
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "utility",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "roll": {
+          "formula": "(@flags.dnd-players-handbook.mirrorImages)d6kh",
+          "prompt": false,
+          "visible": false
+        },
+        "effects": [
+          {
+            "_id": "zSXdJxmrGCXqTt7k",
+            "uuid": null,
+            "level": {}
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false,
+            "type": "self"
+          },
+          "override": true
+        },
+        "img": null,
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "mirror-image"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/defensive/illusion-evasion-echo-purple.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "XPHB",
+      "hash": "mirror%20image_xphb",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Bard",
+        "Sorcerer",
+        "Warlock",
+        "Wizard"
+      ]
+    },
+    "dnd5e": {},
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Mirror Image",
+          "type": "spell",
+          "book": "PHB 2024",
+          "page": "299"
+        },
+        {
+          "name": "Mirror Image",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplMirrorImag"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "name": "Mirror Image",
+      "img": "icons/magic/defensive/illusion-evasion-echo-purple.webp",
+      "transfer": false,
+      "duration": {
+        "value": 1,
+        "units": "minutes",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "description": "<p>Three illusory duplicates. When you're hit by an attack roll, a d6 is rolled per remaining duplicate automatically: if any rolls 3+, a duplicate is hit instead and destroyed. The spell ends when all three are destroyed. Attackers that are Blinded or have Blindsight or Truesight are unaffected.</p>",
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Mirror Image",
+              "event": "hit",
+              "filter": [
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "statuses.blinded",
+                    "o": "gte",
+                    "v": 1
+                  }
+                },
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "attributes.senses.ranges.blindsight",
+                    "o": "gt",
+                    "v": 0
+                  }
+                },
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "attributes.senses.ranges.truesight",
+                    "o": "gt",
+                    "v": 0
+                  }
+                }
+              ],
+              "action": {
+                "type": "duplicates",
+                "count": 3,
+                "threshold": 3
+              },
+              "then": "removeWhenDepleted"
+            }
+          ]
+        }
+      },
+      "_id": "zSXdJxmrGCXqTt7k",
+      "type": "base",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "disabled": false,
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "statuses": [],
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790460200838,
+        "modifiedTime": 1790460200838,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!Mx0q5rCuQGsZMj1M.zSXdJxmrGCXqTt7k"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238831,
+    "modifiedTime": 1790460200927,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!Mx0q5rCuQGsZMj1M"
+}

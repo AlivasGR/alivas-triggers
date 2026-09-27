@@ -1,0 +1,13 @@
+# Scratch: unpacked world data, backups, analysis scripts. Contains user data — never commit.
+work/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# Built compendia (generated from packs/_source by `npm run pack`)
+alivas-box-of-triggers/packs/*/
+!alivas-box-of-triggers/packs/_source/
+
+# Release builds
+dist/
