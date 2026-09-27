@@ -61,7 +61,10 @@ for ( const id of MODULES ) {
   fs.copyFileSync(path.join(ROOT, "LICENSE"), path.join(stage, "LICENSE"));
   fs.copyFileSync(path.join(ROOT, "README.md"), path.join(stage, "README.md"));
   const zip = path.join(DIST, `${id}.zip`);
-  run(`powershell -NoProfile -Command "Compress-Archive -Path '${stage}\\*' -DestinationPath '${zip}' -Force"`);
+  // bsdtar (built into Windows) writes forward-slash paths; PowerShell's Compress-Archive writes backslashes, which
+  // Linux hosts such as The Forge can't unpack into folders.
+  const entries = fs.readdirSync(stage).map(e => `"${e}"`).join(" ");
+  run(`"C:\\Windows\\System32\\tar.exe" -a -c -f "${zip}" ${entries}`, stage);
   fs.copyFileSync(path.join(src, "module.json"), path.join(DIST, `${id}.json`));
 }
 const assets = MODULES.flatMap(id => [`dist/${id}.zip`, `dist/${id}.json`]).join(" ");
