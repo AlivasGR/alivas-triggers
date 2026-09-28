@@ -1,0 +1,328 @@
+{
+  "_id": "jthRCuK61UeTyEc3",
+  "effects": [
+    {
+      "_id": "dnd5eItemChanges",
+      "disabled": false,
+      "name": "Item Changes",
+      "system": {
+        "changes": [
+          {
+            "key": "activities[save].save.dc.formula",
+            "type": "override",
+            "value": 15,
+            "phase": "initial",
+            "_id": "1bzXsdFBnJ9x1dz2",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "activities[save].save.dc.calculation",
+            "type": "override",
+            "value": "",
+            "phase": "initial",
+            "_id": "djqM3R6vUf7YBU3o",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "activity": "Actor.jYFxeb87YNLbIYIf.Item.C5We8ZocGpgcYRoD.Activity.dnd5eactivity000",
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "magical": true
+      },
+      "type": "enchantment",
+      "transfer": true,
+      "img": "systems/dnd5e/icons/svg/documents/active-effect.svg",
+      "start": null,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "description": "",
+      "origin": null,
+      "tint": "#ffffff",
+      "statuses": [],
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790619254346,
+        "modifiedTime": 1790619254346,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!jthRCuK61UeTyEc3.dnd5eItemChanges"
+    },
+    {
+      "_id": "FraaqhQ5D7cdlAIN",
+      "name": "Festering Aura",
+      "img": "systems/dnd5e/icons/svg/items/feature.svg",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [
+        "poisoned"
+      ],
+      "disabled": false,
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "targetStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "festering-aura"
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790619254346,
+        "modifiedTime": 1790619254346,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!jthRCuK61UeTyEc3.FraaqhQ5D7cdlAIN"
+    },
+    {
+      "_id": "festeringAuraTrg",
+      "name": "Festering Aura (aura)",
+      "img": "systems/dnd5e/icons/svg/items/feature.svg",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "area": {
+            "radius": 5,
+            "color": "#6b8e23"
+          },
+          "triggers": [
+            {
+              "label": "Festering Aura",
+              "event": "areaTurnStart",
+              "filter": [
+                {
+                  "k": "subjectIsSummoner",
+                  "v": false
+                }
+              ],
+              "action": {
+                "type": "useActivity"
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!jthRCuK61UeTyEc3.festeringAuraTrg"
+    }
+  ],
+  "name": "Festering Aura",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "328",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Festering Aura (PHB 2024 p. 328). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "monster",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity001": {
+        "_id": "dnd5eactivity001",
+        "type": "save",
+        "activation": {
+          "type": "",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "expiry": "targetStart",
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "FraaqhQ5D7cdlAIN",
+            "uuid": null,
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "count": "",
+            "contiguous": false,
+            "type": "radius",
+            "size": "5",
+            "width": "",
+            "height": "",
+            "units": "ft",
+            "stationary": false
+          },
+          "affects": {
+            "count": "",
+            "type": "creature",
+            "choice": false,
+            "special": ""
+          },
+          "prompt": true,
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "@srd5e.userchar.spellSaveDc"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": []
+        },
+        "img": null,
+        "sort": 0,
+        "behaviors": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    },
+    "identifier": "festering-aura",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    },
+    "requirements": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "systems/dnd5e/icons/svg/items/feature.svg",
+  "flags": {
+    "plutonium": {
+      "page": "monsterTrait",
+      "source": "XPHB",
+      "hash": "festering%20aura_undead%20spirit%20(putrid)_xphb_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Festering Aura",
+          "type": "feat",
+          "book": "PHB 2024",
+          "page": "328"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "createdTime": 1790619254346,
+    "modifiedTime": 1790619254346,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!jthRCuK61UeTyEc3"
+}

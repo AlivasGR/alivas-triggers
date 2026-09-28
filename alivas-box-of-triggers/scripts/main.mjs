@@ -54,7 +54,7 @@ function describe(data, owner) {
   return {
     name: data.name, type: data.type,
     book: data.system?.source?.book ?? "", page: String(data.system?.source?.page ?? ""),
-    compendiumSource: data._stats?.compendiumSource ?? "", owner: owner ?? ""
+    compendiumSource: data._stats?.compendiumSource ?? "", owner: owner ?? "", identifier: data.system?.identifier ?? ""
   };
 }
 

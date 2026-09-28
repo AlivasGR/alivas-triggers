@@ -1,0 +1,261 @@
+{
+  "name": "Chromatic Orb",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Chromatic Orb. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "rules": "2024",
+      "license": "CC-BY-4.0",
+      "book": "",
+      "revision": 1
+    },
+    "activation": {
+      "type": "action",
+      "condition": "",
+      "value": null
+    },
+    "duration": {
+      "value": "",
+      "units": "inst",
+      "expiry": null
+    },
+    "target": {
+      "affects": {
+        "choice": false,
+        "count": "",
+        "type": ""
+      },
+      "template": {
+        "units": "ft",
+        "contiguous": false,
+        "type": "",
+        "stationary": false
+      }
+    },
+    "range": {
+      "value": "90",
+      "units": "ft",
+      "special": ""
+    },
+    "uses": {
+      "max": "",
+      "recovery": [],
+      "spent": 0
+    },
+    "level": 1,
+    "school": "evo",
+    "properties": [
+      "vocal",
+      "somatic",
+      "material"
+    ],
+    "materials": {
+      "value": "a diamond worth 50+ GP",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "activities": {
+      "dnd5eactivity000": {
+        "_id": "dnd5eactivity000",
+        "type": "attack",
+        "activation": {
+          "type": "action",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "targets": [],
+          "scaling": {
+            "allowed": false,
+            "max": ""
+          },
+          "spellSlot": true
+        },
+        "description": {
+          "chatFlavor": "",
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "override": false,
+          "expiry": null,
+          "concentration": false
+        },
+        "effects": [],
+        "range": {
+          "override": false,
+          "units": "self"
+        },
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "stationary": false
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "attack": {
+          "ability": "",
+          "bonus": "",
+          "critical": {
+            "threshold": null
+          },
+          "flat": false,
+          "type": {
+            "value": "ranged",
+            "classification": "spell"
+          }
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": true,
+          "parts": [
+            {
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "number": 3,
+              "denomination": 8,
+              "bonus": "",
+              "types": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison",
+                "thunder"
+              ],
+              "scaling": {
+                "mode": "whole",
+                "number": 1,
+                "formula": ""
+              },
+              "modifiers": []
+            }
+          ]
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "sort": 0,
+        "name": "",
+        "img": "",
+        "behaviors": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    },
+    "identifier": "chromatic-orb",
+    "method": "spell",
+    "prepared": 0
+  },
+  "type": "spell",
+  "img": "icons/magic/light/explosion-star-small-teal-purple.webp",
+  "effects": [
+    {
+      "_id": "chromaticOrbLeap",
+      "name": "Chromatic Orb",
+      "img": "icons/magic/light/explosion-star-small-teal-purple.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Chromatic Orb (leap)",
+              "event": "damageRolled",
+              "filter": [
+                {
+                  "k": "identifier",
+                  "v": "chromatic-orb"
+                },
+                {
+                  "k": "duplicateDice",
+                  "v": true
+                }
+              ],
+              "action": {
+                "type": "repeatActivity",
+                "max": "@spellLevel",
+                "to": {
+                  "who": "choose",
+                  "side": "enemy",
+                  "range": 30,
+                  "from": "subject",
+                  "notSubject": true
+                }
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!5UT3ZzMlu11bwG27.chromaticOrbLeap"
+    }
+  ],
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Chromatic Orb",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplChromaticO"
+        },
+        {
+          "name": "Chromatic Orb",
+          "type": "spell",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "duplicateSource": null,
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790611064020,
+    "modifiedTime": 1790611064033,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "exportSource": null,
+    "compendiumSource": null
+  },
+  "_id": "5UT3ZzMlu11bwG27",
+  "_key": "!items!5UT3ZzMlu11bwG27"
+}

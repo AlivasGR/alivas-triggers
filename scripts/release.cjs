@@ -6,7 +6,7 @@
  * 1. stamps both module.json files with the version and public URLs (set-version.cjs)
  * 2. refuses if any pack source still carries long rules text (strip-rules-text.cjs --check)
  * 3. rebuilds the compendia
- * 4. copies the public files (no TRACKING.md, no work/) into the public repository folder, commits and pushes
+ * 4. copies the public files (no TRACKING.md / MAINTAINER.md, no work/) into the public repository folder, commits and pushes
  * 5. zips each module and creates the GitHub release vX.Y.Z with <id>.zip and <id>.json (the manifest)
  */
 const { execSync } = require("child_process");
@@ -18,7 +18,7 @@ const ROOT = path.join(__dirname, "..");
 const PUBLIC = path.join(ROOT, "..", "alivas-triggers-public");
 const DIST = path.join(ROOT, "dist");
 const MODULES = ["alivas-engine-of-triggers", "alivas-box-of-triggers"];
-const PRIVATE_ONLY = [/^TRACKING\.md$/, /^work\//];
+const PRIVATE_ONLY = [/^TRACKING\.md$/, /^MAINTAINER\.md$/, /^work\//];
 
 const version = process.argv[2];
 if ( !/^\d+\.\d+\.\d+$/.test(version ?? "") ) throw new Error("Usage: npm run release -- X.Y.Z");

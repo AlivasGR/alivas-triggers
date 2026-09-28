@@ -1,0 +1,367 @@
+{
+  "name": "Flaming Sphere",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Flaming Sphere. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "rules": "2024",
+      "license": "CC-BY-4.0",
+      "book": "",
+      "revision": 2
+    },
+    "activation": {
+      "type": "action",
+      "condition": "",
+      "value": null
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute",
+      "expiry": null
+    },
+    "target": {
+      "affects": {
+        "type": "space",
+        "count": "1",
+        "choice": false,
+        "special": ""
+      },
+      "template": {
+        "units": "ft",
+        "contiguous": false,
+        "type": "",
+        "stationary": false
+      }
+    },
+    "range": {
+      "value": "60",
+      "units": "ft",
+      "special": ""
+    },
+    "uses": {
+      "max": "",
+      "recovery": [],
+      "spent": 0
+    },
+    "level": 2,
+    "school": "con",
+    "properties": [
+      "vocal",
+      "somatic",
+      "material",
+      "concentration"
+    ],
+    "materials": {
+      "value": "a ball of wax",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "activities": {
+      "dnd5eactivity000": {
+        "_id": "dnd5eactivity000",
+        "type": "summon",
+        "activation": {
+          "type": "action",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "targets": [],
+          "scaling": {
+            "allowed": false,
+            "max": ""
+          },
+          "spellSlot": true
+        },
+        "description": {
+          "chatFlavor": "",
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "override": false,
+          "expiry": null,
+          "concentration": false
+        },
+        "range": {
+          "override": false,
+          "units": "self"
+        },
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "stationary": false
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "bonuses": {
+          "ac": "",
+          "hd": "",
+          "hp": "",
+          "attackDamage": "",
+          "saveDamage": "(@item.level)d6",
+          "healing": ""
+        },
+        "creatureSizes": [],
+        "creatureTypes": [],
+        "match": {
+          "proficiency": true,
+          "saves": true,
+          "attacks": false,
+          "disposition": false
+        },
+        "profiles": [
+          {
+            "count": "",
+            "name": "",
+            "_id": "duLCA3KGJ0Psh0wo",
+            "uuid": "Compendium.dnd5e.actors24.Actor.phbsplFlamingSph",
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "types": []
+          }
+        ],
+        "summon": {
+          "mode": "",
+          "prompt": true
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "sort": 0,
+        "img": null,
+        "behaviors": [],
+        "effects": [],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "summonEffects": [
+              "flamingSphereAur"
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      },
+      "dnd5eactivity100": {
+        "_id": "dnd5eactivity100",
+        "type": "save",
+        "activation": {
+          "type": "action",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "targets": [],
+          "scaling": {
+            "allowed": false,
+            "max": ""
+          },
+          "spellSlot": true
+        },
+        "description": {
+          "chatFlavor": "",
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "override": false,
+          "expiry": null,
+          "concentration": false
+        },
+        "effects": [],
+        "range": {
+          "override": false,
+          "units": "self"
+        },
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "stationary": false
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "damage": {
+          "onSave": "half",
+          "parts": [
+            {
+              "number": 2,
+              "denomination": 6,
+              "bonus": "",
+              "types": [
+                "fire"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "whole",
+                "number": 1,
+                "formula": ""
+              },
+              "modifiers": []
+            }
+          ]
+        },
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "spellcasting",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "sort": 0,
+        "img": null,
+        "behaviors": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    },
+    "identifier": "flaming-sphere",
+    "method": "spell",
+    "prepared": 0
+  },
+  "type": "spell",
+  "img": "icons/magic/fire/flame-burning-earth-yellow.webp",
+  "effects": [
+    {
+      "_id": "flamingSphereAur",
+      "name": "Flaming Sphere",
+      "img": "icons/magic/fire/flame-burning-earth-yellow.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "area": {
+            "radius": 5
+          },
+          "stopOnCollision": true,
+          "triggers": [
+            {
+              "label": "Flaming Sphere",
+              "event": "areaTurnEnd",
+              "action": {
+                "type": "save",
+                "ability": "dex",
+                "dc": "sourceSpell",
+                "to": {
+                  "who": "targets"
+                },
+                "damage": {
+                  "formula": "(2 * @spellLevel - 2)d6",
+                  "type": "fire",
+                  "onSuccess": "half"
+                }
+              }
+            },
+            {
+              "label": "Flaming Sphere (rammed)",
+              "event": "collided",
+              "filter": [
+                {
+                  "k": "sourceTurn",
+                  "v": true
+                }
+              ],
+              "action": {
+                "type": "save",
+                "ability": "dex",
+                "dc": "sourceSpell",
+                "to": {
+                  "who": "targets"
+                },
+                "damage": {
+                  "formula": "(2 * @spellLevel - 2)d6",
+                  "type": "fire",
+                  "onSuccess": "half"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!PLLSXHykW4rLTJLq.flamingSphereAur"
+    }
+  ],
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 3,
+      "match": [
+        {
+          "name": "Flaming Sphere",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplFlamingSph"
+        },
+        {
+          "name": "Flaming Sphere",
+          "type": "spell",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "duplicateSource": null,
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790611064020,
+    "modifiedTime": 1790611064034,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "exportSource": null,
+    "compendiumSource": null
+  },
+  "_id": "PLLSXHykW4rLTJLq",
+  "_key": "!items!PLLSXHykW4rLTJLq"
+}

@@ -188,6 +188,12 @@
           "type": "spell",
           "book": "VSS'24",
           "page": ""
+        },
+        {
+          "name": "Accelerate/Decelerate",
+          "type": "spell",
+          "book": "VSS:PP1",
+          "page": ""
         }
       ]
     }

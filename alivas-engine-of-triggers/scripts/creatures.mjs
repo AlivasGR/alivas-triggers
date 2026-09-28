@@ -154,7 +154,8 @@ export function findCreatures(from, spec={}, ctx={}) {
     const rel = relation(from, actor, scene);
     if ( (spec.side === "ally") && !["self", "ally"].includes(rel) ) continue;
     if ( (spec.side === "enemy") && (rel !== "enemy") ) continue;
-    const distance = isSelf ? 0 : (origin ? distanceFt(origin, t) : 0);
+    const center = (spec.from === "subject") && ctx.subject ? (tokenFor(ctx.subject, scene) ?? origin) : origin;
+    const distance = isSelf ? 0 : (center ? distanceFt(center, t) : 0);
     if ( !isSelf && spec.range && (distance > Number(spec.range)) ) continue;
     if ( !isSelf && spec.sight && !canSee(origin, t) ) continue;
     seen.add(actor.uuid);
@@ -234,7 +235,7 @@ export async function selectCreatures(chooser, selector={}, ctx={}) {
 /** Plain-language description of a SELECTOR, e.g. "a creature you choose within 60 ft that you can see". */
 export function describeSelector(selector={}, { you="you", bearerWord="the bearer" }={}) {
   const side = { ally: "ally", enemy: "enemy" }[selector.side] ?? "creature";
-  const within = selector.range ? ` within ${selector.range} ft` : "";
+  const within = selector.range ? ` within ${selector.range} ft${selector.from === "subject" ? " of the triggering creature" : ""}` : "";
   const seeing = selector.sight ? ` that ${you} can see` : "";
   const notSubject = selector.notSubject ? " (not the triggering creature)" : "";
   const pool = selector.pool === "targets" ? " among the targets" : selector.pool === "combat" ? " in the combat" : "";
@@ -383,41 +384,95 @@ export function lowestSlot(activity) {
 
 /** Handlers that can be run remotely: name → async (payload) => result. */
 export const HANDLERS = {
-  /** Show a "choose a creature" popup; resolves to the chosen actor's UUID or null. */
+  /** Choose one creature; resolves to its UUID or null. */
   async pickCreature({ title, prompt, choices, allowNone }) {
-    const buttons = choices.map(c => ({ action: c.uuid, label: c.name }));
-    if ( allowNone ) buttons.push({ action: "none", label: "No one", icon: "fa-solid fa-xmark" });
-    const choice = await foundry.applications.api.DialogV2.wait({
-      window: { title }, content: prompt || "<p>Choose a creature.</p>", buttons,
-      position: { width: 420 }, rejectClose: false
-    });
-    return (choice && (choice !== "none")) ? choice : null;
+    const [uuid] = await pickOnMap({ title, prompt, choices, count: 1, allowNone });
+    return uuid ?? null;
   }
 };
 
-/** Show a "choose up to N creatures" popup (checkboxes); resolves to a list of UUIDs. */
-HANDLERS.pickCreatures = async function({ title, prompt, choices, count }) {
-  const rows = choices.map(c => `<label style="display:flex;gap:8px;align-items:center;margin:4px 0">
-    <input type="checkbox" name="pick" value="${c.uuid}"> <span>${foundry.utils.escapeHTML(c.name)}</span></label>`).join("");
+/** Choose up to count creatures; resolves to a list of UUIDs. */
+HANDLERS.pickCreatures = async function({ title, prompt, choices, count, allowNone }) {
+  return pickOnMap({ title, prompt, choices, count, allowNone });
+};
+
+/**
+ * The creature picker. Picking a row pans the camera to that creature and targets it; targeting a listed creature on the
+ * map picks its row. One pick = radio buttons, several = checkboxes (up to count). Cancelling restores the targets.
+ * @returns {Promise<string[]>} UUIDs
+ */
+async function pickOnMap({ title, prompt, choices, count=1, allowNone=true }) {
+  const single = count <= 1;
+  const tokenOf = uuid => tokenFor(fromUuidSync(uuid))?.object ?? null;
+  const previous = Array.from(game.user.targets ?? []);
+  let syncing = false;
+  const target = (token, on, release) => {
+    if ( !token ) return;
+    syncing = true;
+    try { token.setTarget(on, { releaseOthers: release, groupSelection: !release }); } finally { syncing = false; }
+  };
+  const focus = uuid => {
+    const token = tokenOf(uuid);
+    if ( token ) {
+      if ( document.hidden ) canvas.pan({ x: token.center.x, y: token.center.y });
+      else canvas.animatePan({ x: token.center.x, y: token.center.y, duration: 250 });
+    }
+    return token;
+  };
+  const rows = choices.map(c => {
+    const token = tokenOf(c.uuid);
+    const img = token?.document.texture.src ?? fromUuidSync(c.uuid)?.img ?? "icons/svg/mystery-man.svg";
+    return `<label class="aet-pick-row" style="display:flex;gap:8px;align-items:center;margin:3px 0;padding:2px 4px;border-radius:4px;cursor:pointer">
+      <input type="${single ? "radio" : "checkbox"}" name="pick" value="${c.uuid}">
+      <img src="${img}" width="28" height="28" style="border:none;object-fit:contain">
+      <span>${foundry.utils.escapeHTML(c.name)}</span></label>`;
+  }).join("");
+  let hook = null;
+  const buttons = [{ action: "ok", label: "Confirm", icon: "fa-solid fa-check", default: true,
+    callback: (event, button, dialog) => [...dialog.element.querySelectorAll('input[name="pick"]:checked')].map(b => b.value) }];
+  if ( allowNone !== false ) buttons.push({ action: "none", label: "No one", icon: "fa-solid fa-xmark", callback: () => null });
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title }, position: { width: 420 }, rejectClose: false,
-    content: `${prompt || ""}<p><em>Choose up to ${count}.</em></p>${rows}`,
+    content: `${prompt || ""}<p class="hint"><em>${single ? "Pick one" : `Pick up to ${count}`} — or target ${single ? "it" : "them"} on the map.</em></p>${rows}`,
     render: (event, dialog) => {
-      const boxes = dialog.element.querySelectorAll('input[name="pick"]');
-      const limit = () => {
-        const n = [...boxes].filter(b => b.checked).length;
-        boxes.forEach(b => { b.disabled = !b.checked && (n >= count); });
+      const boxes = [...dialog.element.querySelectorAll('input[name="pick"]')];
+      const ok = dialog.element.querySelector('button[data-action="ok"]');
+      const refresh = () => {
+        const n = boxes.filter(b => b.checked).length;
+        if ( !single ) boxes.forEach(b => { b.disabled = !b.checked && (n >= count); });
+        boxes.forEach(b => { b.closest("label").style.background = b.checked ? "rgba(255,200,80,0.18)" : ""; });
+        if ( ok ) ok.disabled = !n;
       };
-      boxes.forEach(b => b.addEventListener("change", limit));
+      for ( const box of boxes ) box.addEventListener("change", () => {
+        if ( box.checked ) target(focus(box.value), true, single);
+        else target(tokenOf(box.value), false, false);
+        refresh();
+      });
+      hook = Hooks.on("targetToken", (user, token, targeted) => {
+        if ( syncing || (user !== game.user) ) return;
+        const box = boxes.find(b => b.value === token.actor?.uuid);
+        if ( !box ) return;
+        if ( targeted ) {
+          if ( single ) boxes.forEach(b => { b.checked = b === box; });
+          else if ( !box.checked && (boxes.filter(b => b.checked).length < count) ) box.checked = true;
+        } else if ( !single ) box.checked = false;
+        refresh();
+      });
+      refresh();
     },
-    buttons: [
-      { action: "ok", label: "Confirm", icon: "fa-solid fa-check", default: true,
-        callback: (event, button, dialog) => [...dialog.element.querySelectorAll('input[name="pick"]:checked')].map(b => b.value) },
-      { action: "none", label: "No one", icon: "fa-solid fa-xmark", callback: () => [] }
-    ]
+    buttons
   });
-  return Array.isArray(result) ? result : [];
-};
+  if ( hook !== null ) Hooks.off("targetToken", hook);
+  const picked = Array.isArray(result) ? result : [];
+  if ( !picked.length ) {
+    syncing = true;
+    try {
+      Array.from(game.user.targets).forEach(tk => tk.setTarget(false, { releaseOthers: false, groupSelection: true }));
+      previous.forEach(tk => tk.setTarget(true, { releaseOthers: false, groupSelection: true }));
+    } finally { syncing = false; }
+  }
+  return picked;
+}
 
 /** Choose up to `count` of several options (checkboxes); resolves to the chosen values. */
 HANDLERS.pickMany = async function({ title, prompt, options, count }) {
@@ -442,24 +497,26 @@ HANDLERS.pickMany = async function({ title, prompt, options, count }) {
 
 /**
  * Recover expended spell slots up to a budget of combined levels (Arcane Recovery, Natural Recovery).
- * payload: { title, prompt, budget, slots: [{ key, level, missing }] } → { key: count }
+ * payload: { title, prompt, budget, maxSlots?, slots: [{ key, level, missing }] } → { key: count }
  */
-HANDLERS.recoverSlots = async function({ title, prompt, budget, slots }) {
+HANDLERS.recoverSlots = async function({ title, prompt, budget, maxSlots, slots }) {
   const rows = slots.map(s => `<label style="display:flex;gap:8px;align-items:center;margin:4px 0">
     <span style="min-width:90px">Level ${s.level}</span>
     <input type="number" name="${s.key}" data-level="${s.level}" value="0" min="0" max="${s.missing}" style="width:60px">
     <span class="aet-muted">of ${s.missing} expended</span></label>`).join("");
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title }, position: { width: 420 }, rejectClose: false,
-    content: `${prompt || ""}<p>Up to <strong>${budget}</strong> levels in total. <span class="aet-used"></span></p>${rows}`,
+    content: `${prompt || ""}<p>${maxSlots === 1 ? `One slot, up to level <strong>${budget}</strong>.`
+      : `Up to <strong>${budget}</strong> levels in total${maxSlots ? `, at most ${maxSlots} slots` : ""}.`} <span class="aet-used"></span></p>${rows}`,
     render: (event, dialog) => {
       const inputs = [...dialog.element.querySelectorAll("input[type=number]")];
       const used = dialog.element.querySelector(".aet-used");
       const ok = dialog.element.querySelector('button[data-action="ok"]');
       const update = () => {
         const total = inputs.reduce((s, i) => s + (Number(i.value) || 0) * Number(i.dataset.level), 0);
+        const count = inputs.reduce((s, i) => s + (Number(i.value) || 0), 0);
         used.textContent = `Chosen: ${total}.`;
-        if ( ok ) ok.disabled = total > budget;
+        if ( ok ) ok.disabled = (total > budget) || (maxSlots && (count > maxSlots));
       };
       inputs.forEach(i => i.addEventListener("input", update));
       update();
@@ -469,6 +526,40 @@ HANDLERS.recoverSlots = async function({ title, prompt, budget, slots }) {
         callback: (event, button, dialog) => Object.fromEntries([...dialog.element.querySelectorAll("input[type=number]")]
           .map(i => [i.name, Math.max(0, Math.min(Number(i.max), Number(i.value) || 0))])) },
       { action: "no", label: "Not now", icon: "fa-solid fa-xmark", callback: () => null }
+    ]
+  });
+  return (result && typeof result === "object") ? result : null;
+};
+
+/**
+ * Choose a spell and a spell slot to spend on it (spell storing).
+ * payload: { title, spells: [{ uuid, name, level }], slots: [{ key, level, value }] } → { uuid, slot } or null
+ */
+HANDLERS.pickSpellSlot = async function({ title, spells, slots }) {
+  const spellOptions = spells.map(s => `<option value="${s.uuid}" data-level="${s.level}">${foundry.utils.escapeHTML(s.name)} (level ${s.level})</option>`).join("");
+  const slotOptions = slots.map(s => `<option value="${s.key}" data-level="${s.level}">Level ${s.level} (${s.value} left)</option>`).join("");
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title }, position: { width: 420 }, rejectClose: false,
+    content: `<label style="display:flex;gap:8px;align-items:center;margin:6px 0"><span style="min-width:60px">Spell</span><select name="spell">${spellOptions}</select></label>
+      <label style="display:flex;gap:8px;align-items:center;margin:6px 0"><span style="min-width:60px">Slot</span><select name="slot">${slotOptions}</select></label>`,
+    render: (event, dialog) => {
+      const spell = dialog.element.querySelector("select[name=spell]");
+      const slot = dialog.element.querySelector("select[name=slot]");
+      const ok = dialog.element.querySelector('button[data-action="ok"]');
+      const update = () => {
+        const min = Number(spell.selectedOptions[0]?.dataset.level ?? 1);
+        for ( const o of slot.options ) o.disabled = Number(o.dataset.level) < min;
+        if ( slot.selectedOptions[0]?.disabled ) slot.value = [...slot.options].find(o => !o.disabled)?.value ?? "";
+        if ( ok ) ok.disabled = !slot.value;
+      };
+      spell.addEventListener("change", update);
+      update();
+    },
+    buttons: [
+      { action: "ok", label: "Store", icon: "fa-solid fa-box-archive", default: true,
+        callback: (event, button, dialog) => ({ uuid: dialog.element.querySelector("select[name=spell]").value,
+          slot: dialog.element.querySelector("select[name=slot]").value }) },
+      { action: "no", label: "Cancel", icon: "fa-solid fa-xmark", callback: () => null }
     ]
   });
   return (result && typeof result === "object") ? result : null;

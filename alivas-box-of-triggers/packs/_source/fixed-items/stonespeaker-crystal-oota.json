@@ -1,0 +1,313 @@
+{
+  "name": "Stonespeaker Crystal",
+  "type": "equipment",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Stonespeaker Crystal. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "OotA",
+      "revision": 1,
+      "rules": "2014"
+    },
+    "quantity": 1,
+    "weight": {
+      "value": 0,
+      "units": "lb"
+    },
+    "price": {
+      "value": 0,
+      "denomination": "gp"
+    },
+    "attunement": "required",
+    "identified": true,
+    "cover": null,
+    "uses": {
+      "spent": 0,
+      "max": "10",
+      "recovery": [
+        {
+          "period": "dawn",
+          "type": "formula",
+          "formula": "1d6 + 4"
+        }
+      ]
+    },
+    "armor": {
+      "value": null,
+      "dex": null
+    },
+    "hp": {
+      "value": 0,
+      "max": 0,
+      "dt": null,
+      "conditions": ""
+    },
+    "speed": {
+      "value": null,
+      "conditions": "",
+      "units": "ft"
+    },
+    "strength": null,
+    "proficient": 1,
+    "unidentified": {
+      "description": ""
+    },
+    "type": {
+      "value": "trinket",
+      "baseItem": ""
+    },
+    "activities": {
+      "stoneSpeakAnimal": {
+        "_id": "stoneSpeakAnimal",
+        "type": "cast",
+        "name": "Speak with Animals (2 charges)",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "2",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "spell": {
+          "uuid": "Compendium.dnd5e.spells24.Item.phbsplSpeakwithA",
+          "level": null,
+          "properties": [],
+          "challenge": {
+            "override": false
+          },
+          "spellbook": false
+        }
+      },
+      "stoneSpeakDead00": {
+        "_id": "stoneSpeakDead00",
+        "type": "cast",
+        "name": "Speak with Dead (4 charges)",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "4",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "spell": {
+          "uuid": "Compendium.dnd5e.spells24.Item.phbsplSpeakwithD",
+          "level": null,
+          "properties": [],
+          "challenge": {
+            "override": false
+          },
+          "spellbook": false
+        }
+      },
+      "stoneSpeakPlants": {
+        "_id": "stoneSpeakPlants",
+        "type": "cast",
+        "name": "Speak with Plants (3 charges)",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "3",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "spell": {
+          "uuid": "Compendium.dnd5e.spells24.Item.phbsplSpeakwithP",
+          "level": null,
+          "properties": [],
+          "challenge": {
+            "override": false
+          },
+          "spellbook": false
+        }
+      }
+    },
+    "identifier": "stonespeaker-crystal",
+    "properties": [
+      "mgc"
+    ],
+    "crew": {
+      "value": []
+    },
+    "attuned": false,
+    "equipped": false,
+    "rarities": [
+      "rare"
+    ]
+  },
+  "img": "https://assets.forge-vtt.com/6337e6cb61ab80af3642e052/worlds/rage-of-demons/Magic%20Items/stonespeaker_crystal.jpg",
+  "flags": {
+    "plutonium": {
+      "page": "items.html",
+      "source": "OotA",
+      "hash": "stonespeaker%20crystal_oota"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Stonespeaker Crystal",
+          "type": "equipment"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "stonespeakerInv0",
+      "name": "Stonespeaker Crystal",
+      "img": "https://assets.forge-vtt.com/6337e6cb61ab80af3642e052/worlds/rage-of-demons/Magic%20Items/stonespeaker_crystal.jpg",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.inv.roll.mode",
+            "type": "add",
+            "value": "1",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!ryf1W2DiyPyaQjFB.stonespeakerInv0"
+    }
+  ],
+  "_id": "ryf1W2DiyPyaQjFB",
+  "sort": 0,
+  "_stats": {
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "createdTime": 1788007111536,
+    "modifiedTime": 1788007111536,
+    "lastModifiedBy": "PXfLaZpMuZTkYhK5",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!ryf1W2DiyPyaQjFB"
+}

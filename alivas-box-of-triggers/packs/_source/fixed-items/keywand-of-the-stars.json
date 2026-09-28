@@ -1,0 +1,321 @@
+{
+  "name": "Keywand of the Stars",
+  "type": "equipment",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Keywand of the Stars (DMG p. 212). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "DMG",
+      "page": "212",
+      "license": "",
+      "revision": 1,
+      "rules": "2014"
+    },
+    "quantity": 1,
+    "weight": {
+      "value": 1,
+      "units": "lb"
+    },
+    "price": {
+      "value": 0,
+      "denomination": "gp"
+    },
+    "attunement": "required",
+    "rarity": "uncommon",
+    "identified": true,
+    "cover": null,
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "armor": {
+      "value": null,
+      "dex": null,
+      "magicalBonus": ""
+    },
+    "hp": {
+      "value": 0,
+      "max": 0,
+      "dt": null,
+      "conditions": ""
+    },
+    "speed": {
+      "value": null,
+      "conditions": "",
+      "units": "ft"
+    },
+    "strength": null,
+    "proficient": null,
+    "unidentified": {
+      "description": ""
+    },
+    "type": {
+      "value": "trinket",
+      "baseItem": ""
+    },
+    "activities": {
+      "keywandStoreSpel": {
+        "_id": "keywandStoreSpel",
+        "type": "utility",
+        "name": "Store a spell",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "storeSpell",
+                "schools": [
+                  "specialist"
+                ],
+                "attack": 9,
+                "dc": 17
+              }
+            ]
+          }
+        }
+      }
+    },
+    "identifier": "keywand-of-the-stars",
+    "properties": [
+      "mgc"
+    ],
+    "crew": {
+      "value": []
+    },
+    "attuned": false,
+    "equipped": false
+  },
+  "img": "https://assets.forge-vtt.com/6337e6cb61ab80af3642e052/worlds/rage-of-demons/Magic%20Items/beautiful-witch-s-wand-fantasy-watercolor-fairytale-clipart-illustration_962764-30020.avif",
+  "flags": {
+    "plutonium": {
+      "page": "items.html",
+      "source": "DMG",
+      "hash": "%2b2%20wand%20of%20the%20war%20mage_dmg",
+      "propDroppable": "item",
+      "isStandardDragDrop": true
+    },
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Keywand of the Stars",
+          "type": "equipment"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "name": "Spell Attack Bonus (Melee)",
+      "disabled": false,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "origin": null,
+      "transfer": true,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "spell-attack-bonus-melee"
+        },
+        "dnd5e": {
+          "riders": {
+            "statuses": []
+          }
+        },
+        "dae": {
+          "disableCondition": "",
+          "stackable": "noneName",
+          "expiryMode": "default",
+          "durationExpression": "",
+          "macroRepeat": "none",
+          "disableIncapacitated": false,
+          "specialDuration": [],
+          "phaseStamped": true
+        },
+        "core": {
+          "overlay": false
+        },
+        "alivas-engine-of-triggers": {
+          "ownRollsOnly": true
+        }
+      },
+      "_id": "mb7mPr1rrvugkPUj",
+      "description": "",
+      "statuses": [],
+      "_stats": {
+        "coreVersion": "14.367",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1788007111545,
+        "modifiedTime": 1790404287390,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "img": "modules/plutonium/media/icon/fairy-wand.svg",
+      "type": "base",
+      "system": {
+        "changes": [
+          {
+            "key": "system.bonuses.msak.attack",
+            "type": "add",
+            "value": "+1",
+            "phase": "initial",
+            "priority": 7,
+            "_id": "629cAg9A6lQlYPM9",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "magical": true,
+        "origin": {
+          "item": "Actor.jYFxeb87YNLbIYIf.Item.XJ9GBh2dUyIu4Ofu"
+        }
+      },
+      "tint": "#ffffff",
+      "sort": 0,
+      "start": null,
+      "showIcon": 1,
+      "folder": null,
+      "_key": "!items.effects!XJ9GBh2dUyIu4Ofu.mb7mPr1rrvugkPUj"
+    },
+    {
+      "name": "Spell Attack Bonus (Ranged)",
+      "disabled": false,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "origin": null,
+      "transfer": true,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "spell-attack-bonus-ranged"
+        },
+        "dnd5e": {
+          "riders": {
+            "statuses": []
+          }
+        },
+        "dae": {
+          "disableCondition": "",
+          "stackable": "noneName",
+          "expiryMode": "default",
+          "durationExpression": "",
+          "macroRepeat": "none",
+          "disableIncapacitated": false,
+          "specialDuration": [],
+          "phaseStamped": true
+        },
+        "core": {
+          "overlay": false
+        },
+        "alivas-engine-of-triggers": {
+          "ownRollsOnly": true
+        }
+      },
+      "_id": "xnI2FMO5dg1dpFFq",
+      "description": "",
+      "statuses": [],
+      "_stats": {
+        "coreVersion": "14.367",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1788007111545,
+        "modifiedTime": 1790404287390,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "img": "modules/plutonium/media/icon/fairy-wand.svg",
+      "type": "base",
+      "system": {
+        "changes": [
+          {
+            "key": "system.bonuses.rsak.attack",
+            "type": "add",
+            "value": "+1",
+            "phase": "initial",
+            "priority": 7,
+            "_id": "dDYmhuHlBHW4ftKK",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "magical": true,
+        "origin": {
+          "item": "Actor.jYFxeb87YNLbIYIf.Item.XJ9GBh2dUyIu4Ofu"
+        }
+      },
+      "tint": "#ffffff",
+      "sort": 0,
+      "start": null,
+      "showIcon": 1,
+      "folder": null,
+      "_key": "!items.effects!XJ9GBh2dUyIu4Ofu.xnI2FMO5dg1dpFFq"
+    }
+  ],
+  "_id": "XJ9GBh2dUyIu4Ofu",
+  "sort": 0,
+  "_stats": {
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.367",
+    "createdTime": 1788007111545,
+    "modifiedTime": 1790404287390,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!XJ9GBh2dUyIu4Ofu"
+}

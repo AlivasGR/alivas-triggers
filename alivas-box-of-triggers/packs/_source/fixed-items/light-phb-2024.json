@@ -1,0 +1,285 @@
+{
+  "name": "Light",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Light. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "rules": "2024",
+      "license": "CC-BY-4.0",
+      "book": "",
+      "revision": 1
+    },
+    "activation": {
+      "type": "action",
+      "condition": "",
+      "value": null
+    },
+    "duration": {
+      "value": "1",
+      "units": "hour",
+      "expiry": null
+    },
+    "target": {
+      "affects": {
+        "choice": false,
+        "count": "",
+        "type": ""
+      },
+      "template": {
+        "units": "ft",
+        "contiguous": false,
+        "type": "",
+        "stationary": false
+      }
+    },
+    "range": {
+      "units": "touch",
+      "special": ""
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "level": 0,
+    "school": "evo",
+    "properties": [
+      "vocal",
+      "material"
+    ],
+    "materials": {
+      "value": "a firefly or phosphorescent moss",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "activities": {
+      "EnaiVH67oUJzyHsF": {
+        "type": "summon",
+        "_id": "EnaiVH67oUJzyHsF",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": "",
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "range": {
+          "override": false,
+          "units": "self"
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "stationary": false
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false,
+          "prompt": true
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "bonuses": {
+          "ac": "",
+          "hd": "",
+          "hp": "",
+          "attackDamage": "",
+          "saveDamage": "",
+          "healing": ""
+        },
+        "creatureSizes": [
+          "sm",
+          "med",
+          "lg",
+          "tiny"
+        ],
+        "creatureTypes": [],
+        "match": {
+          "attacks": false,
+          "proficiency": false,
+          "saves": false,
+          "disposition": false
+        },
+        "profiles": [
+          {
+            "count": "",
+            "name": "",
+            "_id": "QD99a4WC0JUMMDH7",
+            "uuid": "Compendium.dnd5e.actors24.Actor.phbsplLight00000",
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "types": []
+          }
+        ],
+        "summon": {
+          "prompt": false,
+          "mode": ""
+        },
+        "name": "",
+        "img": "",
+        "behaviors": [],
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      },
+      "lightHeldObject0": {
+        "_id": "lightHeldObject0",
+        "type": "utility",
+        "name": "An object you hold",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "value": "1",
+          "units": "hour",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "lightCantripHeld",
+            "level": {}
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      }
+    },
+    "identifier": "light",
+    "method": "spell",
+    "prepared": 0
+  },
+  "type": "spell",
+  "img": "icons/sundries/lights/candle-pillar-lit-yellow.webp",
+  "effects": [
+    {
+      "_id": "lightCantripHeld",
+      "name": "Light",
+      "img": "icons/sundries/lights/candle-pillar-lit-yellow.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 3600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "token.light.bright",
+            "type": "override",
+            "value": "20",
+            "phase": "initial"
+          },
+          {
+            "key": "token.light.dim",
+            "type": "override",
+            "value": "40",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!PKgPplk1MhkyeY5Q.lightCantripHeld"
+    }
+  ],
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Light",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplLight00000"
+        },
+        {
+          "name": "Light",
+          "type": "spell",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "duplicateSource": null,
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790611064014,
+    "modifiedTime": 1790611064032,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "exportSource": null,
+    "compendiumSource": null
+  },
+  "_id": "PKgPplk1MhkyeY5Q",
+  "_key": "!items!PKgPplk1MhkyeY5Q"
+}

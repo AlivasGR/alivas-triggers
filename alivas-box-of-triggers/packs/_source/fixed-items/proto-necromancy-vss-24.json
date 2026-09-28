@@ -1,0 +1,355 @@
+{
+  "_id": "iSAElnRAyjqEwutB",
+  "name": "Proto-Necromancy",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "VSS'24+",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Proto-Necromancy (VSS'24+). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 1,
+    "school": "nec",
+    "properties": [
+      "vocal",
+      "somatic",
+      "concentration"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "creature",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "60",
+      "units": "ft"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "hour"
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "dnd5eactivity003": {
+        "_id": "dnd5eactivity003",
+        "type": "summon",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {},
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "prompt": true,
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "midiProperties": {
+          "ignoreTraits": [],
+          "triggeredActivityId": "none",
+          "triggeredActivityConditionText": "",
+          "triggeredActivityTargets": "targets",
+          "triggeredActivityRollAs": "self",
+          "triggeredActivityConsume": true,
+          "triggeredActivityConfigure": true,
+          "autoConsume": false,
+          "forceConsumeDialog": "default",
+          "forceRollDialog": "default",
+          "forceDamageDialog": "default",
+          "confirmTargets": "default",
+          "autoTargetType": "any",
+          "autoTargetAction": "default",
+          "automationOnly": false,
+          "otherActivityCompatible": true,
+          "otherActivityAsParentType": true,
+          "identifier": "",
+          "displayActivityName": false,
+          "rollMode": "default",
+          "chooseEffects": false,
+          "toggleEffect": false,
+          "ignoreFullCover": false,
+          "removeChatButtons": "default",
+          "magicEffect": false,
+          "magicDamage": false,
+          "noConcentrationCheck": false,
+          "skipConcentrationCheck": false,
+          "autoCEEffects": "default"
+        },
+        "img": null,
+        "sort": 0,
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "bonuses": {},
+        "creatureSizes": [],
+        "creatureTypes": [],
+        "match": {
+          "attacks": true,
+          "disposition": true,
+          "proficiency": false,
+          "saves": false
+        },
+        "profiles": [
+          {
+            "_id": "pnecSkeleton0000",
+            "name": "Skeleton",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": 2,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmSkeleton000000"
+          },
+          {
+            "_id": "pnecZombie000000",
+            "name": "Zombie",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": 2,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmZombie00000000"
+          },
+          {
+            "_id": "pnecGhoul0000000",
+            "name": "Ghoul",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": 3,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmGhoul000000000"
+          },
+          {
+            "_id": "pnecSpecter00000",
+            "name": "Specter",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": 3,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmSpecter0000000"
+          },
+          {
+            "_id": "pnecWarhorseSkel",
+            "name": "Warhorse Skeleton",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": 3,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmWarhorseSkelet"
+          },
+          {
+            "_id": "pnecMinotaurSkel",
+            "name": "Minotaur Skeleton",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": 4,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmMinotaurSkelet"
+          },
+          {
+            "_id": "pnecOgreZombie00",
+            "name": "Ogre Zombie",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": 5,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmOgreZombie0000"
+          },
+          {
+            "_id": "pnecMummy0000000",
+            "name": "Mummy",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": 6,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmMummy000000000"
+          },
+          {
+            "_id": "pnecWight0000000",
+            "name": "Wight",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": 6,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmWight000000000"
+          }
+        ],
+        "summon": {
+          "prompt": true
+        },
+        "useConditionText": "",
+        "useConditionReason": "",
+        "effectConditionText": "",
+        "macroData": {
+          "name": "",
+          "command": ""
+        },
+        "ignoreTraits": {
+          "idi": false,
+          "idr": false,
+          "idv": false,
+          "ida": false,
+          "idm": false
+        },
+        "isOverTimeFlag": false,
+        "overTimeProperties": {
+          "saveRemoves": true,
+          "rollAs": "target",
+          "preRemoveConditionText": "",
+          "postRemoveConditionText": ""
+        },
+        "regionBehavior": {
+          "enabled": false,
+          "dispositionFilter": -1,
+          "excludeSource": true,
+          "oncePerTurn": true,
+          "wallRestriction": "none",
+          "regionVisibility": 2,
+          "attachToken": "default",
+          "rules": []
+        },
+        "regionLight": {
+          "enabled": false,
+          "dim": 0,
+          "bright": 0,
+          "color": null,
+          "alpha": 0.5,
+          "luminosity": 0.5,
+          "animationType": "",
+          "animationSpeed": 5,
+          "animationIntensity": 5
+        },
+        "friendlySummon": false
+      }
+    },
+    "identifier": "proto-necromancy"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/unholy/hand-fire-skeleton-pink.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "ValdaSpire24Extras",
+      "hash": "proto-necromancy_valdaspire24extras",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Wizard"
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Proto-Necromancy",
+          "type": "spell",
+          "book": "VSS'24+"
+        },
+        {
+          "name": "Proto-Necromancy",
+          "type": "spell",
+          "book": "VSS'24"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1788011734970,
+    "modifiedTime": 1788011770988,
+    "lastModifiedBy": "PXfLaZpMuZTkYhK5",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!iSAElnRAyjqEwutB"
+}

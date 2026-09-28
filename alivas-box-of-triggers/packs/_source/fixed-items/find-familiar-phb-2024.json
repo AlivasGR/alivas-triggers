@@ -1,0 +1,314 @@
+{
+  "name": "Find Familiar",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Find Familiar. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "rules": "2024",
+      "license": "CC-BY-4.0",
+      "book": "",
+      "revision": 1
+    },
+    "activation": {
+      "type": "hour",
+      "condition": "",
+      "value": 1
+    },
+    "duration": {
+      "value": "",
+      "units": "inst",
+      "expiry": null
+    },
+    "target": {
+      "affects": {
+        "type": "space",
+        "count": "1",
+        "choice": false,
+        "special": ""
+      },
+      "template": {
+        "units": "ft",
+        "contiguous": false,
+        "type": "",
+        "stationary": false
+      }
+    },
+    "range": {
+      "value": "10",
+      "units": "ft",
+      "special": ""
+    },
+    "uses": {
+      "max": "",
+      "recovery": [],
+      "spent": 0
+    },
+    "level": 1,
+    "school": "con",
+    "properties": [
+      "vocal",
+      "somatic",
+      "material",
+      "ritual"
+    ],
+    "materials": {
+      "value": "burning incense worth 10+ GP, which the spell consumes",
+      "consumed": true,
+      "cost": 0,
+      "supply": 0
+    },
+    "activities": {
+      "dnd5eactivity000": {
+        "_id": "dnd5eactivity000",
+        "type": "summon",
+        "activation": {
+          "type": "action",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "targets": [],
+          "scaling": {
+            "allowed": false,
+            "max": ""
+          },
+          "spellSlot": true
+        },
+        "description": {
+          "chatFlavor": "",
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "override": false,
+          "expiry": null,
+          "concentration": false
+        },
+        "range": {
+          "override": false,
+          "units": "self"
+        },
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "stationary": false
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "bonuses": {
+          "ac": "",
+          "hd": "",
+          "hp": "",
+          "attackDamage": "",
+          "saveDamage": "",
+          "healing": ""
+        },
+        "creatureSizes": [],
+        "creatureTypes": [
+          "celestial",
+          "fey",
+          "fiend"
+        ],
+        "match": {
+          "proficiency": false,
+          "attacks": false,
+          "disposition": true,
+          "saves": false,
+          "ability": ""
+        },
+        "profiles": [
+          {
+            "_id": "familBat00000000",
+            "name": "Bat",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmBat00000000000"
+          },
+          {
+            "_id": "familCat00000000",
+            "name": "Cat",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmCat00000000000"
+          },
+          {
+            "_id": "familFrog0000000",
+            "name": "Frog",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmFrog0000000000"
+          },
+          {
+            "_id": "familHawk0000000",
+            "name": "Hawk",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmHawk0000000000"
+          },
+          {
+            "_id": "familLizard00000",
+            "name": "Lizard",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmLizard00000000"
+          },
+          {
+            "_id": "familOctopus0000",
+            "name": "Octopus",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmOctopus0000000"
+          },
+          {
+            "_id": "familOwl00000000",
+            "name": "Owl",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmOwl00000000000"
+          },
+          {
+            "_id": "familRat00000000",
+            "name": "Rat",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmRat00000000000"
+          },
+          {
+            "_id": "familRaven000000",
+            "name": "Raven",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmRaven000000000"
+          },
+          {
+            "_id": "familSpider00000",
+            "name": "Spider",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmSpider00000000"
+          },
+          {
+            "_id": "familWeasel00000",
+            "name": "Weasel",
+            "count": "",
+            "types": [],
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "uuid": "Compendium.dnd5e.actors24.Actor.mmWeasel00000000"
+          }
+        ],
+        "summon": {
+          "mode": "cr",
+          "prompt": true
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "sort": 0,
+        "name": "",
+        "img": "",
+        "behaviors": [],
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    },
+    "identifier": "find-familiar",
+    "method": "spell",
+    "prepared": 0
+  },
+  "type": "spell",
+  "img": "icons/creatures/mammals/spirit-deer-herd-blue.webp",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Find Familiar",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplFindFamili"
+        },
+        {
+          "name": "Find Familiar",
+          "type": "spell",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "duplicateSource": null,
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790611064017,
+    "modifiedTime": 1790611064032,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "exportSource": null,
+    "compendiumSource": null
+  },
+  "_id": "MNzntcbjldSYZYV9",
+  "_key": "!items!MNzntcbjldSYZYV9"
+}

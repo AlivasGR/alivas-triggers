@@ -1,0 +1,106 @@
+{
+  "_id": "mmUndeadFortitud",
+  "name": "Undead Fortitude",
+  "type": "feat",
+  "system": {
+    "type": {
+      "value": "monster",
+      "subtype": ""
+    },
+    "activities": {},
+    "uses": {
+      "spent": 0,
+      "recovery": [],
+      "max": ""
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Undead Fortitude. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "identifier": "undead-fortitude",
+    "source": {
+      "revision": 1,
+      "rules": "2024",
+      "book": "",
+      "license": "CC-BY-4.0"
+    },
+    "enchant": {},
+    "prerequisites": {
+      "level": null,
+      "repeatable": false,
+      "items": []
+    },
+    "properties": [
+      "trait"
+    ],
+    "requirements": "",
+    "advancement": {},
+    "cover": null,
+    "crewed": false
+  },
+  "img": "icons/magic/death/skull-flames-white-blue.webp",
+  "effects": [
+    {
+      "_id": "undeadFortitudeR",
+      "name": "Undead Fortitude",
+      "img": "icons/magic/death/skull-flames-white-blue.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "dropSave": {
+            "ability": "con",
+            "dc": "5 + @damage",
+            "unlessTypes": [
+              "radiant"
+            ],
+            "unlessCritical": true,
+            "hp": 1
+          }
+        }
+      },
+      "_key": "!items.effects!mmUndeadFortitud.undeadFortitudeR"
+    }
+  ],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "undead-fortitude"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "14.364",
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.0",
+    "lastModifiedBy": null,
+    "createdTime": null,
+    "modifiedTime": null
+  },
+  "ownership": {
+    "default": 0
+  },
+  "sort": 0,
+  "_key": "!items!mmUndeadFortitud"
+}

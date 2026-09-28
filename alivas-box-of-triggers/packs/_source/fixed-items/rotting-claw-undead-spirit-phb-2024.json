@@ -1,0 +1,355 @@
+{
+  "_id": "zaGw5thAnGMHQ4je",
+  "effects": [
+    {
+      "_id": "dnd5eItemChanges",
+      "disabled": false,
+      "name": "Item Changes",
+      "system": {
+        "changes": [
+          {
+            "key": "activities[attack].attack.bonus",
+            "type": "override",
+            "value": "4 + 3 + +1",
+            "phase": "initial",
+            "_id": "QHIQVBLM0wzyjnZ8",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "activities[attack].attack.flat",
+            "type": "override",
+            "value": true,
+            "phase": "initial",
+            "_id": "hsezBMDsz3w6l2xe",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "system.damage.bonus",
+            "type": "add",
+            "value": 3,
+            "phase": "initial",
+            "_id": "K81oIsjnbZFikVwo",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "activity": "Actor.jYFxeb87YNLbIYIf.Item.C5We8ZocGpgcYRoD.Activity.dnd5eactivity000",
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "magical": true
+      },
+      "type": "enchantment",
+      "transfer": true,
+      "img": "systems/dnd5e/icons/svg/documents/active-effect.svg",
+      "start": null,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "description": "",
+      "origin": null,
+      "tint": "#ffffff",
+      "statuses": [],
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "flags": {},
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790619254346,
+        "modifiedTime": 1790619254346,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!zaGw5thAnGMHQ4je.dnd5eItemChanges"
+    },
+    {
+      "_id": "DxRcP7MLrKHEH1Kw",
+      "name": "Rotting Claw",
+      "img": "modules/plutonium/media/icon/sword-brandish.svg",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [
+        "paralyzed"
+      ],
+      "disabled": false,
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "targetEnd",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "rotting-claw"
+        },
+        "alivas-engine-of-triggers": {
+          "onlyIf": [
+            {
+              "k": "statuses.poisoned",
+              "o": "gt",
+              "v": 0
+            }
+          ]
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790619254346,
+        "modifiedTime": 1790619254346,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!zaGw5thAnGMHQ4je.DxRcP7MLrKHEH1Kw"
+    }
+  ],
+  "name": "Rotting Claw",
+  "type": "weapon",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "328",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Rotting Claw (PHB 2024 p. 328). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "range": {
+      "value": 5,
+      "long": null,
+      "units": "ft"
+    },
+    "proficient": 1,
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "natural",
+      "baseItem": ""
+    },
+    "properties": [],
+    "activities": {
+      "dnd5eactivity000": {
+        "_id": "dnd5eactivity000",
+        "type": "attack",
+        "name": "",
+        "activation": {
+          "type": "action",
+          "value": 1,
+          "override": false
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "expiry": "targetEnd",
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "DxRcP7MLrKHEH1Kw",
+            "uuid": null,
+            "level": {}
+          }
+        ],
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "attack": {
+          "flat": true,
+          "type": {
+            "value": "melee",
+            "classification": ""
+          },
+          "ability": "none",
+          "bonus": "+ @srd5e.userchar.spellAttackRanged",
+          "critical": {}
+        },
+        "damage": {
+          "parts": [
+            {
+              "types": [
+                "slashing"
+              ],
+              "number": 1,
+              "denomination": 6,
+              "bonus": "3 + 0",
+              "scaling": {
+                "mode": "",
+                "number": 1
+              },
+              "custom": {
+                "enabled": false
+              },
+              "modifiers": []
+            }
+          ],
+          "critical": {},
+          "includeBase": true
+        },
+        "img": null,
+        "sort": 0,
+        "behaviors": [],
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    },
+    "damage": {
+      "base": {
+        "types": [],
+        "custom": {
+          "enabled": false
+        },
+        "modifiers": [],
+        "scaling": {
+          "number": 1
+        }
+      },
+      "versatile": {
+        "types": [],
+        "custom": {
+          "enabled": false
+        },
+        "modifiers": [],
+        "scaling": {
+          "number": 1
+        }
+      }
+    },
+    "identifier": "rotting-claw",
+    "identified": true,
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "quantity": 1,
+    "weight": {
+      "value": 0,
+      "units": "lb"
+    },
+    "price": {
+      "value": 0,
+      "denomination": "gp"
+    },
+    "rarities": [],
+    "attunement": "",
+    "attuned": false,
+    "equipped": true,
+    "crew": {
+      "value": []
+    },
+    "ammunition": {},
+    "armor": {}
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "modules/plutonium/media/icon/sword-brandish.svg",
+  "flags": {
+    "plutonium": {
+      "page": "monsterAction",
+      "source": "XPHB",
+      "hash": "rotting%20claw_undead%20spirit%20(putrid)_xphb_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Rotting Claw",
+          "type": "weapon",
+          "book": "PHB 2024",
+          "page": "328"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "createdTime": 1790619254346,
+    "modifiedTime": 1790619254346,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!zaGw5thAnGMHQ4je"
+}

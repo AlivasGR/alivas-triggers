@@ -177,3 +177,10 @@
 .aet-rules[open] summary { margin-bottom: 8px; }
 .aet-small-check { display: inline-flex; margin-right: 8px; }
 .aet-settings { padding: 4px 2px 8px; }
+.aet-rule-group { border-top: 1px solid var(--aet-line); padding: 6px 0 2px; }
+.aet-rule-group:first-of-type { border-top: none; }
+.aet-rule-group > summary { cursor: pointer; font-weight: 600; font-size: 13px; list-style: disclosure-closed; }
+.aet-rule-group[open] > summary { list-style: disclosure-open; margin-bottom: 6px; }
+.aet-rule-group > .aet-fields { padding-left: 12px; }
+.aet-hint-warn { margin: 6px 0 0; padding: 6px 8px; border-radius: 6px; background: rgba(255, 180, 60, .12); font-size: 12px; }
+.aet-hint-warn i { margin-right: 4px; }

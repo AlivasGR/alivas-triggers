@@ -1,0 +1,126 @@
+{
+  "_id": "3T9z1jAqxpmLoFJj",
+  "name": "Potent Cantrip",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "174",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Potent Cantrip (PHB 2024 p. 174). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Wizard 3 (Evoker)",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {},
+    "identifier": "potent-cantrip",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "modules/plutonium/media/icon/subclass/phb-wizard-phb-school-of-evocation.webp",
+  "flags": {
+    "plutonium": {
+      "page": "subclassFeature",
+      "source": "XPHB",
+      "hash": "potent%20cantrip_wizard_xphb_evoker_xphb_3_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Potent Cantrip",
+          "type": "feat",
+          "book": "PHB 2024",
+          "page": "174"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "potentCantripEff",
+      "name": "Potent Cantrip",
+      "img": "modules/plutonium/media/icon/subclass/phb-wizard-phb-school-of-evocation.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "saveDamage": {
+            "spellLevel": 0,
+            "onSave": "half"
+          },
+          "triggers": [
+            {
+              "label": "Potent Cantrip",
+              "event": "missed",
+              "filter": [
+                {
+                  "k": "spellLevel",
+                  "v": 0
+                },
+                {
+                  "k": "hasDamage",
+                  "v": true
+                }
+              ],
+              "action": {
+                "type": "activityDamage",
+                "multiplier": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!3T9z1jAqxpmLoFJj.potentCantripEff"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1788007111539,
+    "modifiedTime": 1788007111539,
+    "lastModifiedBy": "PXfLaZpMuZTkYhK5",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!3T9z1jAqxpmLoFJj"
+}

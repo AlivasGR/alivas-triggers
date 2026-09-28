@@ -97,6 +97,8 @@
 
 import * as Reactions from "./reactions.mjs";
 import * as Creatures from "./creatures.mjs";
+import * as Workflow from "./workflow.mjs";
+import * as Areas from "./areas.mjs";
 import { TriggerEditor, describeTrigger, describeReaction } from "./editor.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
@@ -155,6 +157,10 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
     const ac = token.actor?.system.attributes?.ac?.value;
     return token.actor && Number.isFinite(ac) && (roll.isCritical || (!roll.isFumble && (roll.total >= ac)));
   });
+  for ( const token of game.user.targets ) {
+    if ( token.actor && !hits.includes(token) ) fire("missed", subject.actor, missContext(subject, rolls, token.actor));
+  }
+  const landed = [];
   for ( const token of hits ) {
     const target = token.actor;
     // Reactions first (Shield, Silvery Barbs…): they can turn the hit into a miss. Damage for this attack waits.
@@ -168,6 +174,7 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
         });
         if ( !result.hit ) {
           absorbed.set(key, { at: Date.now(), reason: "the attack missed after a reaction" });
+          fire("missed", subject.actor, missContext(subject, rolls, target));
           continue;
         }
       } finally {
@@ -179,8 +186,228 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
     await fire("hit", target, { activity: subject, rolls, attacker: subject.actor,
       data: { distance, attackType: subject.attack?.type?.value ?? "" } });
     if ( isAbsorbed(target, subject) ) continue;
+    landed.push(target);
     if ( setting("autoApplyEffects") && subject.effects?.length ) {
       await autoApply(subject, target, subject.effects, findUsageMessage(subject));
+    }
+  }
+  await Workflow.attackLanded(subject, landed, roll);
+});
+
+/**
+ * Context for "missed" (fired on the attacker). Filter data: spellLevel (null for non-spells), isSpell, hasDamage,
+ * attackType, identifier. The missed creature is the event's target (selector "targets").
+ */
+function missContext(activity, rolls, target) {
+  const item = activity.item;
+  const isSpell = item?.type === "spell";
+  return { activity, rolls, targets: [target], data: {
+    spellLevel: isSpell ? item.system.level : null, isSpell, hasDamage: !!activity.damage?.parts?.length,
+    attackType: activity.attack?.type?.value ?? "", identifier: item?.system?.identifier ?? ""
+  } };
+}
+
+/**
+ * Damage rolled by an activity: fired on its actor. Filter data: duplicateDice (two or more dice of one term show the
+ * same number), critical, isSpell, spellLevel, identifier, attackType. Targets: the user's current targets.
+ */
+Hooks.on("dnd5e.rollDamageV2", (rolls, { subject }={}) => {
+  const actor = subject?.actor;
+  if ( !actor || !rolls?.length ) return;
+  const item = subject.item;
+  const isSpell = item?.type === "spell";
+  const duplicateDice = rolls.some(r => r.dice.some(d => {
+    const faces = d.results.filter(x => x.active !== false).map(x => x.result);
+    return new Set(faces).size < faces.length;
+  }));
+  const targets = Array.from(game.user.targets ?? [], tk => tk.actor).filter(Boolean);
+  fire("damageRolled", actor, { activity: subject, rolls, targets, subject: targets[0] ?? null, data: {
+    duplicateDice, critical: !!rolls[0]?.isCritical, isSpell, spellLevel: isSpell ? item.system.level : null,
+    identifier: item?.system?.identifier ?? "", attackType: subject.attack?.type?.value ?? ""
+  } });
+});
+
+/* -------------------------------------------- */
+/*  Attached areas and collisions               */
+/* -------------------------------------------- */
+
+/**
+ * Effect flag `area: { radius, color }`: while the effect is on a creature, an automated area (an emanation of radius
+ * ft) is attached to its token and moves with it; the effect's area triggers run for it (see areas.mjs). Lead GM.
+ */
+async function syncEffectArea(effect, token) {
+  const spec = effect.getFlag(MODULE_ID, "area");
+  // Only effects that apply to a creature: on the actor, or transferred from its item (not an item's "applies to
+  // targets" effect such as a spell's).
+  if ( !(effect.parent instanceof Actor) && !effect.transfer ) return;
+  const actor = effect.parent instanceof Actor ? effect.parent : (effect.parent?.actor ?? null);
+  token ??= Creatures.tokenFor(actor);
+  if ( !spec || !token?.parent || !effect.active ) return;
+  const scene = token.parent;
+  const attachedTo = r => r.attachment?.token?.id ?? r.attachment?.token;
+  if ( scene.regions.some(r => (r.getFlag(MODULE_ID, "area") === effect.uuid) && (attachedTo(r) === token.id)) ) return;
+  const radius = (Number(spec.radius) || 5) * scene.grid.size / scene.grid.distance;
+  await scene.createEmbeddedDocuments("Region", [{
+    name: spec.name ?? effect.name, color: spec.color ?? "#ff7a1a",
+    shapes: [{ type: "emanation", radius, base: { type: "token", x: token._source.x, y: token._source.y,
+      width: token.width, height: token.height, shape: token._source.shape ?? CONST.TOKEN_SHAPES.RECTANGLE_1 } }],
+    attachment: { token: token.id }, visibility: CONST.REGION_VISIBILITY.ALWAYS, highlightMode: "coverage",
+    behaviors: [Areas.areaBehaviorData(effect, { level: effect.flags?.dnd5e?.spellLevel ?? null })],
+    flags: { [MODULE_ID]: { area: effect.uuid } }
+  }]);
+}
+async function removeEffectAreas(match) {
+  for ( const scene of game.scenes ) {
+    const ids = scene.regions.filter(r => { const owner = r.getFlag(MODULE_ID, "area"); return owner && match(owner, r); }).map(r => r.id);
+    if ( ids.length ) await scene.deleteEmbeddedDocuments("Region", ids);
+  }
+}
+Hooks.on("createActiveEffect", effect => {
+  if ( Creatures.isLeadGM() && effect.getFlag(MODULE_ID, "area") ) syncEffectArea(effect);
+});
+Hooks.on("updateActiveEffect", (effect, changed) => {
+  if ( !Creatures.isLeadGM() || !effect.getFlag(MODULE_ID, "area") || !("disabled" in changed) ) return;
+  if ( effect.active ) syncEffectArea(effect);
+  else removeEffectAreas(owner => owner === effect.uuid);
+});
+Hooks.on("deleteActiveEffect", effect => {
+  if ( Creatures.isLeadGM() && effect.getFlag(MODULE_ID, "area") ) removeEffectAreas(owner => owner === effect.uuid);
+});
+Hooks.on("createToken", token => {
+  if ( !Creatures.isLeadGM() || !token.actor ) return;
+  for ( const effect of token.actor.allApplicableEffects() ) {
+    if ( effect.active && effect.getFlag(MODULE_ID, "area") ) syncEffectArea(effect, token);
+  }
+});
+Hooks.on("deleteToken", token => {
+  if ( Creatures.isLeadGM() ) removeEffectAreas((owner, region) => (region.attachment?.token?.id ?? region.attachment?.token) === token.id);
+});
+
+/** An activity that places a template gets an automated area on it (its area triggers, or the save workflow's). */
+Hooks.on("dnd5e.createMeasuredTemplate", (activity, regionData) => {
+  if ( !Areas.wantsArea(activity) ) return;
+  const usage = findUsageMessage(activity)?.id ?? "";
+  for ( const data of regionData ) {
+    const level = data.flags?.dnd5e?.spellLevel ?? null;
+    data.behaviors = [...(data.behaviors ?? []), Areas.areaBehaviorData(activity, { level, usage })];
+  }
+});
+
+/**
+ * Effect flag `stopOnCollision` with a "collided" trigger (Flaming Sphere's ram): when the bearer's token moves into
+ * another creature's space and a collided trigger applies (e.g. only on its source's turn), it stops just before that
+ * creature, the trigger fires with the creature as its subject, and in combat the token can't move again this turn.
+ */
+Hooks.on("preMoveToken", (token, movement, operation) => {
+  if ( operation?.[MODULE_ID]?.ram ) return;
+  const actor = token.actor;
+  if ( !actor ) return;
+  const effects = Array.from(actor.allApplicableEffects()).filter(e => e.active && e.getFlag(MODULE_ID, "stopOnCollision"));
+  if ( !effects.length ) return;
+  const combat = combatOf(effects[0].getSourceActor?.() ?? actor, token.parent) ?? combatOf(actor, token.parent);
+  const turnKey = combat ? `${combat.id}:${combat.round}:${combat.turn}` : null;
+  if ( turnKey && (token.getFlag(MODULE_ID, "stoppedTurn") === turnKey) ) {
+    ui.notifications.info(`${token.name} has stopped for this turn.`);
+    return false;
+  }
+  const hit = firstCollision(token, movement) ?? (movement.constrained ? blockedBy(token, movement) : null);
+  if ( !hit ) return;
+  const applies = effects.some(e => (e.getFlag(MODULE_ID, "triggers") ?? []).some(tr => [tr.event].flat().includes("collided")
+    && passesFilter(tr, "collided", { subject: hit.actor, data: {} }, actor, e)));
+  if ( !applies ) return;
+  (async () => {
+    await new Promise(r => setTimeout(r, 50));   // let the rejected move settle first
+    try {
+      if ( hit.stop && ((hit.stop.x !== token._source.x) || (hit.stop.y !== token._source.y)) ) {
+        await token.update({ x: hit.stop.x, y: hit.stop.y }, { [MODULE_ID]: { ram: true } });
+      }
+    } catch(err) { console.warn(`${MODULE_ID} | stopping ${token.name}`, err); }
+    try { if ( turnKey ) await token.setFlag(MODULE_ID, "stoppedTurn", turnKey); } catch(err) { /* not permitted */ }
+    await fire("collided", actor, { subject: hit.actor, targets: [hit.actor], data: {} });
+  })();
+  // Foundry already stopped the move at the creature: let it happen. Otherwise stop it ourselves (above).
+  return hit.stop ? false : undefined;
+});
+
+/**
+ * Foundry cut the move short (creatures block movement): the creature in the next space along the last step, if any.
+ * @returns {{actor: Actor5e, stop: null}|null}
+ */
+function blockedBy(token, movement) {
+  const scene = token.parent;
+  const size = scene.grid.size;
+  const points = [{ x: token._source.x, y: token._source.y }, ...(movement.passed?.waypoints ?? []), ...(movement.pending?.waypoints ?? [])];
+  const end = points.at(-1);
+  const prev = points.length > 1 ? points.at(-2) : null;
+  const target = movement.destination ?? end;
+  let dx = Math.sign((prev ? end.x - prev.x : 0)), dy = Math.sign((prev ? end.y - prev.y : 0));
+  if ( !dx && !dy ) return null;
+  const nx = target.x + (dx * size), ny = target.y + (dy * size);
+  const w = token.width * size, h = token.height * size;
+  const other = scene.tokens.find(o => (o.id !== token.id) && Areas.isCreature(o.actor) && !o.hidden
+    && (nx < o._source.x + (o.width * size) - 2) && (nx + w > o._source.x + 2)
+    && (ny < o._source.y + (o.height * size) - 2) && (ny + h > o._source.y + 2));
+  return other ? { actor: other.actor, stop: null } : null;
+}
+
+/**
+ * The first creature whose space the move enters (not those it already overlaps), and the last free top-left
+ * position before it.
+ * @returns {{actor: Actor5e, stop: {x:number, y:number}}|null}
+ */
+function firstCollision(token, movement) {
+  const scene = token.parent;
+  const size = scene.grid.size;
+  const w = token.width * size, h = token.height * size;
+  const others = scene.tokens.filter(o => (o.id !== token.id) && Areas.isCreature(o.actor) && !o.hidden);
+  const overlaps = (x, y, o) => {
+    const ow = o.width * size, oh = o.height * size;
+    return (x < o._source.x + ow - 2) && (x + w > o._source.x + 2) && (y < o._source.y + oh - 2) && (y + h > o._source.y + 2);
+  };
+  const start = { x: token._source.x, y: token._source.y };
+  const already = new Set(others.filter(o => overlaps(start.x, start.y, o)).map(o => o.id));
+  const points = [start, ...(movement.passed?.waypoints ?? []), ...(movement.pending?.waypoints ?? [])].map(p => ({ x: p.x, y: p.y }));
+  let last = start;
+  for ( let i = 1; i < points.length; i++ ) {
+    const a = points[i - 1], b = points[i];
+    const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / (size / 4)));
+    for ( let s = 1; s <= steps; s++ ) {
+      const x = a.x + ((b.x - a.x) * s / steps), y = a.y + ((b.y - a.y) * s / steps);
+      const hit = others.find(o => !already.has(o.id) && overlaps(x, y, o));
+      if ( hit ) {
+        let stop = { x: Math.round(last.x / size) * size, y: Math.round(last.y / size) * size };
+        if ( others.some(o => !already.has(o.id) && overlaps(stop.x, stop.y, o)) ) stop = { x: a.x, y: a.y };
+        return { actor: hit.actor, stop };
+      }
+      last = { x, y };
+    }
+  }
+  return null;
+}
+
+/**
+ * Event "interval": a trigger with `every` (seconds of game time) fires each time that much time has passed since the
+ * effect began (Mummy Rot: every 24 hours). Lead GM, on world time changes.
+ */
+Hooks.on("createActiveEffect", effect => {
+  if ( !Creatures.isLeadGM() || effect.getFlag(MODULE_ID, "intervalFrom") !== undefined ) return;
+  if ( (effect.getFlag(MODULE_ID, "triggers") ?? []).some(tr => [tr.event].flat().includes("interval")) ) {
+    effect.setFlag(MODULE_ID, "intervalFrom", game.time.worldTime);
+  }
+});
+Hooks.on("updateWorldTime", async (worldTime, delta) => {
+  if ( !Creatures.isLeadGM() ) return;
+  const actors = [...game.actors, ...game.scenes.contents.flatMap(s => s.tokens.filter(tk => !tk.actorLink && tk.actor).map(tk => tk.actor))];
+  for ( const actor of actors ) {
+    for ( const effect of Array.from(actor.allApplicableEffects()) ) {
+      const triggers = (effect.getFlag(MODULE_ID, "triggers") ?? []).filter(tr => [tr.event].flat().includes("interval") && (Number(tr.every) > 0));
+      if ( !triggers.length || !effect.active ) continue;
+      const start = effect.getFlag(MODULE_ID, "intervalFrom") ?? effect.duration?.startTime ?? (worldTime - (delta ?? 0));
+      const every = Math.min(...triggers.map(tr => Number(tr.every)));
+      const due = Math.floor((worldTime - start) / every);
+      const done = effect.getFlag(MODULE_ID, "intervalsDone") ?? 0;
+      for ( let n = done; n < due; n++ ) await fire("interval", actor, { onlyEffect: effect, data: { intervals: n + 1 } });
+      if ( due > done ) await effect.setFlag(MODULE_ID, "intervalsDone", due);
     }
   }
 });
@@ -253,7 +480,6 @@ for ( const hook of ["dnd5e.rollAbilityCheck", "dnd5e.rollSkill", "dnd5e.rollToo
 Hooks.on("dnd5e.rollSavingThrow", (rolls, { ability, subject }) => {
   fire("save", subject, { rolls, ability, data: { ability, total: rolls?.[0]?.total } });
   // A concentration roll is a Con save, but it must not answer a repeat save a trigger is waiting for.
-  if ( !rolls?.[0]?.options?.isConcentration ) resolvePendingSaves(subject, ability, rolls?.[0]);
 });
 
 /** A failed concentration roll ends concentration, however it was rolled. A success can be contested by reactions. */
@@ -305,7 +531,43 @@ Hooks.on("updateActiveEffect", (effect, changed, options, userId) => {
   if ( (changed.disabled === false) && isLocal(effect.uuid) ) onStatusEffect(effect, userId);
 });
 
+/**
+ * Activity flag `summonEffects: [effectId, …]`: after a summon, copies of those effects of the item (non-transfer) go on
+ * each summoned creature, from the summoner's item and stamped with the cast level (auras such as Flaming Sphere).
+ */
+Hooks.on("dnd5e.postSummon", async (activity, profile, tokens) => {
+  const ids = activity?.flags?.[MODULE_ID]?.summonEffects;
+  if ( !Array.isArray(ids) || !ids.length || !tokens?.length ) return;
+  const item = activity.item;
+  const real = item.actor?.items.get(item.id) ?? item;
+  const level = item.system?.level ?? real.system?.level ?? 0;
+  for ( const id of ids ) {
+    const source = real.effects.get(id) ?? item.effects?.get(id);
+    if ( !source ) continue;
+    const data = source.toObject();
+    data.origin = real.uuid;
+    foundry.utils.setProperty(data, "flags.dnd5e.spellLevel", level);
+    const actors = tokens.map(t => t.actor ?? t.document?.actor).filter(Boolean);
+    await Creatures.giveEffect(data, actors);
+  }
+});
+
+/** Stored spells (storeSpell): a Cast activity flagged removeAfterUse goes away once its spell has been cast. */
+Hooks.on("dnd5e.postUseActivity", async activity => {
+  const cachedFor = activity?.item?.flags?.dnd5e?.cachedFor;
+  if ( !cachedFor || !activity.actor?.isOwner ) return;
+  const cast = fromUuidSync(cachedFor);
+  if ( !cast?.flags?.[MODULE_ID]?.removeAfterUse ) return;
+  const holder = cast.item;
+  await holder.update({ [`system.activities.-=${cast.id}`]: null });
+  await ChatMessage.implementation.create({
+    speaker: ChatMessage.implementation.getSpeaker({ actor: activity.actor }),
+    content: `<p><strong>${holder.name}</strong>: the stored ${activity.item.name} is spent.</p>`
+  });
+});
+
 Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
+  if ( activity?.uuid ) repeatChains.delete(activity.uuid);
   const targets = Array.from(game.user.targets ?? [], t => t.actor).filter(Boolean);
   const context = { activity, targets, data: { activityType: activity?.type } };
   runOnUse(activity, targets);
@@ -375,7 +637,114 @@ Hooks.on("updateActor", (actor, changed, options, userId) => {
  * open the damageIncoming reaction window.
  * @returns {Promise<{damages: object[]|number, options: object}|null>}  null = apply nothing
  */
+/**
+ * Effect flag `saveDamage: { spellLevel: 0, onSave: "half" }` (Potent Cantrip): the bearer's save spells of that level
+ * deal that much on a successful save instead of none. Only raises "none"; never lowers a spell's own rule.
+ */
+function applySaveDamageRule(activity) {
+  const item = activity.item;
+  const actor = activity.actor;
+  if ( (item?.type !== "spell") || !actor?.appliedEffects || !activity.damage?.parts?.length ) return;
+  if ( activity.damage.onSave !== "none" ) return;
+  for ( const effect of actor.appliedEffects ) {
+    const rule = effect.getFlag?.(MODULE_ID, "saveDamage");
+    if ( !rule?.onSave ) continue;
+    if ( (rule.spellLevel !== undefined) && (rule.spellLevel !== item.system.level) ) continue;
+    activity.damage.onSave = rule.onSave;
+    return;
+  }
+}
+
+/**
+ * Activity flag `targetFilter` (dnd5e filter on the target's roll data plus damaged / bloodied): with exactly one target,
+ * the single activity of the item whose filter it passes.
+ */
+function activityForTarget(item) {
+  const candidates = item.system?.activities?.filter?.(a => a.flags?.[MODULE_ID]?.targetFilter) ?? [];
+  if ( !candidates.length || (game.user.targets?.size !== 1) ) return null;
+  const target = game.user.targets.first()?.actor;
+  const hp = target?.system.attributes?.hp;
+  if ( !target ) return null;
+  const data = { ...target.getRollData(), damaged: !!hp && (hp.value < hp.max), bloodied: !!hp && (hp.value <= hp.max / 2) };
+  const fits = candidates.filter(a => dnd5e.Filter.performCheck(data, a.flags[MODULE_ID].targetFilter));
+  return fits.length === 1 ? fits[0] : null;
+}
+
+/**
+ * Effect flag `dropSave: { ability, dc, unlessTypes, unlessCritical, hp }` (Undead Fortitude): when damage reduces the
+ * bearer to 0 HP, it saves (dc: a formula, @damage = the damage taken) and on a success is left at `hp` instead —
+ * unless the damage included one of unlessTypes or came from a critical hit.
+ */
+/** The damage an application dealt after resistances etc. (not capped by the HP left), as dnd5e computes it. */
+function damageTaken(actor, damages, options, fallback) {
+  try {
+    if ( !Array.isArray(damages) ) return Number(damages) || fallback;
+    const calc = actor.calculateDamage(foundry.utils.deepClone(damages), { ...options });
+    const total = (calc ?? []).reduce((s, d) => s + Math.max(0, Number(d.value) || 0), 0);
+    return total || fallback;
+  } catch(err) { return fallback; }
+}
+
+async function dropSave(actor, damages, options, lost) {
+  const effect = actor.appliedEffects?.find(e => e.getFlag(MODULE_ID, "dropSave"));
+  const spec = effect?.getFlag(MODULE_ID, "dropSave");
+  if ( !spec ) return;
+  const types = new Set((Array.isArray(damages) ? damages : []).filter(d => (Number(d.value) || 0) > 0).map(d => d.type));
+  if ( (spec.unlessTypes ?? []).some(t => types.has(t)) ) return;
+  const message = options.originatingMessage ?? ((options.origin instanceof ChatMessage) ? options.origin : null);
+  if ( spec.unlessCritical && message?.rolls?.some(r => r.isCritical || r.options?.isCritical) ) return;
+  let dc = 10;
+  try {
+    dc = Math.floor(new Roll(CONFIG.Dice.BasicRoll.replaceFormulaData(String(spec.dc ?? "5 + @damage"), { ...actor.getRollData(), damage: lost }, { missing: 0 }))
+      .evaluateSync({ strict: false }).total);
+  } catch(err) { /* keep 10 */ }
+  const ability = spec.ability ?? "con";
+  const total = await Workflow.rollSaveFor(actor, { ability, dc }, effect.name);
+  const saved = (total !== null) && (total >= dc);
+  await ChatMessage.implementation.create({
+    speaker: ChatMessage.implementation.getSpeaker({ actor }),
+    content: `<p><strong>${effect.name}</strong>: ${actor.name} ${saved ? `holds on at ${spec.hp ?? 1} HP` : "falls"} (${CONFIG.DND5E.abilities[ability]?.label} save ${total ?? "—"} vs DC ${dc}).</p>`
+  });
+  if ( !saved ) return;
+  await actor.update({ "system.attributes.hp.value": spec.hp ?? 1 });
+  for ( const status of ["dead", "unconscious"] ) if ( actor.statuses?.has(status) ) await actor.toggleStatusEffect(status, { active: false });
+}
+
+/** Attack-roll bonuses from the actor's ownRollsOnly effects, by attack type: { msak: ["1"], rsak: ["1"] }. */
+function ownRollBonuses(actor) {
+  const out = {};
+  for ( const effect of actor?.appliedEffects ?? [] ) {
+    if ( !effect.getFlag(MODULE_ID, "ownRollsOnly") ) continue;
+    for ( const change of effect.system?.changes ?? effect.changes ?? [] ) {
+      const m = /^system\.(?:rolls\.attack\.(\w+)\.bonus|bonuses\.(\w+)\.attack)$/.exec(change.key);
+      if ( m ) (out[m[1] ?? m[2]] ??= []).push(String(change.value).replace(/^\+/, ""));
+    }
+  }
+  return out;
+}
+
+const hpTotal = actor => (actor.system.attributes?.hp?.value ?? 0) + (actor.system.attributes?.hp?.temp ?? 0);
+
+/** The activity a damage application came from: its chat card, or an engine-applied roll that names it. */
+function damageSource(options) {
+  const uuid = options?.[MODULE_ID]?.activityUuid;
+  if ( uuid ) return fromUuidSync(uuid);
+  const message = options.originatingMessage ?? ((options.origin instanceof ChatMessage) ? options.origin : null);
+  return message?.getAssociatedActivity?.() ?? null;
+}
+
 async function beforeDamage(actor, damages, options) {
+  // Effect flag noHealing (Mummy Rot's curse): the bearer can't regain hit points.
+  const curse = actor.appliedEffects?.find(e => e.getFlag(MODULE_ID, "noHealing"));
+  if ( curse && Array.isArray(damages) ) {
+    const kept = damages.filter(d => !((d.type in CONFIG.DND5E.healingTypes) || ((Number(d.value) || 0) < 0)));
+    if ( kept.length < damages.length ) {
+      await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }),
+        content: `<p><strong>${curse.name}</strong>: ${actor.name} can't regain hit points.</p>` });
+      if ( !kept.length ) return null;
+      damages = kept;
+    }
+  }
   const message = options.originatingMessage ?? ((options.origin instanceof ChatMessage) ? options.origin : null);
   const activity = message?.getAssociatedActivity?.();
   // An active effect can ignore damage from particular items (Shield: Magic Missile), matched by identifier or name.
@@ -445,13 +814,58 @@ Hooks.once("setup", () => {
     return this.rollConcentration(config, { configure: false }, {});
   };
 
+  // Several activities with a targetFilter (Toll the Dead): with one target, use the one that fits it — no chooser.
+  const itemProto = CONFIG.Item.documentClass.prototype;
+  const itemUse = itemProto.use;
+  itemProto.use = async function(config={}, dialog={}, message={}) {
+    const picked = activityForTarget(this);
+    if ( picked ) return picked.use(config, dialog, message);
+    return itemUse.call(this, config, dialog, message);
+  };
+
+  // Effect rule ownRollsOnly (Keywand of the Stars): the effect's attack-roll bonuses are the bearer's own — a summon
+  // matching the summoner's spell attack doesn't get them.
+  const summonProto = CONFIG.DND5E.activityTypes.summon?.documentClass?.prototype;
+  if ( summonProto?.getChanges ) {
+    const getChanges = summonProto.getChanges;
+    summonProto.getChanges = async function(actor, profile, options) {
+      const excluded = ownRollBonuses(this.actor);
+      if ( foundry.utils.isEmpty(excluded) ) return getChanges.call(this, actor, profile, options);
+      const base = this.getRollData;
+      this.getRollData = (...args) => {
+        const data = foundry.utils.deepClone(base.apply(this, args));   // roll data can be shared between calls
+        for ( const [type, parts] of Object.entries(excluded) ) {
+          const path = `rolls.attack.${type}.bonus`;
+          foundry.utils.setProperty(data, path, `${foundry.utils.getProperty(data, path) || 0} - (${parts.join(" + ")})`);
+        }
+        return data;
+      };
+      try { return await getChanges.call(this, actor, profile, options); } finally { delete this.getRollData; }
+    };
+  }
+
   // Damage: pause for reactions, block negated attacks (see beforeDamage).
   const applyDamage = actorProto.applyDamage;
   actorProto.applyDamage = async function(damages, options={}) {
-    if ( options[MODULE_ID]?.reacted ) return applyDamage.call(this, damages, options);
-    const next = await beforeDamage(this, damages, options);
-    if ( !next ) return this;
-    return applyDamage.call(this, next.damages, next.options);
+    const before = hpTotal(this);
+    let result;
+    if ( options[MODULE_ID]?.reacted ) result = await applyDamage.call(this, damages, options);
+    else {
+      const next = await beforeDamage(this, damages, options);
+      if ( !next ) return this;
+      result = await applyDamage.call(this, next.damages, next.options);
+    }
+    const lost = before - hpTotal(this);
+    const activity = damageSource(options);
+    if ( (lost > 0) && (this.system.attributes?.hp?.value === 0) ) await dropSave(this, damages, options, damageTaken(this, damages, options, lost));
+    if ( (lost > 0) && activity?.actor && (activity.actor !== this) ) {
+      const item = activity.item;
+      fire("dealt", activity.actor, { activity, targets: [this], data: {
+        amount: lost, identifier: item?.system?.identifier ?? "", isSpell: item?.type === "spell",
+        spellLevel: item?.type === "spell" ? item.system.level : null
+      } });
+    }
+    return result;
   };
 
   // Spells: before a spell is cast, creatures that can react to it (Counterspell) get to decide.
@@ -503,6 +917,7 @@ Hooks.once("setup", () => {
     savePrep.prepareFinalData = function(rollData) {
       rollData ??= this.getRollData({ deterministic: true });
       prepare.call(this, rollData);
+      applySaveDamageRule(this);
       const bonus = dcRuleBonus(this, rollData);
       if ( !bonus || !this.save.dc.value ) return;
       this.save.dc.value += bonus;
@@ -646,28 +1061,41 @@ async function fire(event, bearer, context) {
     if ( !Array.isArray(triggers) ) continue;
     // Source-turn events only concern effects that creature applied.
     if ( context?.sourceActor && (effect.getSourceActor?.()?.uuid !== context.sourceActor.uuid) ) continue;
-    for ( const trigger of triggers ) {
-      const events = Array.isArray(trigger.event) ? trigger.event : [trigger.event];
-      if ( !events.includes(event) ) continue;
-      if ( !passesFilter(trigger, event, context, bearer) ) continue;
-      if ( inFlight.has(effect.uuid) ) continue;
-      inFlight.add(effect.uuid);
-      let removed = false;
-      try {
-        const result = await runAction(trigger, effect, bearer, event, context) ?? {};
-        if ( resolveThen(trigger.then, result) === "remove" ) {
-          await effect.delete();
-          removed = true;
-        }
-      } catch(err) {
-        console.error(`${MODULE_ID} | Trigger "${trigger.label ?? effect.name}" failed`, err);
-        ui.notifications.error(`${MODULE_ID}: trigger "${trigger.label ?? effect.name}" failed — see console.`);
-      } finally {
-        inFlight.delete(effect.uuid);
-      }
-      if ( removed ) break;
-    }
+    await runTriggerList(triggers, effect, bearer, event, context);
   }
+}
+
+/**
+ * Run the triggers of one owner (an effect, or an area's stand-in) for an event: filter, action, then "remove".
+ * @param {object} [options]
+ * @param {string} [options.key]         In-flight guard key (default: the effect) — one run at a time per key.
+ * @param {Function} [options.onRemove]  What "remove" does (default: delete the effect).
+ * @returns {Promise<boolean>} whether the owner was removed
+ */
+async function runTriggerList(triggers, effect, bearer, event, context={}, { key, onRemove }={}) {
+  key ??= effect.uuid;
+  for ( const trigger of triggers ) {
+    const events = Array.isArray(trigger.event) ? trigger.event : [trigger.event];
+    if ( !events.includes(event) ) continue;
+    if ( !passesFilter(trigger, event, context, bearer, effect) ) continue;
+    if ( inFlight.has(key) ) continue;
+    inFlight.add(key);
+    let removed = false;
+    try {
+      const result = await runAction(trigger, effect, bearer, event, context) ?? {};
+      if ( resolveThen(trigger.then, result) === "remove" ) {
+        await (onRemove ? onRemove() : effect.delete());
+        removed = true;
+      }
+    } catch(err) {
+      console.error(`${MODULE_ID} | Trigger "${trigger.label ?? effect.name}" failed`, err);
+      ui.notifications.error(`${MODULE_ID}: trigger "${trigger.label ?? effect.name}" failed — see console.`);
+    } finally {
+      inFlight.delete(key);
+    }
+    if ( removed ) return true;
+  }
+  return false;
 }
 
 /**
@@ -690,10 +1118,31 @@ function resolveThen(then, result) {
  * Check a trigger's optional filter against the event's roll data.
  * @returns {boolean}
  */
-function passesFilter(trigger, event, context, bearer) {
+/** The creature that summoned this one (dnd5e records the summoning item), if any. */
+function summonerOf(actor) {
+  const origin = actor?.flags?.dnd5e?.summon?.origin;
+  return origin ? (fromUuidSync(origin)?.actor ?? null) : null;
+}
+
+/** The running combat this creature takes part in (by actor or token), if any. */
+function combatOf(actor, scene) {
+  if ( !actor ) return null;
+  const tokenId = actor.token?.id;
+  const found = game.combats.filter(c => c.started && c.combatants.some(cb => (cb.actor?.uuid === actor.uuid)
+    || (tokenId && (cb.tokenId === tokenId)) || (!actor.isToken && (cb.actorId === actor.id))));
+  scene ??= Creatures.tokenFor(actor)?.parent ?? canvas?.scene;
+  return found.find(c => c.scene && (c.scene === scene)) ?? found.find(c => !c.scene) ?? found[0] ?? null;
+}
+
+function passesFilter(trigger, event, context, bearer, effect) {
   if ( !trigger.filter || foundry.utils.isEmpty(trigger.filter) ) return true;
+  const source = effect?.getSourceActor?.() ?? null;
+  const combat = combatOf(source ?? bearer);
   const data = {
-    ...(context.activity?.getRollData?.() ?? {}), ...(context.data ?? {}), event, bearer: bearer?.getRollData?.() ?? {}
+    ...(context.activity?.getRollData?.() ?? {}), ...(context.data ?? {}), event, bearer: bearer?.getRollData?.() ?? {},
+    sourceTurn: !combat || (!!source && (combat.combatant?.actor?.uuid === source.uuid)),
+    subjectIsSource: !!context.subject && !!source && (context.subject.uuid === source.uuid),
+    subjectIsSummoner: !!context.subject && (summonerOf(bearer)?.uuid === context.subject.uuid)
   };
   return dnd5e.Filter.performCheck(data, trigger.filter);
 }
@@ -766,6 +1215,11 @@ async function chooseProfiles(activity, usageConfig={}) {
 
 async function autoApply(activity, actor, profiles, usage) {
   if ( !usage ) return;
+  // Effect flag onlyIf: a filter on the target's data (e.g. [{k: "statuses.poisoned", o: "gt", v: 0}]).
+  profiles = profiles.filter(p => {
+    const only = p.effect?.getFlag?.(MODULE_ID, "onlyIf");
+    return !only?.length || dnd5e.Filter.performCheck(actor.getRollData(), only);
+  });
   // Conditional riders: ask before applying an effect flagged askFirst.
   const kept = [];
   for ( const p of profiles ) {
@@ -805,8 +1259,38 @@ async function applyEffects(usage, actor, effectIds) {
   }
 }
 
+/**
+ * Apply damage the engine rolled, on this client or (for a creature it can't modify) the lead GM's. Skips the reaction
+ * pause; still counts as the activity's damage for "dealt".
+ * @param {object[]} damages  { value, type, properties: string[] }
+ */
+async function applyDamageAs(actor, damages, activity, { messageId, pipeline=false }={}) {
+  if ( !actor.isOwner ) {
+    game.socket.emit(SOCKET, { type: "applyDamage", actorUuid: actor.uuid, damages, activityUuid: activity?.uuid, messageId, pipeline });
+    return;
+  }
+  await actor.applyDamage(damages.map(d => ({ ...d, properties: new Set(d.properties) })), damageOptions(activity?.uuid, messageId, pipeline));
+}
+
+/**
+ * applyDamage options: from a damage card (or pipeline), the whole pipeline runs (reactions, damage rules, "dealt");
+ * otherwise (a missed cantrip's half damage) the reaction pause and "negated attack" check are skipped.
+ */
+function damageOptions(activityUuid, messageId, pipeline=false) {
+  const message = messageId ? game.messages.get(messageId) : null;
+  if ( message ) return { isDelta: true, originatingMessage: message };
+  if ( pipeline ) return { isDelta: true };
+  return { isDelta: true, [MODULE_ID]: { reacted: true, activityUuid } };
+}
+
 Hooks.once("ready", () => {
   game.socket.on(SOCKET, async data => {
+    if ( (data?.type === "applyDamage") && Creatures.isLeadGM() ) {
+      const actor = fromUuidSync(data.actorUuid);
+      if ( actor ) await actor.applyDamage(data.damages.map(d => ({ ...d, properties: new Set(d.properties) })),
+        damageOptions(data.activityUuid, data.messageId, data.pipeline));
+      return;
+    }
     if ( (data?.type !== "applyEffects") || !Creatures.isLeadGM() ) return;
     const usage = game.messages.get(data.usageId);
     const actor = fromUuidSync(data.actorUuid);
@@ -833,7 +1317,7 @@ function isAbsorbed(actor, activity) {
 }
 
 /* -------------------------------------------- */
-/*  Player-rolled saves                         */
+/*  Players                                     */
 /* -------------------------------------------- */
 
 /**
@@ -843,29 +1327,6 @@ function isAbsorbed(actor, activity) {
  */
 function activePlayerOwner(actor) {
   return game.users.find(u => u.active && !u.isGM && actor.testUserPermission(u, "OWNER"));
-}
-
-/**
- * A saving throw was rolled: resolve any save a trigger asked this actor's player for.
- */
-async function resolvePendingSaves(actor, ability, roll) {
-  if ( !actor?.isOwner || !roll ) return;
-  for ( const effect of Array.from(actor.allApplicableEffects()) ) {
-    const pending = effect.getFlag(MODULE_ID, "pendingSave");
-    if ( !pending || (pending.ability !== ability) ) continue;
-    await effect.unsetFlag(MODULE_ID, "pendingSave");
-    let success = roll.total >= pending.dc;
-    if ( success && setting("reactions") ) {
-      success = (await Reactions.saveSucceeded({ actor, roll, dc: pending.dc, label: `the save against ${pending.label}` })).success;
-    }
-    const ends = resolveThen(pending.then, { success }) === "remove";
-    await ChatMessage.implementation.create({
-      speaker: ChatMessage.implementation.getSpeaker({ actor }),
-      content: saveResultText(actor, pending.label, success, ends, ` (${roll.total} vs DC ${pending.dc})`)
-    });
-    await saveDamage(effect, actor, pending.damage, success, pending.label);
-    if ( ends ) await effect.delete();
-  }
 }
 
 /* -------------------------------------------- */
@@ -878,7 +1339,10 @@ const EVENT_TEXT = {
   roundStart: "— a new round begins", roundEnd: "— the round ends",
   sourceTurnStart: "— its source starts its turn", sourceTurnEnd: "— its source ends its turn",
   hit: "is hit by an attack", save: "makes a saving throw", check: "makes an ability check",
-  rest: "finishes a rest", initiative: "rolls initiative", applied: "gains it", moved: "moves", statusGained: "gains a condition"
+  rest: "finishes a rest", initiative: "rolls initiative", onUse: "uses it", collided: "moves into a creature's space", damageRolled: "rolls damage",
+  areaCreated: "— its area appears", areaEnter: "— a creature enters its area", areaLeave: "— a creature leaves its area",
+  areaTurnStart: "— a creature starts its turn in its area", areaTurnEnd: "— a creature ends its turn in its area",
+  interval: "— time passes", missed: "misses with an attack", dealt: "deals damage", applied: "gains it", moved: "moves", statusGained: "gains a condition"
 };
 
 /**
@@ -929,7 +1393,9 @@ async function dealDamage(effect, bearer, spec, { flavor, half=false }={}) {
   const source = effect.getSourceActor?.();
   const type = spec.type ?? "";
   const rollData = { ...(source?.getRollData?.() ?? bearer.getRollData()), spellLevel: effect.flags?.dnd5e?.spellLevel ?? 0 };
-  const roll = new CONFIG.Dice.DamageRoll(String(spec.formula), rollData, {
+  const formula = CONFIG.Dice.BasicRoll.replaceFormulaData(String(spec.formula), rollData, { missing: 0 })
+    .replace(/\(([\d\s+\-*/.]+)\)d/g, (m, expr) => { try { return `${Math.floor(Roll.safeEval(expr))}d`; } catch(err) { return m; } });
+  const roll = new CONFIG.Dice.DamageRoll(formula, rollData, {
     type, properties: []
   });
   await roll.evaluate();
@@ -943,7 +1409,7 @@ async function dealDamage(effect, bearer, spec, { flavor, half=false }={}) {
   if ( setting("triggerDamage") !== "auto" ) return;
   const value = Math.max(0, half ? Math.floor(roll.total / 2) : roll.total);
   const sign = type in CONFIG.DND5E.healingTypes ? -1 : 1;
-  await bearer.applyDamage([{ value: value * sign, type, properties: new Set() }], { isDelta: true });
+  await applyDamageAs(bearer, [{ value: value * sign, type, properties: [] }], null, { pipeline: true });
 }
 
 /**
@@ -952,6 +1418,10 @@ async function dealDamage(effect, bearer, spec, { flavor, half=false }={}) {
  */
 function saveDamage(effect, bearer, spec, success, label) {
   if ( !spec?.formula ) return;
+  if ( spec.evasion ) {                      // Evasion: none on a success, half on a failure
+    if ( success ) return;
+    return dealDamage(effect, bearer, spec, { flavor: `${label} (Evasion)`, half: true });
+  }
   if ( success && (spec.onSuccess !== "half") ) return;
   return dealDamage(effect, bearer, spec, { flavor: label, half: success });
 }
@@ -965,7 +1435,7 @@ function saveResultText(actor, label, success, ends, detail="") {
 function selectorContext(effect, bearer, context={}, trigger={}) {
   const label = trigger.label ?? effect?.name ?? "";
   return {
-    bearer, source: effect?.getSourceActor?.() ?? null, subject: context.attacker ?? null,
+    bearer, source: effect?.getSourceActor?.() ?? null, subject: context.subject ?? context.attacker ?? null,
     targets: context.targets ?? [], title: label ? `${label} — choose` : undefined
   };
 }
@@ -994,6 +1464,17 @@ async function runOnUse(activity, targets) {
     }
   }
 }
+
+/** The school of a specialist wizard (subclass identifier → school id), or null. */
+const SPECIALIST_SCHOOLS = { abjurer: "abj", conjurer: "con", diviner: "div", enchanter: "enc", evoker: "evo",
+  illusionist: "ill", necromancer: "nec", transmuter: "trs" };
+function specialistSchool(actor) {
+  const sub = actor.items.find(i => (i.type === "subclass") && (i.system.classIdentifier === "wizard"));
+  return SPECIALIST_SCHOOLS[sub?.system.identifier] ?? null;
+}
+
+/** Repeat chains per activity (repeatActivity): { used, at }. Reset when the activity is used again. */
+const repeatChains = new Map();
 
 const ACTIONS = {
   /**
@@ -1086,7 +1567,8 @@ const ACTIONS = {
     const recipients = trigger.action.to
       ? await Creatures.selectCreatures(bearer, trigger.action.to, selectorContext(effect, bearer, context, trigger)) : [bearer];
     const source = effect.getSourceActor?.();
-    const data = { ...(source?.getRollData?.() ?? bearer.getRollData()), spellLevel: effect.flags?.dnd5e?.spellLevel ?? 0 };
+    const data = { ...(source?.getRollData?.() ?? bearer.getRollData()), spellLevel: effect.flags?.dnd5e?.spellLevel ?? 0,
+      ...(context.data ?? {}) };
     const roll = await new Roll(String(trigger.action.formula), data).evaluate();
     await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor: bearer }), flavor: `${trigger.label ?? effect.name}: temporary hit points` });
     for ( const actor of recipients ) {
@@ -1100,7 +1582,8 @@ const ACTIONS = {
 
   /** Recover spell slots: { budget, maxLevel }. Spends one use of the item the effect is on. */
   async recoverSlots(trigger, effect, bearer, event) {
-    const item = effect.parent?.documentName === "Item" ? effect.parent : null;
+    // From a trigger, the item's own uses gate and pay for it; from an activity (onUse), the activity already paid.
+    const item = (effect.parent?.documentName === "Item") && (event !== "onUse") ? effect.parent : null;
     if ( item?.system.uses?.max && !(item.system.uses.value > 0) ) return {};
     const data = bearer.getRollData();
     const budget = Math.floor(new Roll(CONFIG.Dice.BasicRoll.replaceFormulaData(String(trigger.action.budget ?? 1), data, { missing: 0 }))
@@ -1113,19 +1596,21 @@ const ACTIONS = {
     const user = Creatures.controllerOf(bearer);
     const label = trigger.label ?? item?.name ?? effect.name;
     const chosen = user ? await Creatures.runAs(user, "recoverSlots", {
-      title: `${label} — ${bearer.name}`, budget, slots,
+      title: `${label} — ${bearer.name}`, budget, slots, maxSlots: trigger.action.maxSlots,
       prompt: `<p><strong>${label}</strong>: recover expended spell slots?</p>`
     }) : null;
     if ( !chosen ) return {};
     let total = 0;
+    let count = 0;
     const update = {};
     for ( const s of slots ) {
       const n = Math.min(s.missing, chosen[s.key] ?? 0);
       if ( !n ) continue;
       total += n * s.level;
+      count += n;
       update[`system.spells.${s.key}.value`] = (bearer.system.spells[s.key].value ?? 0) + n;
     }
-    if ( !total || (total > budget) ) return {};
+    if ( !total || (total > budget) || (trigger.action.maxSlots && (count > trigger.action.maxSlots)) ) return {};
     await bearer.update(update);
     if ( item?.system.uses?.max ) await item.update({ "system.uses.spent": (item.system.uses.spent ?? 0) + 1 });
     await announce(trigger, effect, bearer, event, `Recovers ${Object.entries(update).map(([k, v]) => `level ${k.match(/spell(\d)/)[1]}`).join(", ")} (${total} of ${budget} levels).`);
@@ -1176,6 +1661,170 @@ const ACTIONS = {
   },
 
   /**
+   * Roll the triggering activity's own damage (a missed cantrip, say) and deal it × multiplier to the event's targets,
+   * or to action.to. Damage only — no effects. Applied automatically unless "Trigger damage" is "button".
+   */
+  async activityDamage(trigger, effect, bearer, event, context={}) {
+    const activity = context.activity;
+    if ( !activity?.damage?.parts?.length ) return {};
+    const recipients = trigger.action.to
+      ? await Creatures.selectCreatures(bearer, trigger.action.to, selectorContext(effect, bearer, context, trigger))
+      : (context.targets ?? []);
+    if ( !recipients.length ) return {};
+    const multiplier = Number(trigger.action.multiplier ?? 1);
+    const label = trigger.label ?? effect.name;
+    const part = multiplier === 0.5 ? " (half)" : (multiplier === 1 ? "" : ` (×${multiplier})`);
+    const rolls = await activity.rollDamage({}, { configure: false }, { data: {
+      flavor: `${label}: ${activity.item.name}${part} — ${recipients.map(r => r.name).join(", ")}`,
+      system: { targets: recipients.flatMap(bearerTargets) }
+    } });
+    if ( !rolls?.length || (setting("triggerDamage") !== "auto") ) return {};
+    const damages = dnd5e.dice.aggregateDamageRolls(rolls, { respectProperties: true }).map(roll => ({
+      value: Math.floor(Math.max(0, roll.total) * multiplier) * ((roll.options.type in CONFIG.DND5E.healingTypes) ? -1 : 1),
+      type: roll.options.type, properties: Array.from(roll.options.properties ?? [])
+    }));
+    for ( const actor of recipients ) await applyDamageAs(actor, damages, activity);
+    return {};
+  },
+
+  /**
+   * Make the triggering activity's attack again against a new creature (Chromatic Orb's leap): pick it with `to` (default:
+   * an enemy within 30 ft of the last target), roll the attack, and on a hit roll damage — which can trigger it again.
+   * `max` (formula, @spellLevel = cast level) caps how many times one casting repeats.
+   */
+  async repeatActivity(trigger, effect, bearer, event, context={}) {
+    const activity = context.activity;
+    if ( !activity?.rollAttack ) return {};
+    const data = { ...(bearer.getRollData?.() ?? {}), spellLevel: activity.item?.system?.level ?? 0 };
+    let max = 1;
+    try {
+      max = Math.floor(new Roll(CONFIG.Dice.BasicRoll.replaceFormulaData(String(trigger.action.max ?? 1), data, { missing: 0 }))
+        .evaluateSync({ strict: false }).total) || 0;
+    } catch(err) { /* keep 1 */ }
+    const chain = repeatChains.get(activity.uuid);
+    const used = (chain && (Date.now() - chain.at < 300000)) ? chain.used : 0;
+    if ( used >= max ) return {};
+    const selector = trigger.action.to ?? { who: "choose", side: "enemy", range: 30, from: "subject", notSubject: true };
+    const [next] = await Creatures.selectCreatures(bearer, selector, {
+      ...selectorContext(effect, bearer, context, trigger),
+      prompt: `<p><strong>${trigger.label ?? effect.name}</strong>: choose the next target (${used + 1} of ${max}).</p>`
+    });
+    if ( !next ) return {};
+    repeatChains.set(activity.uuid, { used: used + 1, at: Date.now() });
+    const token = Creatures.tokenFor(next)?.object;
+    if ( !token ) return {};
+    token.setTarget(true, { releaseOthers: true });
+    const rolls = await activity.rollAttack({}, { configure: false });
+    const roll = rolls?.[0];
+    const ac = next.system.attributes?.ac?.value;
+    if ( roll && (roll.isCritical || (!roll.isFumble && (roll.total >= ac))) && !Workflow.rollsDamageOnHit(activity) ) {
+      await activity.rollDamage({ isCritical: !!roll.isCritical }, { configure: false });
+    }
+    return {};
+  },
+
+  /**
+   * Store one of the bearer's spells in the item: pick a spell (`schools`: school ids, or "specialist" = the bearer's
+   * wizard specialty) and a slot to spend; the item gains a Cast activity at that level with a fixed attack bonus and
+   * DC (`attack`, `dc`), gone once cast. Storing again replaces the stored spell.
+   */
+  async storeSpell(trigger, effect, bearer, event, context={}) {
+    const a = trigger.action;
+    const item = effect.parent?.documentName === "Item" ? effect.parent : context.activity?.item;
+    if ( !item ) return {};
+    const holder = bearer.items.get(item.id) ?? item;
+    const schools = new Set((a.schools ?? []).flatMap(s => s === "specialist" ? [specialistSchool(bearer)] : [s]).filter(Boolean));
+    const spells = bearer.items.filter(i => (i.type === "spell") && (i.system.level >= 1) && !i.flags?.dnd5e?.cachedFor
+      && (!schools.size || schools.has(i.system.school)));
+    if ( !spells.length ) {
+      ui.notifications.warn(`${holder.name}: no spell of the right school to store.`);
+      return {};
+    }
+    const slots = Object.entries(bearer.system.spells ?? {}).filter(([key, s]) => /^spell\d$/.test(key) && (s.value > 0))
+      .map(([key, s]) => ({ key, level: Number(key.slice(5)), value: s.value }));
+    const user = Creatures.controllerOf(bearer);
+    const choice = user ? await Creatures.runAs(user, "pickSpellSlot", {
+      title: `${holder.name} — store a spell`,
+      spells: spells.map(s => ({ uuid: s.uuid, name: s.name, level: s.system.level })).sort((x, y) => x.level - y.level || x.name.localeCompare(y.name)),
+      slots
+    }) : null;
+    const spell = choice && bearer.items.find(i => i.uuid === choice.uuid);
+    const slot = choice && slots.find(s => s.key === choice.slot);
+    if ( !spell || !slot || (slot.level < spell.system.level) ) return {};
+    await bearer.update({ [`system.spells.${slot.key}.value`]: slot.value - 1 });
+    const stored = holder.system.activities.filter(x => x.flags?.[MODULE_ID]?.removeAfterUse).map(x => x.id);
+    const id = foundry.utils.randomID();
+    await holder.update({
+      ...Object.fromEntries(stored.map(sid => [`system.activities.-=${sid}`, null])),
+      [`system.activities.${id}`]: {
+        _id: id, type: "cast", name: `Cast stored ${spell.name} (level ${slot.level})`,
+        activation: { type: "action", override: false },
+        consumption: { targets: [], spellSlot: false, scaling: { allowed: false } },
+        spell: { uuid: spell.uuid, level: slot.level, properties: [], spellbook: false,
+          challenge: { attack: a.attack !== undefined ? String(a.attack) : "", save: a.dc !== undefined ? String(a.dc) : "",
+            override: (a.attack !== undefined) || (a.dc !== undefined) } },
+        flags: { [MODULE_ID]: { removeAfterUse: true } }
+      }
+    });
+    await announce(trigger, effect, bearer, event, `${spell.name} is stored at level ${slot.level} (level ${slot.level} slot spent).`);
+    return {};
+  },
+
+  /**
+   * Use an activity of the item this effect is on against creatures (default: the event's subject) — a monster's aura
+   * or an item's triggered feature, with its own DC, damage and effects. Save activities go through the save workflow
+   * (saves rolled, damage and effects applied). `activity`: its id or name (default: the item's first save activity).
+   */
+  async useActivity(trigger, effect, bearer, event, context={}) {
+    const item = effect.parent?.documentName === "Item" ? effect.parent : null;
+    const ref = trigger.action.activity;
+    // An activity's own area passes the (upcast) activity and its usage card; otherwise find it on the item.
+    const activity = (!ref && context.fromArea && context.activity) ? context.activity
+      : (item?.system.activities?.get?.(ref) ?? item?.system.activities?.getName?.(ref) ?? item?.system.activities?.find?.(a => a.type === "save"));
+    if ( !activity ) throw new Error(`${effect.name}: no activity "${ref ?? "save"}" on ${item?.name ?? "its item"}`);
+    const recipients = trigger.action.to
+      ? await Creatures.selectCreatures(bearer, trigger.action.to, selectorContext(effect, bearer, context, trigger))
+      : (context.targets?.length ? context.targets : (context.subject ? [context.subject] : []));
+    if ( !recipients.length ) return {};
+    const usage = (context.fromArea && context.usage) ? context.usage
+      : (await activity.use({ consume: false, create: { measuredTemplate: false }, subsequentActions: false,
+        concentration: { begin: false }, [MODULE_ID]: { noWorkflow: true } }, { configure: false }, { create: true }))?.message ?? null;
+    if ( activity.type === "save" ) await Workflow.resolveSave(activity, recipients, { usage, label: trigger.label ?? item.name });
+    else if ( setting("autoApplyEffects") && activity.effects?.length && usage ) {
+      for ( const actor of recipients ) await autoApply(activity, actor, activity.effects, usage);
+    }
+    return {};
+  },
+
+  /**
+   * Reduce creatures' Hit Point maximum (Life Drain) by `amount` (formula; @amount = the event's amount, e.g. the damage
+   * dealt), to the event's targets or action.to. Ends when they finish a Long Rest.
+   */
+  async drainMaxHp(trigger, effect, bearer, event, context={}) {
+    const recipients = trigger.action.to
+      ? await Creatures.selectCreatures(bearer, trigger.action.to, selectorContext(effect, bearer, context, trigger))
+      : (context.targets ?? []);
+    const data = { ...(bearer.getRollData?.() ?? {}), ...(context.data ?? {}) };
+    let amount = 0;
+    try {
+      amount = Math.floor(new Roll(CONFIG.Dice.BasicRoll.replaceFormulaData(String(trigger.action.amount ?? "@amount"), data, { missing: 0 }))
+        .evaluateSync({ strict: false }).total);
+    } catch(err) { amount = 0; }
+    if ( !(amount > 0) || !recipients.length ) return {};
+    const label = trigger.label ?? effect.name;
+    for ( const actor of recipients ) {
+      await Creatures.giveEffect({
+        name: `${label} (−${amount} max HP)`, img: effect.img ?? "icons/svg/degen.svg", origin: effect.origin ?? null,
+        system: { changes: [{ key: "system.attributes.hp.tempmax", type: "add", value: String(-amount), phase: "initial" }] },
+        flags: { [MODULE_ID]: trigger.action.until === "never" ? {}
+          : { triggers: [{ label, event: "rest", filter: [{ k: "longRest", v: true }], action: { type: "note" }, then: "remove" }] } }
+      }, [actor], { replace: false });
+    }
+    await announce(trigger, effect, bearer, event, `${recipients.map(r => r.name).join(", ")}: Hit Point maximum −${amount}${trigger.action.until === "never" ? "" : " until a Long Rest"}.`);
+    return {};
+  },
+
+  /**
    * Announce only. Pair with `then: "remove"` for effects that end when something happens.
    */
   async note(trigger, effect, bearer, event) {
@@ -1212,48 +1861,66 @@ const ACTIONS = {
   },
 
   /**
-   * The bearer saves. A PC whose player is connected gets a save button in chat and the result is resolved when they
-   * roll it (setting "playerSaves"); everyone else is rolled here. Returns { success } when rolled here.
+   * A saving throw: the bearer, or the creatures `to` selects (an area's targets…). Rolled by each creature's
+   * controller (Workflow.rollSaveOutcome: a player's popup or automatic, reactions included); damage per result
+   * (Evasion counts), `failStatus` on a failure. Returns { success } for the bearer's own save.
    */
   async save(trigger, effect, bearer, event, context={}) {
-    const { ability } = trigger.action;
-    let dc = trigger.action.dc;
-    if ( dc === "source" ) dc = (await originActivity(effect))?.save?.dc?.value;
-    dc = Number(dc);
-    if ( !(ability in CONFIG.DND5E.abilities) ) throw new Error(`Unknown ability "${ability}"`);
-    if ( !Number.isFinite(dc) ) throw new Error(`No usable DC for ${effect.name} (dc: ${trigger.action.dc})`);
+    const a = trigger.action;
+    if ( !(a.ability in CONFIG.DND5E.abilities) ) throw new Error(`Unknown ability "${a.ability}"`);
+    const dc = Number(await resolveDC(a.dc, effect));
+    if ( !Number.isFinite(dc) ) throw new Error(`No usable DC for ${effect.name} (dc: ${a.dc})`);
+    const recipients = a.to ? await Creatures.selectCreatures(bearer, a.to, selectorContext(effect, bearer, context, trigger)) : [bearer];
+    if ( !recipients.length ) return {};
     const label = trigger.label ?? effect.name;
-    const abilityLabel = CONFIG.DND5E.abilities[ability].label;
-
-    const mods = resolveSaveModifiers(trigger.action.modifiers, effect, bearer, event, context);
-    dc += mods.dc;
-    const spec = { ability, dc, advantage: mods.advantage, disadvantage: mods.disadvantage, bonus: mods.bonus };
-    const modText = mods.text.length ? ` (${mods.text.join(", ")})` : "";
-
-    const player = setting("playerSaves") ? activePlayerOwner(bearer) : null;
-    if ( player ) {
-      await effect.setFlag(MODULE_ID, "pendingSave", { ...spec, then: trigger.then, label, damage: trigger.action.damage ?? null });
-      await announce(trigger, effect, bearer, event, `${player.name}, roll the save: `
-        + `<button type="button" data-sba-save="${effect.uuid}">${abilityLabel} save, DC ${dc}${modText}</button>`);
-      return {};
+    const abilityLabel = CONFIG.DND5E.abilities[a.ability].label;
+    const who = a.to ? `${recipients.map(r => r.name).join(", ")}: ` : "";
+    await announce(trigger, effect, bearer, event, `${who}${abilityLabel} save, DC ${dc}.`);
+    let outcome = {};
+    for ( const actor of recipients ) {
+      const mods = resolveSaveModifiers(a.modifiers, effect, actor, event, context);
+      const spec = { ability: a.ability, dc: dc + mods.dc, advantage: mods.advantage, disadvantage: mods.disadvantage, bonus: mods.bonus };
+      const { total, success } = await Workflow.rollSaveOutcome(actor, spec, label);
+      if ( total === null ) continue;
+      const ends = !a.to && (resolveThen(trigger.then, { success }) === "remove");
+      if ( success || ends ) await ChatMessage.implementation.create({
+        speaker: ChatMessage.implementation.getSpeaker({ actor }), content: saveResultText(actor, label, success, ends)
+      });
+      await saveDamage(effect, actor, Workflow.withEvasion(a.damage, actor, a.ability), success, label);
+      if ( !success && a.failStatus ) await giveStatus(actor, a.failStatus, a.failUntil ?? "turnStart", effect, label);
+      outcome = { success };
     }
-
-    await announce(trigger, effect, bearer, event, `${abilityLabel} save, DC ${dc}${modText}.`);
-    const rolls = await rollSave(bearer, spec);
-    const roll = rolls?.[0];
-    if ( !roll ) return {};
-    let success = roll.isSuccess ?? (roll.total >= dc);
-    if ( success && setting("reactions") ) {
-      success = (await Reactions.saveSucceeded({ actor: bearer, roll, dc, label: `the save against ${label}` })).success;
-    }
-    const ends = resolveThen(trigger.then, { success }) === "remove";
-    if ( success || ends ) await ChatMessage.implementation.create({
-      speaker: ChatMessage.implementation.getSpeaker({ actor: bearer }),
-      content: saveResultText(bearer, label, success, ends)
-    });
-    await saveDamage(effect, bearer, trigger.action.damage, success, label);
-    return { success };
+    // "End it on a success/failure" concerns the bearer's own save.
+    return a.to ? {} : outcome;
   }
+};
+
+/**
+ * A save action's DC: a number, "source" (the DC of the activity that applied the effect) or "sourceSpell" (the spell
+ * save DC of the effect's source — for summons and auras).
+ */
+async function resolveDC(dc, effect) {
+  if ( dc === "source" ) return (await originActivity(effect))?.save?.dc?.value;
+  if ( dc === "sourceSpell" ) return effect.getSourceActor?.()?.system.attributes?.spell?.dc;
+  return dc;
+}
+
+/** Put a condition on a creature until the start or end of its next turn. */
+async function giveStatus(actor, statusId, until, effect, label) {
+  const status = CONFIG.statusEffects.find(s => s.id === statusId);
+  if ( !status ) return;
+  await Creatures.giveEffect({
+    name: `${game.i18n.localize(status.name)} (${label})`, img: status.img, statuses: [statusId], origin: effect.origin ?? null,
+    duration: { value: 1, units: "rounds", expiry: until === "turnEnd" ? "turnEnd" : "turnStart" }
+  }, [actor]);
+}
+
+// A player rolls a save on their own client (auras, "save" with `to`).
+Creatures.HANDLERS.rollSave = async function({ actorUuid, spec }) {
+  const actor = fromUuidSync(actorUuid);
+  if ( !actor?.isOwner ) return null;
+  const rolls = await rollSave(actor, spec);
+  return rolls?.[0] ? { total: rolls[0].total } : null;
 };
 
 /* -------------------------------------------- */
@@ -1314,24 +1981,6 @@ function rollSave(actor, spec) {
   return actor.rollSavingThrow(config, { configure: false }, {});
 }
 
-/** The module's own "roll the save" button for players (carries advantage and bonuses, unlike [[/save]]). */
-Hooks.on("renderChatMessageHTML", (message, html) => {
-  for ( const button of html.querySelectorAll?.("button[data-sba-save]") ?? [] ) {
-    const effect = fromUuidSync(button.dataset.sbaSave);
-    const actor = effect?.parent instanceof Actor ? effect.parent : effect?.parent?.actor;
-    const pending = effect?.getFlag(MODULE_ID, "pendingSave");
-    if ( !actor?.isOwner || !pending ) {
-      button.disabled = true;
-      continue;
-    }
-    button.addEventListener("click", async event => {
-      event.preventDefault();
-      button.disabled = true;
-      await rollSave(actor, pending);
-    });
-  }
-});
-
 /**
  * Dispatch a trigger's action.
  */
@@ -1346,6 +1995,7 @@ async function runAction(trigger, effect, bearer, event, context) {
 /* -------------------------------------------- */
 
 Hooks.once("init", () => {
+  Areas.registerAreaBehavior();
   game.settings.register(MODULE_ID, "autoApplyEffects", {
     name: "Auto-apply effects",
     hint: "Apply an activity's effects automatically: to targets an attack hits, to targets that fail a save rolled "
@@ -1354,7 +2004,7 @@ Hooks.once("init", () => {
     scope: "world", config: true, type: Boolean, default: true
   });
   game.settings.register(MODULE_ID, "triggerDamage", {
-    name: "Trigger damage",
+    name: "Apply rolled damage",
     hint: "Damage rolled by a trigger (e.g. an aura detonating, ongoing damage) is applied automatically, or left on "
       + "the damage card for the GM to apply.",
     scope: "world", config: true, type: String, default: "auto",
@@ -1385,19 +2035,54 @@ Hooks.once("init", () => {
     hint: "In combat, when a creature moves out of a hostile creature's reach, offer that creature an Opportunity Attack.",
     scope: "world", config: true, type: Boolean, default: true
   });
-  game.settings.register(MODULE_ID, "playerSaves", {
-    name: "Players roll their own repeat saves",
-    hint: "When a trigger asks a player character for a saving throw and its player is connected, post a save button "
-      + "for the player instead of rolling it automatically.",
+  const saveModes = { off: "Off — dnd5e chat card", auto: "Automatic — saves rolled, damage and effects applied" };
+  game.settings.register(MODULE_ID, "wfSavePC", {
+    name: "Save spells and abilities — used by players",
+    hint: "When a player's creature (their character or summon) uses something that forces a save (Fireball, Toll the "
+      + "Dead…): the creatures in its area — or the targets — roll, damage is rolled once and applied per result, and "
+      + "effects go on those who failed.",
+    scope: "world", config: true, type: String, default: "auto", choices: saveModes
+  });
+  game.settings.register(MODULE_ID, "wfSaveNPC", {
+    name: "Save spells and abilities — used by NPCs",
+    hint: "The same, when an NPC uses it.",
+    scope: "world", config: true, type: String, default: "auto", choices: saveModes
+  });
+  const attackModes = { off: "Off — dnd5e chat card", attack: "Roll the attack when used",
+    full: "Roll the attack, then damage on a hit and apply it" };
+  game.settings.register(MODULE_ID, "wfAttackPC", {
+    name: "Attacks — used by players",
+    hint: "When a player's creature attacks with targets selected.",
+    scope: "world", config: true, type: String, default: "full", choices: attackModes
+  });
+  game.settings.register(MODULE_ID, "wfAttackNPC", {
+    name: "Attacks — used by NPCs",
+    hint: "When an NPC attacks with targets selected.",
+    scope: "world", config: true, type: String, default: "full", choices: attackModes
+  });
+  game.settings.register(MODULE_ID, "wfTargetPC", {
+    name: "Player characters' saves",
+    hint: "When a player character has to save against something automated: its player gets a popup (Roll / Advantage "
+      + "/ Disadvantage, rolled automatically after the reaction timeout), or it's rolled for them. NPCs are always "
+      + "rolled by the GM's client.",
+    scope: "world", config: true, type: String, default: "prompt",
+    choices: { prompt: "Their player rolls (popup)", auto: "Rolled automatically" }
+  });
+  game.settings.register(MODULE_ID, "wfRemoveTemplates", {
+    name: "Remove areas of instantaneous spells",
+    hint: "After an automated save spell resolves, remove its area (Fireball's sphere). Areas of spells with a duration stay.",
     scope: "world", config: true, type: Boolean, default: true
   });
 });
 
 Hooks.once("ready", () => {
+  Workflow.initWorkflow({ autoApply, rollSave, applyDamageAs, setting, findUsageMessage,
+    saveSucceeded: args => Reactions.saveSucceeded(args) });
+  Areas.initAreas({ runTriggerList, findUsageMessage, setting, saveMode: actor => Workflow.modeFor("Save", actor) });
   game.modules.get(MODULE_ID).api = {
     ACTIONS, fire, autoApply, findUsageMessage,
     openEditor: doc => TriggerEditor.open(doc), describeTrigger, describeReaction,
-    creatures: Creatures
+    creatures: Creatures, workflow: Workflow, areas: Areas
   };
   console.log(`${MODULE_ID} | Ready`);
 });
