@@ -1,0 +1,270 @@
+{
+  "_id": "8JJlDGK7sjuk2ErI",
+  "name": "Icicle Javelin",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "VSS'24",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Icicle Javelin (VSS'24). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 1,
+    "school": "con",
+    "properties": [
+      "vocal",
+      "somatic",
+      "material"
+    ],
+    "materials": {
+      "value": "a small icicle",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "1",
+        "type": "creature",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "60",
+      "units": "ft"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "0",
+      "units": "inst",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "dnd5eactivity000": {
+        "_id": "dnd5eactivity000",
+        "type": "attack",
+        "name": "",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "prompt": true,
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "attack": {
+          "critical": {},
+          "type": {
+            "value": "ranged"
+          },
+          "flat": false
+        },
+        "damage": {
+          "critical": {},
+          "parts": [
+            {
+              "types": [
+                "cold"
+              ],
+              "number": 3,
+              "denomination": 8,
+              "bonus": "",
+              "scaling": {
+                "mode": "whole",
+                "number": 1,
+                "formula": ""
+              },
+              "custom": {
+                "enabled": false
+              },
+              "modifiers": []
+            }
+          ],
+          "includeBase": true
+        },
+        "img": null,
+        "sort": 0,
+        "effects": [
+          {
+            "_id": "icicleJavPinned0"
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "icicle-javelin"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/unholy/silhouette-evil-horned-giant.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "ValdaSpire24",
+      "hash": "icicle%20javelin_valdaspire24",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Druid",
+        "Ranger",
+        "Sorcerer",
+        "Wizard"
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Icicle Javelin",
+          "type": "spell",
+          "book": "VSS'24",
+          "page": ""
+        },
+        {
+          "name": "Icicle Javelin",
+          "type": "spell"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "icicleJavPinned0",
+      "name": "Pinned (Icicle Javelin)",
+      "img": "icons/magic/unholy/silhouette-evil-horned-giant.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Speed 0 until the start of the caster's next turn.</p>",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": "sourceStart"
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.movement.speeds.walk",
+            "type": "override",
+            "value": "0",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.fly",
+            "type": "override",
+            "value": "0",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.swim",
+            "type": "override",
+            "value": "0",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.climb",
+            "type": "override",
+            "value": "0",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.burrow",
+            "type": "override",
+            "value": "0",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "askFirst": "Is the target next to a wall or a similar fixed object? If so, its Speed becomes 0."
+        }
+      },
+      "_key": "!items.effects!8JJlDGK7sjuk2ErI.icicleJavPinned0"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238833,
+    "modifiedTime": 1790404238833,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!8JJlDGK7sjuk2ErI"
+}

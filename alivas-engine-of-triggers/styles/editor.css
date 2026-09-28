@@ -170,3 +170,10 @@
 .aet-summary .aet-summary-edit { width: auto; height: 28px; padding: 0 12px; }
 
 .aet-selector { display: flex; flex-direction: column; gap: 8px; }
+
+.aet-rules { border: 1px solid var(--aet-line); border-radius: var(--aet-radius); padding: 8px 12px; margin: 8px 0 4px; background: var(--aet-fill); }
+.aet-rules summary { cursor: pointer; font-weight: 700; display: flex; gap: 8px; align-items: center; }
+.aet-rules summary .aet-muted { font-weight: 400; margin: 0; }
+.aet-rules[open] summary { margin-bottom: 8px; }
+.aet-small-check { display: inline-flex; margin-right: 8px; }
+.aet-settings { padding: 4px 2px 8px; }

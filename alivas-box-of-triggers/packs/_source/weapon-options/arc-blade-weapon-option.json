@@ -1,0 +1,188 @@
+{
+  "_id": "arcBladeopt00000",
+  "name": "Arc Blade (Weapon Option)",
+  "type": "feat",
+  "img": "icons/magic/symbols/runes-carved-stone-yellow.webp",
+  "system": {
+    "description": {
+      "value": "<p>Drag onto a melee weapon. The weapon gains two Arc Blade attacks using your spellcasting ability: in melee (Lightning or the weapon's own type) or as a 15-foot ranged spell attack (Lightning), each adding the cantrip's extra Lightning dice from level 5.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "Alivas's Box of Triggers"
+    },
+    "type": {
+      "value": "",
+      "subtype": ""
+    },
+    "activities": {
+      "arcBladeMelee000": {
+        "_id": "arcBladeMelee000",
+        "type": "attack",
+        "name": "Arc Blade (melee)",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-box-of-triggers": {
+            "weaponDamage": {
+              "weaponTypes": true,
+              "types": [
+                "lightning"
+              ],
+              "extra": {
+                "formula": "(floor((@details.level + 1) / 6))d6",
+                "type": "lightning"
+              }
+            }
+          }
+        },
+        "attack": {
+          "ability": "spellcasting",
+          "bonus": "",
+          "flat": false,
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": false,
+          "parts": []
+        }
+      },
+      "arcBladeRanged00": {
+        "_id": "arcBladeRanged00",
+        "type": "attack",
+        "name": "Arc Blade (15 ft)",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "value": 15,
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-box-of-triggers": {
+            "weaponDamage": {
+              "weaponTypes": false,
+              "types": [
+                "lightning"
+              ],
+              "extra": {
+                "formula": "(floor((@details.level + 1) / 6))d6",
+                "type": "lightning"
+              }
+            }
+          }
+        },
+        "attack": {
+          "ability": "spellcasting",
+          "bonus": "",
+          "flat": false,
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "ranged",
+            "classification": "spell"
+          }
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": false,
+          "parts": []
+        }
+      }
+    }
+  },
+  "effects": [],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "weaponOption": {
+        "id": "arc-blade",
+        "melee": true
+      }
+    }
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!arcBladeopt00000"
+}

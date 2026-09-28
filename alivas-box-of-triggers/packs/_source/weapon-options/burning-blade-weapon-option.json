@@ -1,0 +1,114 @@
+{
+  "_id": "burningBladeopt0",
+  "name": "Burning Blade (Weapon Option)",
+  "type": "feat",
+  "img": "icons/magic/symbols/rune-sigil-hook-white-red.webp",
+  "system": {
+    "description": {
+      "value": "<p>Drag onto a melee weapon. The weapon gains a Burning Blade attack: it uses your spellcasting ability, the damage can be Fire or the weapon's own type, its dice explode on their highest number, and it adds the cantrip's extra Fire dice from level 5.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "Alivas's Box of Triggers"
+    },
+    "type": {
+      "value": "",
+      "subtype": ""
+    },
+    "activities": {
+      "burningBladeAtk0": {
+        "_id": "burningBladeAtk0",
+        "type": "attack",
+        "name": "Burning Blade",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-box-of-triggers": {
+            "weaponDamage": {
+              "explode": true,
+              "weaponTypes": true,
+              "types": [
+                "fire"
+              ],
+              "extra": {
+                "formula": "(floor((@details.level + 1) / 6))d6",
+                "type": "fire"
+              }
+            }
+          }
+        },
+        "attack": {
+          "ability": "spellcasting",
+          "bonus": "",
+          "flat": false,
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": false,
+          "parts": []
+        }
+      }
+    }
+  },
+  "effects": [],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "weaponOption": {
+        "id": "burning-blade",
+        "melee": true
+      }
+    }
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!burningBladeopt0"
+}

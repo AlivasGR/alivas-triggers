@@ -1,0 +1,233 @@
+{
+  "_id": "iV8igesO0184523W",
+  "name": "Spellblade",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "VSS:PP2",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Spellblade (VSS:PP2). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Intelligence, Wisdom, or Charisma 13+",
+    "prerequisites": {
+      "level": 4,
+      "items": [],
+      "repeatable": false
+    },
+    "uses": {
+      "max": "@prof",
+      "recovery": [
+        {
+          "period": "lr",
+          "type": "recoverAll"
+        }
+      ],
+      "spent": 0
+    },
+    "type": {
+      "value": "feat",
+      "subtype": "general"
+    },
+    "properties": [],
+    "advancement": {
+      "noSqo1IoMiM59tBA": {
+        "_id": "noSqo1IoMiM59tBA",
+        "type": "AbilityScoreImprovement",
+        "configuration": {
+          "points": 1,
+          "fixed": {
+            "str": 0,
+            "dex": 0,
+            "con": 0,
+            "int": 0,
+            "wis": 0,
+            "cha": 0
+          },
+          "locked": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 1,
+          "recommendation": null
+        },
+        "value": {
+          "type": "asi",
+          "assignments": {
+            "int": 1
+          }
+        },
+        "level": 0,
+        "flags": {},
+        "hint": "",
+        "name": ""
+      }
+    },
+    "activities": {
+      "channeledUse0000": {
+        "_id": "channeledUse0000",
+        "type": "utility",
+        "name": "Channeled Attack",
+        "sort": 0,
+        "activation": {
+          "type": "special",
+          "override": true
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "value": "1",
+              "target": "",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": true
+        },
+        "target": {
+          "override": true,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "channeledAttack0"
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      }
+    },
+    "identifier": "spellblade",
+    "crewed": false,
+    "enchant": {}
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "systems/dnd5e/icons/svg/items/feature.svg",
+  "flags": {
+    "plutonium": {
+      "page": "feats.html",
+      "source": "ValdaPlayerPack2",
+      "hash": "spellblade_valdaplayerpack2"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Spellblade",
+          "type": "feat",
+          "book": "VSS:PP2",
+          "page": ""
+        },
+        {
+          "name": "Spellblade",
+          "type": "feat"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "channeledAttack0",
+      "name": "Channeled Attack (next weapon attack)",
+      "img": "systems/dnd5e/icons/svg/items/feature.svg",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Your next weapon attack roll gets a bonus equal to your best of INT, WIS or CHA modifier (minimum +1).</p>",
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "attack",
+            "type": "dnd5e.bonus",
+            "value": "max(1, @abilities.int.mod, @abilities.wis.mod, @abilities.cha.mod)",
+            "phase": "initial",
+            "conditions": "[{\"k\":\"activity.attack.type.classification\",\"v\":\"weapon\"},{\"k\":\"item.prof.multiplier\",\"o\":\"gte\",\"v\":1}]"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "attackAbilitiesOnly": [
+            "str",
+            "dex"
+          ],
+          "triggers": [
+            {
+              "label": "Channeled Attack",
+              "event": "attack",
+              "filter": [
+                {
+                  "k": "activity.attack.type.classification",
+                  "v": "weapon"
+                },
+                {
+                  "k": "item.prof.multiplier",
+                  "o": "gte",
+                  "v": 1
+                }
+              ],
+              "action": {
+                "type": "note"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!iV8igesO0184523W.channeledAttack0"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238826,
+    "modifiedTime": 1790404238826,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!iV8igesO0184523W"
+}

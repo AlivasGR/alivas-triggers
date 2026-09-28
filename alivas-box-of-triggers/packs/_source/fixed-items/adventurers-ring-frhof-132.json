@@ -1,0 +1,154 @@
+{
+  "_id": "0LDuGYH6WRTxb199",
+  "name": "Adventurer's Ring",
+  "type": "equipment",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "FRHoF",
+      "page": "132",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Adventurer's Ring (FRHoF p. 132). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "proficient": null,
+    "quantity": 1,
+    "weight": {
+      "value": 0,
+      "units": "lb"
+    },
+    "price": {
+      "value": 100,
+      "denomination": "gp"
+    },
+    "attuned": false,
+    "identified": true,
+    "equipped": true,
+    "type": {
+      "value": "ring",
+      "baseItem": ""
+    },
+    "properties": [
+      "mgc"
+    ],
+    "attunement": "",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "armor": {
+      "value": null,
+      "dex": null,
+      "magicalBonus": ""
+    },
+    "strength": null,
+    "activities": {
+      "advRingToggle000": {
+        "_id": "advRingToggle000",
+        "type": "utility",
+        "name": "Open / close",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": true
+        },
+        "target": {
+          "override": true,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "toggleLight",
+                "bright": 20,
+                "dim": 40,
+                "color": "#ffb86b"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "identifier": "adventurers-ring",
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "crew": {
+      "value": []
+    },
+    "rarities": [
+      "common"
+    ]
+  },
+  "img": "https://cdn.5e.tools/2024/img/items/FRHoF/Adventurer%27s%20Ring.webp",
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "plutonium": {
+      "page": "items.html",
+      "source": "FRHoF",
+      "hash": "adventurer's%20ring_frhof"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Adventurer's Ring",
+          "type": "equipment",
+          "book": "FRHoF",
+          "page": "132"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238846,
+    "modifiedTime": 1790404238846,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!0LDuGYH6WRTxb199"
+}

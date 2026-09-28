@@ -23,12 +23,14 @@
  *   save        bearer rolled a saving throw                   (dnd5e.rollSavingThrow, rolling client)
  *   check       bearer rolled an ability, skill or tool check  (dnd5e.rollAbilityCheck / rollSkill / rollToolCheck)
  *   rest        bearer finished a short or long rest           (dnd5e.restCompleted; data: longRest, shortRest)
+ *   applied     this effect was just put on the bearer          (createActiveEffect; only this effect's triggers)
  *   initiative  bearer rolled initiative                       (dnd5e.rollInitiative)
  *   moved       bearer's token moved                           (moveToken, moving client)
  *               filter data: moved, movedThisTurn (history since turn start + this move), ownTurn
  *   statusGained  bearer gained statuses                       (create/enable ActiveEffect, acting client)
  *               filter data: gainedStatuses (array) — e.g. { k: "gainedStatuses", o: "has", v: "dodging" }
- *   damaged filter data: amount · save filter data: ability, total
+ *   damaged filter data: amount · save filter data: ability, total · hit filter data: distance (ft), attackType
+ *   Formulas in actions can use @spellLevel (the level the effect's spell was cast at).
  *   spell / activity filter data also has activityType ("save", "attack"…) and the activity's targets for selectors
  *   Every event's filter data also has `bearer` (the bearer's roll data), e.g. { k: "bearer.statuses.prone", o: "gte", v: 1 }
  *   roundStart / roundEnd             a combat round starts / ends — every creature in the combat (designated GM)
@@ -51,7 +53,12 @@
  *   removeStatus { statuses, to, choose }   end conditions on the creatures a SELECTOR picks (choose: one each)
  *   inspire { to }                    give Heroic Inspiration to the creatures a SELECTOR picks
  *   swapInitiative { to }             swap the bearer's initiative with a creature the SELECTOR picks
- *   damage { formula, damageType }    roll damage against the bearer (e.g. ongoing damage at the start of its turn)
+ *   damage { formula, damageType, to } roll damage against the bearer, or the creatures a SELECTOR picks (e.g. the
+ *                                     attacker: { who: "subject" } on "hit")
+ *   tempHp { formula, to }            temporary hit points (kept if the creature already has more)
+ *   recoverSlots { budget, maxLevel } choose expended spell slots to recover, combined levels ≤ budget (formula);
+ *                                     spends a use of the item it's on
+ *   toggleLight { bright, dim, color } switch the bearer's token light on/off
  *   note { text }                     chat line only (optional extra text); use with then: "remove" for "ends if X happens"
  *   duplicates { count, threshold }   illusory duplicates (Mirror Image style): roll a d6 per remaining duplicate;
  *                                     any die >= threshold destroys one and that attack's damage is blocked.
@@ -63,9 +70,12 @@
  *                        triggers (giveEffect, removeStatus, inspire…); "targets" means the user's targets.
  *                        Example (Lesser Restoration): { type: "removeStatus", statuses: ["blinded", "deafened",
  *                        "paralyzed", "poisoned"], to: { who: "targets" }, choose: true }
+ *   chooseEffects: { count }   the user picks which of the activity's effects to apply (count: formula, e.g.
+ *                        "min(2, 1 + floor(@item.level / 4))"); an effect flagged minLevel needs that slot level
  *   pay: { cost, from: [identifier, …] }   pay `cost` uses from these items in order (e.g. Metamagic Adept's points
  *                        first, then Sorcery Points); refused if together they can't cover it
  *
+ * Effect flag askFirst: "question" — auto-apply asks the user yes/no before applying that effect (conditional riders).
  * Effect flag (not a trigger): `ignoreDamageFrom: ["magic-missile", "Magic Missile"]` — while the effect is active,
  * damage from those items (identifier or name) is not applied.
  *
@@ -165,12 +175,28 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
         release();
       }
     }
-    await fire("hit", target, { activity: subject, rolls, attacker: subject.actor });
+    const distance = Creatures.distanceFt(Creatures.tokenFor(subject.actor), Creatures.tokenFor(target));
+    await fire("hit", target, { activity: subject, rolls, attacker: subject.actor,
+      data: { distance, attackType: subject.attack?.type?.value ?? "" } });
     if ( isAbsorbed(target, subject) ) continue;
     if ( setting("autoApplyEffects") && subject.effects?.length ) {
       await autoApply(subject, target, subject.effects, findUsageMessage(subject));
     }
   }
+});
+
+/** An effect with "applied" triggers was just put on a creature (in the window that created it). */
+Hooks.on("preCreateActiveEffect", effect => {
+  const triggers = effect.getFlag(MODULE_ID, "triggers");
+  if ( Array.isArray(triggers) && triggers.some(t => [t.event].flat().includes("applied")) ) {
+    effect.updateSource({ [`flags.${MODULE_ID}.origin`]: game.socket.id });
+  }
+});
+Hooks.on("createActiveEffect", effect => {
+  if ( !createdHere(effect) || !(effect.parent instanceof Actor) ) return;
+  const triggers = effect.getFlag(MODULE_ID, "triggers");
+  if ( !Array.isArray(triggers) || !triggers.some(t => [t.event].flat().includes("applied")) ) return;
+  fire("applied", effect.parent, { onlyEffect: effect });
 });
 
 Hooks.on("dnd5e.restCompleted", (actor, result) => {
@@ -295,7 +321,9 @@ Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
     let recipients = [];
     if ( isSelfTargeted(activity) ) recipients = [activity.actor];
     else if ( affects !== "enemy" ) recipients = targets.length ? targets : [activity.actor];
-    for ( const actor of recipients ) autoApply(activity, actor, activity.effects, usage);
+    if ( recipients.length ) chooseProfiles(activity, usageConfig).then(profiles => {
+      if ( profiles.length ) for ( const actor of recipients ) autoApply(activity, actor, profiles, usage);
+    });
   }
 });
 
@@ -457,6 +485,17 @@ Hooks.once("setup", () => {
     return buildPost.call(this, rolls, config, message);
   };
 
+  // Weapon attack abilities: effects may add options (Bladework: INT) or require some (Channeled Attack: STR/DEX).
+  // dnd5e then picks the best allowed one, shows it on the sheet, and offers the choice in the roll dialog.
+  const attackProto = CONFIG.DND5E.activityTypes.attack?.documentClass?.prototype;
+  let owner = attackProto;
+  while ( owner && !Object.getOwnPropertyDescriptor(owner, "availableAbilities") ) owner = Object.getPrototypeOf(owner);
+  const available = owner && Object.getOwnPropertyDescriptor(owner, "availableAbilities");
+  if ( available?.get ) Object.defineProperty(attackProto, "availableAbilities", {
+    configurable: true,
+    get() { return adjustAttackAbilities(this, available.get.call(this)); }
+  });
+
   // Rules key "dc": save and check DCs pick up matching Rules → Bonus changes (see dcRuleBonus).
   const savePrep = CONFIG.DND5E.activityTypes.save?.documentClass?.prototype;
   if ( savePrep?.prepareFinalData ) {
@@ -523,6 +562,37 @@ Hooks.once("setup", () => {
 });
 
 /**
+ * Effect flags that change which abilities a weapon attack may use (only attacks without a fixed ability):
+ *   attackAbilities: { add: ["int"], proficient: true }   also allow these (Bladework: INT with proficient weapons)
+ *   attackAbilitiesOnly: ["str", "dex"]                  only these (Channeled Attack needs a STR/DEX attack)
+ * @param {Activity} activity
+ * @param {Set<string>} base  dnd5e's own options (STR, DEX, or both for Finesse)
+ * @returns {Set<string>}
+ */
+function adjustAttackAbilities(activity, base) {
+  const actor = activity.actor;
+  if ( !actor || (activity.attack?.type?.classification !== "weapon") || (activity.item?.type !== "weapon") ) return base;
+  const effects = actor.appliedEffects ?? [];
+  if ( !effects.some(e => e.flags?.[MODULE_ID]?.attackAbilities || e.flags?.[MODULE_ID]?.attackAbilitiesOnly) ) return base;
+  const proficient = (activity.item.system.prof?.multiplier ?? (activity.item.system.proficient ? 1 : 0)) >= 1;
+  const set = new Set(base);
+  for ( const e of effects ) {
+    const opt = e.flags?.[MODULE_ID]?.attackAbilities;
+    if ( !opt || (opt.proficient && !proficient) ) continue;
+    for ( const a of opt.add ?? [] ) set.add(a);
+  }
+  for ( const e of effects ) {
+    const only = e.flags?.[MODULE_ID]?.attackAbilitiesOnly;
+    if ( !Array.isArray(only) ) continue;
+    const kept = [...set].filter(a => only.includes(a));
+    set.clear();
+    for ( const a of (kept.length ? kept : [...base].filter(a => only.includes(a))) ) set.add(a);
+    if ( !set.size ) for ( const a of base ) set.add(a);
+  }
+  return set;
+}
+
+/**
  * Total of the actor's and item's Rules → Bonus changes with key "dc" whose conditions pass for this activity.
  * Conditions see the activity's roll data, so `item.school`, `item.level`, `activity.type` etc. work as filters.
  * @param {Activity} activity
@@ -571,6 +641,7 @@ async function fire(event, bearer, context) {
   if ( !bearer?.isOwner ) return;
   for ( const effect of Array.from(bearer.allApplicableEffects()) ) {
     if ( !effect.active ) continue;
+    if ( context?.onlyEffect && (effect !== context.onlyEffect) ) continue;
     const triggers = effect.getFlag(MODULE_ID, "triggers");
     if ( !Array.isArray(triggers) ) continue;
     // Source-turn events only concern effects that creature applied.
@@ -665,8 +736,48 @@ function findUsageMessage(activity) {
  * @param {object[]} profiles        Activity effect profiles ({ _id, onSave, ... }).
  * @param {ChatMessage5e} [usage]    The activity's usage card.
  */
+/**
+ * The effects of an activity to apply: all of them, or — with activity flag chooseEffects — the ones the user picks
+ * (only those whose flag minLevel the cast level meets).
+ */
+async function chooseProfiles(activity, usageConfig={}) {
+  const spec = activity.flags?.[MODULE_ID]?.chooseEffects;
+  const profiles = activity.effects ?? [];
+  if ( !spec ) return profiles;
+  // The level it was cast at: the slot used, else the base level plus any scaling.
+  const level = activity.actor?.system.spells?.[usageConfig.spell?.slot]?.level
+    ?? ((activity.item?.system?.level ?? 0) + (Number(usageConfig.scaling) || 0));
+  const allowed = profiles.filter(p => (p.effect?.getFlag(MODULE_ID, "minLevel") ?? 0) <= level);
+  if ( allowed.length <= 1 ) return allowed;
+  const data = { ...(activity.getRollData?.() ?? {}) };
+  data.item = { ...(data.item ?? {}), level };
+  let count = 1;
+  try {
+    count = Math.max(1, Math.floor(new Roll(CONFIG.Dice.BasicRoll.replaceFormulaData(String(spec.count ?? 1), data, { missing: 0 }))
+      .evaluateSync({ strict: false }).total) || 1);
+  } catch(err) { /* keep 1 */ }
+  const picked = await Creatures.HANDLERS.pickMany({
+    title: `${activity.item.name} — choose`, count,
+    prompt: `<p>Which benefit${count > 1 ? "s" : ""} of <strong>${activity.item.name}</strong> (level ${level})?</p>`,
+    options: allowed.map(p => ({ value: p._id, label: p.effect?.name ?? p._id }))
+  });
+  return allowed.filter(p => picked.includes(p._id));
+}
+
 async function autoApply(activity, actor, profiles, usage) {
   if ( !usage ) return;
+  // Conditional riders: ask before applying an effect flagged askFirst.
+  const kept = [];
+  for ( const p of profiles ) {
+    const question = p.effect?.getFlag?.(MODULE_ID, "askFirst");
+    if ( !question ) { kept.push(p); continue; }
+    const yes = await foundry.applications.api.DialogV2.confirm({
+      window: { title: `${p.effect.name} — ${actor.name}` }, content: `<p>${question}</p>`, rejectClose: false
+    });
+    if ( yes ) kept.push(p);
+  }
+  profiles = kept;
+  if ( !profiles.length ) return;
   const ids = profiles.map(p => p._id);
   if ( !actor.isOwner ) {
     if ( !game.users.activeGM ) return ui.notifications.warn(`${MODULE_ID}: no GM connected to apply effects to ${actor.name}.`);
@@ -696,7 +807,7 @@ async function applyEffects(usage, actor, effectIds) {
 
 Hooks.once("ready", () => {
   game.socket.on(SOCKET, async data => {
-    if ( (data?.type !== "applyEffects") || (game.users.activeGM !== game.user) ) return;
+    if ( (data?.type !== "applyEffects") || !Creatures.isLeadGM() ) return;
     const usage = game.messages.get(data.usageId);
     const actor = fromUuidSync(data.actorUuid);
     if ( usage && actor ) await applyEffects(usage, actor, data.effectIds);
@@ -767,7 +878,7 @@ const EVENT_TEXT = {
   roundStart: "— a new round begins", roundEnd: "— the round ends",
   sourceTurnStart: "— its source starts its turn", sourceTurnEnd: "— its source ends its turn",
   hit: "is hit by an attack", save: "makes a saving throw", check: "makes an ability check",
-  rest: "finishes a rest", initiative: "rolls initiative", moved: "moves", statusGained: "gains a condition"
+  rest: "finishes a rest", initiative: "rolls initiative", applied: "gains it", moved: "moves", statusGained: "gains a condition"
 };
 
 /**
@@ -817,7 +928,8 @@ async function dealDamage(effect, bearer, spec, { flavor, half=false }={}) {
   if ( !spec?.formula ) return;
   const source = effect.getSourceActor?.();
   const type = spec.type ?? "";
-  const roll = new CONFIG.Dice.DamageRoll(String(spec.formula), source?.getRollData?.() ?? bearer.getRollData(), {
+  const rollData = { ...(source?.getRollData?.() ?? bearer.getRollData()), spellLevel: effect.flags?.dnd5e?.spellLevel ?? 0 };
+  const roll = new CONFIG.Dice.DamageRoll(String(spec.formula), rollData, {
     type, properties: []
   });
   await roll.evaluate();
@@ -869,7 +981,8 @@ async function runOnUse(activity, targets) {
   const item = actor.items.get(activity.item.id) ?? activity.item;
   const standIn = {
     name: item.name, parent: item, origin: item.uuid, uuid: `${activity.uuid}.onUse`,
-    getSourceActor: () => actor, getFlag: () => undefined
+    getSourceActor: () => actor, getFlag: () => undefined,
+    flags: { dnd5e: { spellLevel: activity.item?.system?.level ?? 0 } }
   };
   for ( const action of list ) {
     const handler = ACTIONS[action?.type];
@@ -968,6 +1081,64 @@ const ACTIONS = {
     return {};
   },
 
+  /** Temporary hit points: { formula, to }. */
+  async tempHp(trigger, effect, bearer, event, context={}) {
+    const recipients = trigger.action.to
+      ? await Creatures.selectCreatures(bearer, trigger.action.to, selectorContext(effect, bearer, context, trigger)) : [bearer];
+    const source = effect.getSourceActor?.();
+    const data = { ...(source?.getRollData?.() ?? bearer.getRollData()), spellLevel: effect.flags?.dnd5e?.spellLevel ?? 0 };
+    const roll = await new Roll(String(trigger.action.formula), data).evaluate();
+    await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor: bearer }), flavor: `${trigger.label ?? effect.name}: temporary hit points` });
+    for ( const actor of recipients ) {
+      const current = actor.system.attributes?.hp?.temp ?? 0;
+      if ( roll.total <= current ) continue;
+      if ( actor.isOwner ) await actor.update({ "system.attributes.hp.temp": roll.total });
+      else game.socket.emit(SOCKET, { type: "updateActor", actorUuid: actor.uuid, update: { "system.attributes.hp.temp": roll.total } });
+    }
+    return {};
+  },
+
+  /** Recover spell slots: { budget, maxLevel }. Spends one use of the item the effect is on. */
+  async recoverSlots(trigger, effect, bearer, event) {
+    const item = effect.parent?.documentName === "Item" ? effect.parent : null;
+    if ( item?.system.uses?.max && !(item.system.uses.value > 0) ) return {};
+    const data = bearer.getRollData();
+    const budget = Math.floor(new Roll(CONFIG.Dice.BasicRoll.replaceFormulaData(String(trigger.action.budget ?? 1), data, { missing: 0 }))
+      .evaluateSync({ strict: false }).total) || 0;
+    const maxLevel = trigger.action.maxLevel ?? 5;
+    const slots = Object.entries(bearer.system.spells ?? {}).filter(([key]) => /^spell\d$/.test(key)).map(([key, s]) => ({
+      key, level: Number(key.slice(5)), missing: Math.max(0, (s.max ?? 0) - (s.value ?? 0))
+    })).filter(s => s.missing && (s.level <= maxLevel) && (s.level <= budget));
+    if ( !budget || !slots.length ) return {};
+    const user = Creatures.controllerOf(bearer);
+    const label = trigger.label ?? item?.name ?? effect.name;
+    const chosen = user ? await Creatures.runAs(user, "recoverSlots", {
+      title: `${label} — ${bearer.name}`, budget, slots,
+      prompt: `<p><strong>${label}</strong>: recover expended spell slots?</p>`
+    }) : null;
+    if ( !chosen ) return {};
+    let total = 0;
+    const update = {};
+    for ( const s of slots ) {
+      const n = Math.min(s.missing, chosen[s.key] ?? 0);
+      if ( !n ) continue;
+      total += n * s.level;
+      update[`system.spells.${s.key}.value`] = (bearer.system.spells[s.key].value ?? 0) + n;
+    }
+    if ( !total || (total > budget) ) return {};
+    await bearer.update(update);
+    if ( item?.system.uses?.max ) await item.update({ "system.uses.spent": (item.system.uses.spent ?? 0) + 1 });
+    await announce(trigger, effect, bearer, event, `Recovers ${Object.entries(update).map(([k, v]) => `level ${k.match(/spell(\d)/)[1]}`).join(", ")} (${total} of ${budget} levels).`);
+    return {};
+  },
+
+  /** Token light on/off: { bright, dim, color }. */
+  async toggleLight(trigger, effect, bearer, event) {
+    const on = await Creatures.toggleLight(bearer, trigger.action);
+    if ( on !== null ) await announce(trigger, effect, bearer, event, on ? "The light is on." : "The light is off.");
+    return {};
+  },
+
   /** Heroic Inspiration: { to }. */
   async inspire(trigger, effect, bearer, event, context={}) {
     const recipients = (await Creatures.selectCreatures(bearer, trigger.action.to ?? { who: "bearer" },
@@ -992,9 +1163,14 @@ const ACTIONS = {
   /**
    * Roll damage from a formula against the bearer: { formula, damageType }.
    */
-  async damage(trigger, effect, bearer, event) {
+  async damage(trigger, effect, bearer, event, context={}) {
     const label = trigger.label ?? effect.name;
     const spec = { formula: trigger.action.formula, type: trigger.action.damageType };
+    if ( trigger.action.to ) {
+      const recipients = await Creatures.selectCreatures(bearer, trigger.action.to, selectorContext(effect, bearer, context, trigger));
+      for ( const r of recipients ) await dealDamage(effect, r, spec, { flavor: `${label} (${bearer.name} ${EVENT_TEXT[event] ?? event})` });
+      return {};
+    }
     await dealDamage(effect, bearer, spec, { flavor: `${label} (${bearer.name} ${EVENT_TEXT[event] ?? event})` });
     return {};
   },

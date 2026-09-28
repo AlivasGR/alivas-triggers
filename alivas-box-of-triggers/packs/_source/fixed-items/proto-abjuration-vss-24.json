@@ -1,0 +1,493 @@
+{
+  "_id": "mTXfar3bcNotg8p3",
+  "name": "Proto-Abjuration",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "VSS'24+",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Proto-Abjuration (VSS'24+). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 1,
+    "school": "abj",
+    "properties": [
+      "vocal",
+      "somatic",
+      "concentration"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "creature",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "touch"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "10",
+      "units": "minute",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "protoAbjCast0000": {
+        "_id": "protoAbjCast0000",
+        "type": "utility",
+        "name": "Cast",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "minute",
+          "value": "10",
+          "concentration": true,
+          "override": true
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "type": "creature",
+            "count": "1",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "protoAbjThorns00"
+          },
+          {
+            "_id": "protoAbjTempHp00"
+          },
+          {
+            "_id": "protoAbjWard0000"
+          },
+          {
+            "_id": "protoAbjResacid0"
+          },
+          {
+            "_id": "protoAbjRescold0"
+          },
+          {
+            "_id": "protoAbjResfire0"
+          },
+          {
+            "_id": "protoAbjReslight"
+          },
+          {
+            "_id": "protoAbjResthund"
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "chooseEffects": {
+              "count": "min(2, 1 + floor(@item.level / 4))"
+            }
+          }
+        }
+      }
+    },
+    "identifier": "proto-abjuration"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/defensive/shield-barrier-blue.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "ValdaSpire24Extras",
+      "hash": "proto-abjuration_valdaspire24extras",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Sorcerer",
+        "Wizard"
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Proto-Abjuration",
+          "type": "spell",
+          "book": "VSS'24+",
+          "page": ""
+        },
+        {
+          "name": "Proto-Abjuration",
+          "type": "spell"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "protoAbjThorns00",
+      "name": "Arcane Thorns",
+      "img": "icons/magic/nature/root-vine-thorned-coil-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>A creature within 5 feet that hits the bearer with a melee attack takes 2d4 + the spell's level Force damage.</p>",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Arcane Thorns",
+              "event": "hit",
+              "filter": [
+                {
+                  "k": "attackType",
+                  "v": "melee"
+                },
+                {
+                  "k": "distance",
+                  "o": "lte",
+                  "v": 5
+                }
+              ],
+              "action": {
+                "type": "damage",
+                "formula": "2d4 + @spellLevel",
+                "damageType": "force",
+                "to": {
+                  "who": "subject"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!mTXfar3bcNotg8p3.protoAbjThorns00"
+    },
+    {
+      "_id": "protoAbjTempHp00",
+      "name": "Proto-Abjuration: Temporary HP",
+      "img": "icons/magic/defensive/shield-barrier-glowing-blue.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Temporary hit points: (1d10 + 5) × the spell's level.</p>",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Proto-Abjuration",
+              "event": "applied",
+              "action": {
+                "type": "tempHp",
+                "formula": "(1d10 + 5) * @spellLevel"
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!mTXfar3bcNotg8p3.protoAbjTempHp00"
+    },
+    {
+      "_id": "protoAbjWard0000",
+      "name": "Armored Ward",
+      "img": "icons/magic/defensive/armor-shield-barrier-steel.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>+2 to AC and saving throws.</p>",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.ac.bonus",
+            "type": "add",
+            "value": "+2",
+            "phase": "initial"
+          },
+          {
+            "key": "system.bonuses.abilities.save",
+            "type": "add",
+            "value": "+2",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "minLevel": 2
+        }
+      },
+      "_key": "!items.effects!mTXfar3bcNotg8p3.protoAbjWard0000"
+    },
+    {
+      "_id": "protoAbjResacid0",
+      "name": "Resistance: Acid",
+      "img": "icons/magic/defensive/shield-barrier-flaming-diamond-orange.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Resistance to acid damage.</p>",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.traits.dr.value",
+            "type": "add",
+            "value": "acid",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "minLevel": 3
+        }
+      },
+      "_key": "!items.effects!mTXfar3bcNotg8p3.protoAbjResacid0"
+    },
+    {
+      "_id": "protoAbjRescold0",
+      "name": "Resistance: Cold",
+      "img": "icons/magic/defensive/shield-barrier-flaming-diamond-orange.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Resistance to cold damage.</p>",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.traits.dr.value",
+            "type": "add",
+            "value": "cold",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "minLevel": 3
+        }
+      },
+      "_key": "!items.effects!mTXfar3bcNotg8p3.protoAbjRescold0"
+    },
+    {
+      "_id": "protoAbjResfire0",
+      "name": "Resistance: Fire",
+      "img": "icons/magic/defensive/shield-barrier-flaming-diamond-orange.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Resistance to fire damage.</p>",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.traits.dr.value",
+            "type": "add",
+            "value": "fire",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "minLevel": 3
+        }
+      },
+      "_key": "!items.effects!mTXfar3bcNotg8p3.protoAbjResfire0"
+    },
+    {
+      "_id": "protoAbjReslight",
+      "name": "Resistance: Lightning",
+      "img": "icons/magic/defensive/shield-barrier-flaming-diamond-orange.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Resistance to lightning damage.</p>",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.traits.dr.value",
+            "type": "add",
+            "value": "lightning",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "minLevel": 3
+        }
+      },
+      "_key": "!items.effects!mTXfar3bcNotg8p3.protoAbjReslight"
+    },
+    {
+      "_id": "protoAbjResthund",
+      "name": "Resistance: Thunder",
+      "img": "icons/magic/defensive/shield-barrier-flaming-diamond-orange.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Resistance to thunder damage.</p>",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.traits.dr.value",
+            "type": "add",
+            "value": "thunder",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "minLevel": 3
+        }
+      },
+      "_key": "!items.effects!mTXfar3bcNotg8p3.protoAbjResthund"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238842,
+    "modifiedTime": 1790404238842,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!mTXfar3bcNotg8p3"
+}

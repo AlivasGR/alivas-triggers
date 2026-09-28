@@ -26,6 +26,7 @@
 const MODULE_ID = "alivas-box-of-triggers";
 const PACK_ID = `${MODULE_ID}.fixed-items`;
 const OPTIONS_PACK_ID = `${MODULE_ID}.weapon-options`;
+const ENGINE_ID = "alivas-engine-of-triggers";
 
 /** Fields that reflect play or presentation rather than mechanics. */
 const PRESERVE = [
@@ -70,6 +71,9 @@ function keyMatches(desc, key) {
  * @param {string} [owner]  Name of the owning actor.
  */
 function findPatch(data, owner) {
+  // Spells dnd5e keeps in sync for an item's Cast activity (e.g. an Enspelled weapon) are never patched: their
+  // consumption belongs to that item.
+  if ( data.flags?.dnd5e?.cachedFor ) return null;
   const desc = describe(data, owner);
   return PATCHES.find(p => p.keys.some(k => keyMatches(desc, k))) ?? null;
 }
@@ -196,12 +200,61 @@ async function plan() {
   ];
   const rows = [];
   for ( const { item, owner } of candidates ) {
+    for ( const link of castLinks(item) ) rows.push(link);
     const patch = findPatch(item.toObject(), owner);
     if ( !patch ) continue;
     const current = item.getFlag(MODULE_ID, "version");
     rows.push({ patch, item, owner, current, version: patch.version, status: current === patch.version ? "current" : "outdated" });
   }
   return rows;
+}
+
+/* -------------------------------------------- */
+/*  Items that cast a patched spell             */
+/* -------------------------------------------- */
+
+/**
+ * An item with a Cast activity (Enspelled weapon, wand, staff…) whose spell has a patch with reaction popups gets
+ * those popups too — paid with the item's own charges, the way the Cast activity pays (dnd5e keeps a linked copy of
+ * the spell for it, which is never patched itself). One plan row per such Cast activity.
+ * @param {Item5e} item
+ * @returns {object[]}  rows: { link: true, item, owner, activity, spell, patch, reactions, current, version, status }
+ */
+function castLinks(item) {
+  const rows = [];
+  const actor = item.parent;
+  for ( const activity of item.system?.activities ?? [] ) {
+    if ( activity.type !== "cast" ) continue;
+    const cached = actor?.items.find(i => i.flags?.dnd5e?.cachedFor?.endsWith(`Activity.${activity.id}`));
+    const spellData = cached?.toObject() ?? null;
+    if ( !spellData ) continue;
+    delete spellData.flags?.dnd5e?.cachedFor;
+    const patch = findPatch(spellData, actor?.name);
+    const decls = patch?.data.flags?.[ENGINE_ID]?.reactions;
+    if ( !Array.isArray(decls) || !decls.length ) continue;
+    const charges = Number(activity.consumption?.targets?.find(c => c.type === "itemUses" && !c.target)?.value) || 1;
+    const level = activity.spell?.level || cached.system.level || 1;
+    // If the spell's own activity puts effects on (Shield's +5 AC), cast it for free after paying, so they apply.
+    const castsEffects = cached.system.activities?.some(a => a.effects?.length) ?? false;
+    const reactions = decls.map(d => {
+      const { activity: _, ...rest } = foundry.utils.deepClone(d);
+      return { ...rest, label: `${d.label ?? cached.name} (${item.name})`, cost: { uses: charges, level, ...(castsEffects ? { spell: cached.id } : {}) },
+        castLink: activity.id, detail: `${charges} charge${charges === 1 ? "" : "s"}${d.detail ? `: ${d.detail}` : ""}` };
+    });
+    const current = item.getFlag(MODULE_ID, `castLinks.${activity.id}`);
+    rows.push({ link: true, item, owner: actor?.name ?? "", activity, spell: cached.name, patch, reactions, current,
+      version: patch.version, status: current === patch.version ? "current" : "outdated" });
+  }
+  return rows;
+}
+
+/** Give an item the reaction popups of the spell its Cast activity casts (replacing earlier ones for that activity). */
+async function applyCastLink(row) {
+  const kept = (row.item.getFlag(ENGINE_ID, "reactions") ?? []).filter(r => r.castLink !== row.activity.id);
+  await row.item.update({
+    [`flags.${ENGINE_ID}.reactions`]: [...kept, ...row.reactions],
+    [`flags.${MODULE_ID}.castLinks.${row.activity.id}`]: row.version
+  });
 }
 
 /**
@@ -218,7 +271,8 @@ async function apply({ only }={}) {
   for ( const row of rows ) {
     if ( (row.status !== "outdated") || row.skip ) continue;
     try {
-      await applyOne(row.patch, row.item);
+      if ( row.link ) await applyCastLink(row);
+      else await applyOne(row.patch, row.item);
       row.result = "updated";
     } catch(err) {
       console.error(`${MODULE_ID} | Failed to patch ${row.item.uuid}`, err);
@@ -232,7 +286,7 @@ function planTable(rows, { selectable=false }={}) {
   const label = r => r.result ?? (r.skip ? "Skipped" : (r.status === "current" ? "Up to date" : "Will be updated"));
   const tr = rows.map((r, i) => `<tr>
     <td>${selectable && r.status === "outdated" ? `<input type="checkbox" name="row" value="${i}" checked>` : ""}</td>
-    <td>${r.item.name}</td><td>${r.owner || "World item"}</td>
+    <td>${r.item.name}${r.link ? ` <em>(casts ${r.spell})</em>` : ""}</td><td>${r.owner || "World item"}</td>
     <td>${r.current ?? "—"} → ${r.version}</td><td>${label(r)}</td></tr>`).join("");
   return `<table><thead><tr><th></th><th>Item</th><th>On</th><th>Version</th><th>Status</th></tr></thead>
     <tbody>${tr || `<tr><td colspan="5">No patchable items in this world.</td></tr>`}</tbody></table>`;
@@ -315,14 +369,43 @@ async function applyWeaponOption(weapon, option) {
   const updates = {};
   for ( const activity of option.system.activities ) {
     const data = activity.toObject();
+    const spec = data.flags?.[MODULE_ID]?.weaponDamage;
     data._id = foundry.utils.randomID();
     data.effects = (data.effects ?? []).map(e => ({ ...e, _id: idMap[e._id] ?? e._id }));
-    foundry.utils.setProperty(data, `flags.${MODULE_ID}`, mark);
+    if ( spec ) data.damage = { ...(data.damage ?? {}), includeBase: false, parts: weaponDamageParts(weapon, spec) };
+    if ( spec?.matchRange ) foundry.utils.setProperty(data, "attack.type.value", /R$/.test(weapon.system.type?.value ?? "") ? "ranged" : "melee");
+    foundry.utils.setProperty(data, `flags.${MODULE_ID}`, { ...mark, ...(spec ? { weaponDamage: spec } : {}) });
     updates[`system.activities.${data._id}`] = data;
   }
   await weapon.update(updates);
   ui.notifications.info(`${weapon.name} can now use ${option.name.replace(/\s*\(Weapon Option\)$/, "")}.`);
   return true;
+}
+
+/** One die size up: d4 → d6 → d8 → d10 → d12 (a d12 stays a d12). */
+const STEP = { 4: 6, 6: 8, 8: 10, 10: 12, 12: 12 };
+
+/**
+ * Damage parts for a weapon option built from the weapon it's dropped on (activity flag "weaponDamage"):
+ *   { step: 1,              the weapon's die one size up (only if it has a single damage die)
+ *     explode: true,        dice explode on their highest number
+ *     weaponTypes: true,    offer the weapon's own damage types too (chosen when rolling)
+ *     types: ["cold"],      the spell's damage type(s), offered first
+ *     extra: { formula, type },    extra dice, e.g. the cantrip's level-based damage
+ *     matchRange: true }    melee or ranged attack to match the weapon
+ */
+function weaponDamageParts(weapon, spec) {
+  const base = weapon.system.damage?.base ?? {};
+  let number = base.number || 1;
+  let die = base.denomination || 4;
+  if ( spec.step && (number === 1) ) die = STEP[die] ?? die;
+  const x = spec.explode ? "x" : "";
+  const types = [...new Set([...(spec.types ?? []), ...(spec.weaponTypes ? Array.from(base.types ?? []) : [])])];
+  const parts = [{ number: null, denomination: null, bonus: "", types, custom: { enabled: true, formula: `${number}d${die}${x} + @mod` },
+    scaling: { mode: "", number: null, formula: "" } }];
+  if ( spec.extra?.formula ) parts.push({ number: null, denomination: null, bonus: "", types: [spec.extra.type],
+    custom: { enabled: true, formula: `${spec.extra.formula}${x}` }, scaling: { mode: "", number: null, formula: "" } });
+  return parts;
 }
 
 Hooks.on("dnd5e.dropItemSheetData", (item, sheet, data) => {

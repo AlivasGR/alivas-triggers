@@ -337,6 +337,33 @@ export async function swapInitiative(a, b) {
   return true;
 }
 
+/**
+ * Turn an actor's token light on or off. The light it had before is remembered and restored.
+ * @param {Actor5e} actor
+ * @param {{bright: number, dim: number, color?: string, animation?: string}} light
+ * @returns {Promise<boolean|null>}  true = now on, false = now off, null = no token
+ */
+export async function toggleLight(actor, light) {
+  const tokens = actor.getActiveTokens?.(false, true) ?? [];
+  if ( !tokens.length ) return null;
+  let on = null;
+  for ( const token of tokens ) {
+    const saved = token.getFlag(MODULE_ID, "savedLight");
+    if ( saved ) {
+      await token.update({ light: saved, [`flags.${MODULE_ID}.-=savedLight`]: null });
+      on = false;
+    } else {
+      await token.update({
+        [`flags.${MODULE_ID}.savedLight`]: token.toObject().light,
+        light: { bright: light.bright, dim: light.dim, color: light.color ?? null, alpha: 0.4,
+          animation: { type: light.animation ?? "flame", speed: 3, intensity: 3 } }
+      });
+      on = true;
+    }
+  }
+  return on;
+}
+
 /** The lowest spell slot key ("spell3", "pact") that can cast this spell activity, if it needs one. */
 export function lowestSlot(activity) {
   const item = activity.item;
@@ -392,6 +419,61 @@ HANDLERS.pickCreatures = async function({ title, prompt, choices, count }) {
   return Array.isArray(result) ? result : [];
 };
 
+/** Choose up to `count` of several options (checkboxes); resolves to the chosen values. */
+HANDLERS.pickMany = async function({ title, prompt, options, count }) {
+  const rows = options.map(o => `<label style="display:flex;gap:8px;align-items:center;margin:4px 0">
+    <input type="checkbox" name="pick" value="${o.value}"> <span>${foundry.utils.escapeHTML(o.label)}</span></label>`).join("");
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title }, position: { width: 440 }, rejectClose: false,
+    content: `${prompt || ""}<p><em>Choose ${count > 1 ? `up to ${count}` : "one"}.</em></p>${rows}`,
+    render: (event, dialog) => {
+      const boxes = dialog.element.querySelectorAll('input[name="pick"]');
+      const limit = () => {
+        const n = [...boxes].filter(b => b.checked).length;
+        boxes.forEach(b => { b.disabled = !b.checked && (n >= count); });
+      };
+      boxes.forEach(b => b.addEventListener("change", limit));
+    },
+    buttons: [{ action: "ok", label: "Confirm", icon: "fa-solid fa-check", default: true,
+      callback: (event, button, dialog) => [...dialog.element.querySelectorAll('input[name="pick"]:checked')].map(b => b.value) }]
+  });
+  return Array.isArray(result) ? result : [];
+};
+
+/**
+ * Recover expended spell slots up to a budget of combined levels (Arcane Recovery, Natural Recovery).
+ * payload: { title, prompt, budget, slots: [{ key, level, missing }] } → { key: count }
+ */
+HANDLERS.recoverSlots = async function({ title, prompt, budget, slots }) {
+  const rows = slots.map(s => `<label style="display:flex;gap:8px;align-items:center;margin:4px 0">
+    <span style="min-width:90px">Level ${s.level}</span>
+    <input type="number" name="${s.key}" data-level="${s.level}" value="0" min="0" max="${s.missing}" style="width:60px">
+    <span class="aet-muted">of ${s.missing} expended</span></label>`).join("");
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title }, position: { width: 420 }, rejectClose: false,
+    content: `${prompt || ""}<p>Up to <strong>${budget}</strong> levels in total. <span class="aet-used"></span></p>${rows}`,
+    render: (event, dialog) => {
+      const inputs = [...dialog.element.querySelectorAll("input[type=number]")];
+      const used = dialog.element.querySelector(".aet-used");
+      const ok = dialog.element.querySelector('button[data-action="ok"]');
+      const update = () => {
+        const total = inputs.reduce((s, i) => s + (Number(i.value) || 0) * Number(i.dataset.level), 0);
+        used.textContent = `Chosen: ${total}.`;
+        if ( ok ) ok.disabled = total > budget;
+      };
+      inputs.forEach(i => i.addEventListener("input", update));
+      update();
+    },
+    buttons: [
+      { action: "ok", label: "Recover", icon: "fa-solid fa-rotate", default: true,
+        callback: (event, button, dialog) => Object.fromEntries([...dialog.element.querySelectorAll("input[type=number]")]
+          .map(i => [i.name, Math.max(0, Math.min(Number(i.max), Number(i.value) || 0))])) },
+      { action: "no", label: "Not now", icon: "fa-solid fa-xmark", callback: () => null }
+    ]
+  });
+  return (result && typeof result === "object") ? result : null;
+};
+
 /** Show a one-of-several choice; resolves to the chosen value or null. */
 HANDLERS.pickOption = async function({ title, prompt, options }) {
   const choice = await foundry.applications.api.DialogV2.wait({
@@ -400,6 +482,27 @@ HANDLERS.pickOption = async function({ title, prompt, options }) {
   });
   return choice ?? null;
 };
+
+/* -------------------------------------------- */
+/*  One GM window handles player requests       */
+/* -------------------------------------------- */
+
+/*
+ * The same GM account can be open in several windows (a second monitor, a test tab). Every window receives player
+ * requests, so each would act and effects would be applied twice. GM windows announce themselves; the lead window
+ * (lowest connection id among those heard from recently) is the only one that handles requests.
+ */
+const gmWindows = new Map();   // socket id → last seen
+const GM_ALIVE_MS = 25000;
+
+/** Should this window handle requests meant for "the GM"? */
+export function isLeadGM() {
+  if ( !game.user?.isGM || (game.users.activeGM !== game.user) ) return false;
+  const now = Date.now();
+  const live = [...gmWindows].filter(([, seen]) => (now - seen) < GM_ALIVE_MS).map(([id]) => id);
+  live.push(game.socket.id);
+  return live.sort()[0] === game.socket.id;
+}
 
 const waiting = new Map();
 
@@ -423,8 +526,13 @@ export function runAs(user, handler, payload) {
 }
 
 Hooks.once("ready", () => {
+  if ( game.user.isGM ) {
+    const hello = type => game.socket.emit(SOCKET, { type, id: game.socket.id, userId: game.user.id });
+    hello("gmWho");
+    setInterval(() => hello("gmHello"), 8000);
+  }
   game.socket.on(SOCKET, async data => {
-    if ( (data?.type === "runAs") && (data.userId === game.user.id) ) {
+    if ( (data?.type === "runAs") && (data.userId === game.user.id) && (!game.user.isGM || isLeadGM()) ) {
       const result = await HANDLERS[data.handler]?.(data.payload) ?? null;
       game.socket.emit(SOCKET, { type: "runAsResult", requestId: data.requestId, result });
     }
@@ -435,7 +543,12 @@ Hooks.once("ready", () => {
         resolve(data.result);
       }
     }
-    else if ( game.users.activeGM !== game.user ) return;
+    else if ( ["gmHello", "gmWho"].includes(data?.type) ) {
+      if ( !game.user.isGM || (data.userId !== game.user.id) ) return;
+      gmWindows.set(data.id, Date.now());
+      if ( data.type === "gmWho" ) game.socket.emit(SOCKET, { type: "gmHello", id: game.socket.id, userId: game.user.id });
+    }
+    else if ( !isLeadGM() ) return;
     else if ( data?.type === "placeEffect" ) {
       const actor = fromUuidSync(data.actorUuid);
       if ( actor ) await placeEffect(actor, data.data, data.replace);

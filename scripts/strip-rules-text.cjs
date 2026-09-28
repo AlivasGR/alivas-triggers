@@ -10,7 +10,8 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..", "alivas-box-of-triggers", "packs", "_source");
-const KEEP = new Set(["staff-of-the-savants-homebrew.json", "vengeful-blade-weapon-option.json"]);   // our own text
+const KEEP = new Set(["staff-of-the-savants-homebrew.json"]);   // our own text
+const KEEP_DIRS = new Set(["weapon-options"]);   // weapon options are written by us
 const LIMIT = 450;   // longest text allowed in a published patch (our own effect summaries are shorter)
 
 /** Our own wording for texts copied from books. */
@@ -34,7 +35,8 @@ for ( const dir of fs.readdirSync(ROOT) ) {
   for ( const file of fs.readdirSync(path.join(ROOT, dir)) ) {
     const p = path.join(ROOT, dir, file);
     const d = JSON.parse(fs.readFileSync(p, "utf8"));
-    if ( !check && !KEEP.has(file) ) {
+    const ours = KEEP.has(file) || KEEP_DIRS.has(dir);
+    if ( !check && !ours ) {
       const src = d.system?.source ?? {};
       const where = [src.book, src.page ? `p. ${src.page}` : ""].filter(Boolean).join(" ");
       d.system.description = {
@@ -52,7 +54,7 @@ for ( const dir of fs.readdirSync(ROOT) ) {
       for ( const e of d.effects ?? [] ) if ( REWRITE[e.name] ) e.description = `<p>${REWRITE[e.name]}</p>`;
       fs.writeFileSync(p, JSON.stringify(d, null, 2) + "\n");
     }
-    if ( !KEEP.has(file) ) scan(d, "", `${dir}/${file}`);
+    if ( !ours ) scan(d, "", `${dir}/${file}`);
   }
 }
 if ( problems.length ) {

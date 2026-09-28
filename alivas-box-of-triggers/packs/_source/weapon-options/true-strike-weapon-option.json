@@ -1,0 +1,114 @@
+{
+  "_id": "trueStrikeopt000",
+  "name": "True Strike (Weapon Option)",
+  "type": "feat",
+  "img": "icons/magic/light/swords-light-glowing-white.webp",
+  "system": {
+    "description": {
+      "value": "<p>Drag onto a weapon. The weapon gains a True Strike attack: it uses your spellcasting ability, the damage can be Radiant or the weapon's own type, and it adds the cantrip's extra Radiant dice from level 5.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "Alivas's Box of Triggers"
+    },
+    "type": {
+      "value": "",
+      "subtype": ""
+    },
+    "activities": {
+      "trueStrikeAtk000": {
+        "_id": "trueStrikeAtk000",
+        "type": "attack",
+        "name": "True Strike",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-box-of-triggers": {
+            "weaponDamage": {
+              "weaponTypes": true,
+              "types": [
+                "radiant"
+              ],
+              "extra": {
+                "formula": "(floor((@details.level + 1) / 6))d6",
+                "type": "radiant"
+              },
+              "matchRange": true
+            }
+          }
+        },
+        "attack": {
+          "ability": "spellcasting",
+          "bonus": "",
+          "flat": false,
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": false,
+          "parts": []
+        }
+      }
+    }
+  },
+  "effects": [],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "weaponOption": {
+        "id": "true-strike",
+        "melee": false
+      }
+    }
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!trueStrikeopt000"
+}

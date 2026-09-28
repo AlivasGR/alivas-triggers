@@ -1,0 +1,215 @@
+{
+  "name": "Divine Smite",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Divine Smite (PHB 2024 p. 265). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "book": "PHB 2024",
+      "page": "265",
+      "custom": "",
+      "rules": "2024",
+      "revision": 1,
+      "license": ""
+    },
+    "activation": {
+      "type": "bonus",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "",
+      "units": "inst",
+      "expiry": null
+    },
+    "target": {
+      "affects": {
+        "choice": false,
+        "count": "",
+        "type": ""
+      },
+      "template": {
+        "units": "ft",
+        "contiguous": false,
+        "type": "",
+        "stationary": false
+      }
+    },
+    "range": {
+      "units": "self",
+      "special": ""
+    },
+    "uses": {
+      "max": "",
+      "recovery": [],
+      "spent": 0
+    },
+    "level": 1,
+    "school": "evo",
+    "properties": [
+      "vocal"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "activities": {
+      "divineSmiteUse00": {
+        "_id": "divineSmiteUse00",
+        "type": "utility",
+        "name": "Divine Smite",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": true
+        },
+        "target": {
+          "override": true,
+          "prompt": false,
+          "affects": {
+            "type": "",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      }
+    },
+    "identifier": "divine-smite",
+    "method": "spell",
+    "prepared": 0
+  },
+  "type": "spell",
+  "img": "https://assets.forge-vtt.com/bazaar/core/icons/skills/melee/strike-flail-destructive-yellow.webp",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "configure": true,
+          "label": "Divine Smite",
+          "filter": [
+            {
+              "k": "attackType",
+              "v": "melee"
+            },
+            {
+              "k": "targetType",
+              "o": "in",
+              "v": [
+                "fiend",
+                "undead"
+              ]
+            }
+          ],
+          "detail": "extra Radiant damage: (slot level + 2)d8 against a Fiend or Undead; doubled on a critical hit",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(@castLevel + 2)d8",
+            "damageType": "radiant",
+            "critDouble": true
+          }
+        },
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "configure": true,
+          "label": "Divine Smite",
+          "filter": [
+            {
+              "k": "attackType",
+              "v": "melee"
+            },
+            {
+              "o": "NOT",
+              "v": {
+                "k": "targetType",
+                "o": "in",
+                "v": [
+                  "fiend",
+                  "undead"
+                ]
+              }
+            }
+          ],
+          "detail": "extra Radiant damage: (slot level + 1)d8; doubled on a critical hit",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(@castLevel + 1)d8",
+            "damageType": "radiant",
+            "critDouble": true
+          }
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Divine Smite",
+          "type": "spell",
+          "book": "PHB 2024",
+          "page": "265"
+        },
+        {
+          "name": "Divine Smite",
+          "type": "spell",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplDivineSmit"
+        },
+        {
+          "name": "Divine Smite",
+          "type": "spell"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "duplicateSource": null,
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790404238844,
+    "modifiedTime": 1790404238844,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "exportSource": null,
+    "compendiumSource": null
+  },
+  "_id": "pQoFW8ZlNyuyGeC7",
+  "_key": "!items!pQoFW8ZlNyuyGeC7"
+}

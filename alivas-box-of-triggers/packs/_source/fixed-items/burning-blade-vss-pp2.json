@@ -1,0 +1,162 @@
+{
+  "_id": "cvpTuaQwoCkNKO3D",
+  "name": "Burning Blade",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "VSS:PP2",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Burning Blade (VSS:PP2). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 0,
+    "school": "evo",
+    "properties": [
+      "somatic",
+      "material"
+    ],
+    "materials": {
+      "value": "a Melee weapon with which you have proficiency and that is worth 1+ CP",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "self",
+      "special": ""
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "0",
+      "units": "inst",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "BurningBladecast": {
+        "_id": "BurningBladecast",
+        "type": "utility",
+        "name": "Cast",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      }
+    },
+    "identifier": "burning-blade",
+    "ability": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/symbols/rune-sigil-hook-white-red.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "ValdaPlayerPack2",
+      "hash": "burning%20blade_valdaplayerpack2",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Warlock",
+        "Wizard",
+        "Sorcerer"
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Burning Blade",
+          "type": "spell",
+          "book": "VSS:PP2",
+          "page": ""
+        },
+        {
+          "name": "Burning Blade",
+          "type": "spell"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238827,
+    "modifiedTime": 1790435460380,
+    "lastModifiedBy": "VR9Ef37YJgIlUIRr",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!cvpTuaQwoCkNKO3D"
+}

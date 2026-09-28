@@ -113,7 +113,7 @@
       "advancementOrigin": "XArEavkGgnSRUNSM.cGEMICxraaaQ3OCk"
     },
     "alivas-box-of-triggers": {
-      "version": 2,
+      "version": 3,
       "match": [
         {
           "name": "Bladesong",
@@ -168,24 +168,6 @@
             "_id": "q7WKqqRWT7IDfKPZ",
             "conditions": "{}",
             "replacement": ""
-          },
-          {
-            "key": "attack",
-            "type": "dnd5e.bonus",
-            "value": "max(0, @abilities.int.mod - @mod)",
-            "conditions": "[{\"k\":\"activity.attack.type.classification\",\"v\":\"weapon\"},{\"k\":\"item.prof.multiplier\",\"o\":\"gte\",\"v\":1}]",
-            "phase": "initial",
-            "_id": "OujAABoT98H47FSv",
-            "replacement": ""
-          },
-          {
-            "key": "damage",
-            "type": "dnd5e.bonus",
-            "value": "max(0, @abilities.int.mod - @mod)",
-            "conditions": "[{\"k\":\"activity.attack.type.classification\",\"v\":\"weapon\"},{\"k\":\"item.prof.multiplier\",\"o\":\"gte\",\"v\":1}]",
-            "phase": "initial",
-            "_id": "63LKRGUu4BHGOSVk",
-            "replacement": ""
           }
         ],
         "rider": {
@@ -220,18 +202,16 @@
         "dnd5e": {
           "riders": {}
         },
-        "dae": {
-          "disableCondition": "",
-          "stackable": "noneName",
-          "expiryMode": "default",
-          "durationExpression": "",
-          "macroRepeat": "none",
-          "disableIncapacitated": false,
-          "specialDuration": [],
-          "phaseStamped": true
-        },
         "core": {
           "overlay": false
+        },
+        "alivas-engine-of-triggers": {
+          "attackAbilities": {
+            "add": [
+              "int"
+            ],
+            "proficient": true
+          }
         }
       },
       "_stats": {

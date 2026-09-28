@@ -1,0 +1,461 @@
+{
+  "_id": "Ff1jkeilDnTBg9R2",
+  "name": "Proto-Evocation",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "VSS'24+",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Proto-Evocation (VSS'24+). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 1,
+    "school": "evo",
+    "properties": [
+      "vocal",
+      "somatic"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "width": "",
+        "height": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "120",
+      "units": "ft"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "0",
+      "units": "inst",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "protoEvoSingle00": {
+        "_id": "protoEvoSingle00",
+        "type": "attack",
+        "name": "Single target",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "attack": {
+          "ability": "",
+          "bonus": "",
+          "flat": false,
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "ranged",
+            "classification": "spell"
+          }
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": false,
+          "parts": [
+            {
+              "number": 2,
+              "denomination": 12,
+              "bonus": "",
+              "types": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison",
+                "thunder"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "whole",
+                "number": 1,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      },
+      "protoEvoCone0000": {
+        "_id": "protoEvoCone0000",
+        "type": "save",
+        "name": "Cone (level 3+ slot)",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": true
+        },
+        "target": {
+          "override": true,
+          "prompt": true,
+          "template": {
+            "type": "cone",
+            "size": "30",
+            "count": "",
+            "contiguous": false,
+            "units": "ft"
+          },
+          "affects": {
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "spellcasting",
+            "formula": ""
+          }
+        },
+        "damage": {
+          "onSave": "half",
+          "parts": [
+            {
+              "number": null,
+              "denomination": null,
+              "bonus": "",
+              "types": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison",
+                "thunder"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "(5 + max(0, @scaling - 3))d8"
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      },
+      "protoEvoLine0000": {
+        "_id": "protoEvoLine0000",
+        "type": "save",
+        "name": "Line (level 3+ slot)",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": true
+        },
+        "target": {
+          "override": true,
+          "prompt": true,
+          "template": {
+            "type": "line",
+            "size": "90",
+            "width": "5",
+            "count": "",
+            "contiguous": false,
+            "units": "ft"
+          },
+          "affects": {
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "spellcasting",
+            "formula": ""
+          }
+        },
+        "damage": {
+          "onSave": "half",
+          "parts": [
+            {
+              "number": null,
+              "denomination": null,
+              "bonus": "",
+              "types": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison",
+                "thunder"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "(5 + max(0, @scaling - 3))d8"
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      },
+      "protoEvoSphere00": {
+        "_id": "protoEvoSphere00",
+        "type": "save",
+        "name": "Sphere (level 3+ slot)",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "override": true,
+          "prompt": true,
+          "template": {
+            "type": "sphere",
+            "size": "15",
+            "count": "",
+            "contiguous": false,
+            "units": "ft"
+          },
+          "affects": {
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "spellcasting",
+            "formula": ""
+          }
+        },
+        "damage": {
+          "onSave": "half",
+          "parts": [
+            {
+              "number": null,
+              "denomination": null,
+              "bonus": "",
+              "types": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison",
+                "thunder"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "(5 + max(0, @scaling - 3))d8"
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      }
+    },
+    "identifier": "proto-evocation"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/fire/projectile-fireball-orange-yellow.webp",
+  "flags": {
+    "plutonium": {
+      "page": "spells.html",
+      "source": "ValdaSpire24Extras",
+      "hash": "proto-evocation_valdaspire24extras",
+      "propDroppable": "spell",
+      "spellClassNames": [
+        "Sorcerer",
+        "Wizard"
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Proto-Evocation",
+          "type": "spell",
+          "book": "VSS'24+",
+          "page": ""
+        },
+        {
+          "name": "Proto-Evocation",
+          "type": "spell"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238823,
+    "modifiedTime": 1790433657578,
+    "lastModifiedBy": "VR9Ef37YJgIlUIRr",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!Ff1jkeilDnTBg9R2"
+}

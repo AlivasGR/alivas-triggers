@@ -1,0 +1,191 @@
+{
+  "_id": "YCzNbbVoWkeJvoJJ",
+  "name": "Arcane Recovery",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "155",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Arcane Recovery (PHB 2024 p. 155). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Wizard 1",
+    "uses": {
+      "max": "1",
+      "recovery": [
+        {
+          "period": "sr",
+          "type": "recoverAll"
+        }
+      ],
+      "spent": 1
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity005": {
+        "_id": "dnd5eactivity005",
+        "type": "utility",
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "targets": [
+            {
+              "target": "",
+              "value": "1",
+              "type": "itemUses",
+              "scaling": {}
+            }
+          ],
+          "spellSlot": true
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "prompt": true,
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "img": null,
+        "sort": 0,
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "arcane-recovery",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "arcane%20recovery_wizard_xphb_1_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Arcane Recovery",
+          "type": "feat",
+          "book": "PHB 2024",
+          "page": "155"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "arcaneRecoveryT0",
+      "name": "Arcane Recovery",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>After a Short Rest: choose expended spell slots to recover (combined levels up to half your Wizard level, rounded up; none above 5th).</p>",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Arcane Recovery",
+              "event": "rest",
+              "filter": [
+                {
+                  "k": "shortRest",
+                  "v": true
+                }
+              ],
+              "action": {
+                "type": "recoverSlots",
+                "budget": "ceil(@classes.wizard.levels / 2) + @flags.alivas-engine-of-triggers.arcaneRecoveryBonus",
+                "maxLevel": 5
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!YCzNbbVoWkeJvoJJ.arcaneRecoveryT0"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238811,
+    "modifiedTime": 1790404238811,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!YCzNbbVoWkeJvoJJ"
+}

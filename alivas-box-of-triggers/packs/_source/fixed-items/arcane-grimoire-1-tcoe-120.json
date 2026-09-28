@@ -1,0 +1,149 @@
+{
+  "_id": "AJPrar7WUh2KJgF6",
+  "name": "+1 Arcane Grimoire",
+  "type": "equipment",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "TCoE",
+      "page": "120",
+      "license": "",
+      "rules": "2014",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for +1 Arcane Grimoire (TCoE p. 120). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "proficient": null,
+    "quantity": 1,
+    "weight": {
+      "value": 3,
+      "units": "lb"
+    },
+    "price": {
+      "value": 400,
+      "denomination": "gp"
+    },
+    "attuned": true,
+    "identified": true,
+    "equipped": true,
+    "type": {
+      "value": "wondrous",
+      "baseItem": ""
+    },
+    "properties": [
+      "foc",
+      "mgc"
+    ],
+    "attunement": "required",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "armor": {
+      "value": null,
+      "dex": null,
+      "magicalBonus": ""
+    },
+    "strength": null,
+    "activities": {},
+    "identifier": "1-arcane-grimoire",
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "crew": {
+      "value": []
+    },
+    "rarities": [
+      "uncommon"
+    ]
+  },
+  "img": "icons/sundries/books/book-backed-wood-tan.webp",
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "plutonium": {
+      "page": "items.html",
+      "source": "TCE",
+      "hash": "%2b1%20arcane%20grimoire_tce"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "+1 Arcane Grimoire",
+          "type": "equipment",
+          "book": "TCoE",
+          "page": "120"
+        },
+        {
+          "name": "+1 Arcane Grimoire",
+          "type": "equipment"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "arcaneGrimoire10",
+      "name": "+1 Arcane Grimoire",
+      "img": "icons/sundries/books/book-backed-wood-tan.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Wizard spells: +1 to spell attack rolls and save DCs. Arcane Recovery: +1 level.</p>",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "attack",
+            "type": "dnd5e.bonus",
+            "value": "1",
+            "phase": "initial",
+            "conditions": "[{\"k\":\"item.classIdentifier\",\"v\":\"wizard\"},{\"k\":\"activity.attack.type.classification\",\"v\":\"spell\"}]"
+          },
+          {
+            "key": "dc",
+            "type": "dnd5e.bonus",
+            "value": "1",
+            "phase": "initial",
+            "conditions": "[{\"k\":\"item.classIdentifier\",\"v\":\"wizard\"}]"
+          },
+          {
+            "key": "flags.alivas-engine-of-triggers.arcaneRecoveryBonus",
+            "type": "add",
+            "value": "1",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!AJPrar7WUh2KJgF6.arcaneGrimoire10"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404238835,
+    "modifiedTime": 1790404238835,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!AJPrar7WUh2KJgF6"
+}

@@ -1,0 +1,114 @@
+{
+  "_id": "frigidBladeopt00",
+  "name": "Frigid Blade (Weapon Option)",
+  "type": "feat",
+  "img": "icons/magic/water/strike-weapon-blade-ice-blue.webp",
+  "system": {
+    "description": {
+      "value": "<p>Drag onto a melee weapon. The weapon gains a Frigid Blade attack: it uses your spellcasting ability, the weapon's die is one size larger, the damage can be Cold or the weapon's own type (chosen when rolling), and it adds the cantrip's extra Cold dice from level 5.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "Alivas's Box of Triggers"
+    },
+    "type": {
+      "value": "",
+      "subtype": ""
+    },
+    "activities": {
+      "frigidBladeAtk00": {
+        "_id": "frigidBladeAtk00",
+        "type": "attack",
+        "name": "Frigid Blade",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-box-of-triggers": {
+            "weaponDamage": {
+              "step": 1,
+              "weaponTypes": true,
+              "types": [
+                "cold"
+              ],
+              "extra": {
+                "formula": "(floor((@details.level + 1) / 6))d6",
+                "type": "cold"
+              }
+            }
+          }
+        },
+        "attack": {
+          "ability": "spellcasting",
+          "bonus": "",
+          "flat": false,
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": false,
+          "parts": []
+        }
+      }
+    }
+  },
+  "effects": [],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "weaponOption": {
+        "id": "frigid-blade",
+        "melee": true
+      }
+    }
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!frigidBladeopt00"
+}

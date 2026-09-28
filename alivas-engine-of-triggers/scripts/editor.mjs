@@ -42,11 +42,18 @@ const statusLabel = id => {
   return s ? game.i18n.localize(s.name) : id;
 };
 const schoolEntries = () => Object.entries(CONFIG.DND5E.spellSchools).map(([id, s]) => [id, s.label]);
+const creatureTypeEntries = () => Object.entries(CONFIG.DND5E.creatureTypes).map(([id, c]) => [id, game.i18n.localize(c.label ?? id)]);
+const classEntries = () => {
+  const ids = new Set(game.items?.filter(i => i.type === "class").map(i => i.system.identifier) ?? []);
+  for ( const a of game.actors ?? [] ) for ( const i of a.items ) if ( i.type === "class" ) ids.add(i.system.identifier);
+  for ( const id of ["artificer", "bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"] ) ids.add(id);
+  return [...ids].filter(Boolean).sort().map(id => [id, id.charAt(0).toUpperCase() + id.slice(1)]);
+};
 
 function formulaOk(formula) {
   if ( (formula === undefined) || (formula === null) || (String(formula).trim() === "") ) return false;
   try {
-    return Roll.validate(String(formula).replace(/@[\w.]+/g, "1"));
+    return Roll.validate(String(formula).replace(/@[\w.-]+/g, "1"));
   } catch(err) {
     return false;
   }
@@ -74,7 +81,8 @@ const EVENT_GROUPS = [
   { label: "When something happens to the bearer", events: [
     ["hit", "Is hit by an attack", "when the bearer is hit by an attack"],
     ["damaged", "Takes damage", "when the bearer takes damage"],
-    ["statusGained", "Gains a condition", "when the bearer gains a condition"]
+    ["statusGained", "Gains a condition", "when the bearer gains a condition"],
+    ["applied", "Is applied", "when this effect is applied"]
   ] },
   { label: "Rounds and the source", events: [
     ["roundStart", "A round starts", "at the start of each round"],
@@ -90,6 +98,9 @@ const TRIGGER_ACTIONS = [
   ["damage", "fa-burst", "Damage", "Roll damage against the bearer"],
   ["giveEffect", "fa-hand-holding-medical", "Give an effect", "Put an effect on chosen or nearby creatures"],
   ["removeStatus", "fa-hand-sparkles", "End conditions", "Remove conditions from chosen creatures"],
+  ["tempHp", "fa-shield-heart", "Temporary HP", "Give temporary hit points"],
+  ["recoverSlots", "fa-rotate", "Recover spell slots", "Choose expended slots to get back (Arcane Recovery)"],
+  ["toggleLight", "fa-lightbulb", "Light on / off", "Switch the bearer's token light"],
   ["inspire", "fa-star", "Heroic Inspiration", "Give Heroic Inspiration to chosen creatures"],
   ["swapInitiative", "fa-right-left", "Swap initiative", "Swap initiative with a chosen creature"],
   ["rollActivity", "fa-wand-sparkles", "Source's activity", "Roll a damage activity of whoever applied this"],
@@ -111,6 +122,9 @@ const DEFAULT_ACTIONS = {
   damage: { type: "damage", formula: "1d6", damageType: "fire" },
   giveEffect: { type: "giveEffect", effect: "", to: { who: "all", range: 10, side: "ally" } },
   removeStatus: { type: "removeStatus", statuses: [], to: { who: "targets" }, choose: true },
+  tempHp: { type: "tempHp", formula: "1d10 + 5" },
+  recoverSlots: { type: "recoverSlots", budget: "ceil(@details.level / 2)", maxLevel: 5 },
+  toggleLight: { type: "toggleLight", bright: 20, dim: 40, color: "#ffb86b" },
   inspire: { type: "inspire", to: { who: "choose", side: "ally", count: "@prof", self: false } },
   swapInitiative: { type: "swapInitiative", to: { who: "choose", pool: "combat", side: "ally", self: false, able: true } },
   rollActivity: { type: "rollActivity", item: "", activity: "" },
@@ -119,8 +133,11 @@ const DEFAULT_ACTIONS = {
   restoreDuplicates: { type: "restoreDuplicates", count: 3 }
 };
 
+const FORMULA_HINT = "Formulas can use the source's data, e.g. <code>@abilities.wis.mod</code>, <code>@prof</code>, "
+  + "<code>@spellLevel</code> (the level the effect's spell was cast at).";
+
 const SELECTOR_WHO = {
-  trigger: [["choose", "Creatures the bearer chooses"], ["all", "Every creature that matches"], ["bearer", "The bearer"], ["source", "The source"], ["targets", "The triggering spell's targets"]],
+  trigger: [["choose", "Creatures the bearer chooses"], ["all", "Every creature that matches"], ["bearer", "The bearer"], ["source", "The source"], ["subject", "The other creature (e.g. the attacker)"], ["targets", "The triggering spell's targets"]],
   reaction: [["choose", "A creature you choose"], ["all", "Every creature that matches"], ["self", "Yourself"], ["subject", "The triggering creature"]]
 };
 const SIDES = [["any", "Anyone"], ["ally", "Allies"], ["enemy", "Enemies"]];
@@ -152,14 +169,16 @@ const WINDOWS = [
   ["d20Succeeded", "fa-dice", "Succeeds on a roll", "other"],
   ["damageIncoming", "fa-heart-crack", "About to take damage", "self"],
   ["spellCast", "fa-hat-wizard", "Casts a spell", "other"],
-  ["d20Rolling", "fa-scale-balanced", "Rolls with adv./disadv.", "any"]
+  ["d20Rolling", "fa-scale-balanced", "Rolls with adv./disadv.", "any"],
+  ["hitting", "fa-hand-fist", "You hit with an attack", "self"]
 ];
 const WINDOW_VERB = {
   hitBy: ["are hit by an attack", "is hit by an attack"],
   d20Succeeded: ["succeed on an attack roll, ability check or saving throw", "succeeds on an attack roll, ability check or saving throw"],
   damageIncoming: ["are about to take damage", "is about to take damage"],
   spellCast: ["cast a spell", "casts a spell"],
-  d20Rolling: ["are about to roll a d20 with advantage or disadvantage", "is about to roll a d20 with advantage or disadvantage"]
+  d20Rolling: ["are about to roll a d20 with advantage or disadvantage", "is about to roll a d20 with advantage or disadvantage"],
+  hitting: ["hit with an attack", "hits with an attack"]
 };
 const WHO = [["self", "You"], ["other", "Another creature"], ["any", "Any creature"]];
 
@@ -170,8 +189,8 @@ const OUTCOMES = {
   damage: ["fa-shield-heart", "Reduce the damage", ["damageIncoming"]],
   counter: ["fa-ban", "Counter the spell", ["spellCast"]],
   straight: ["fa-scale-balanced", "Cancel adv./disadv.", ["d20Rolling"]],
-  damageNext: ["fa-bolt", "Change its damage", ["hitBy"]],
-  none: ["fa-hand-pointer", "Just use the item", ["hitBy", "d20Succeeded", "damageIncoming", "spellCast", "d20Rolling"]]
+  damageNext: ["fa-bolt", "Change its damage", ["hitBy", "hitting"]],
+  none: ["fa-hand-pointer", "Just use the item", ["hitBy", "d20Succeeded", "damageIncoming", "spellCast", "d20Rolling", "hitting"]]
 };
 const DEFAULT_OUTCOMES = {
   acBonus: { type: "acBonus", value: 5 },
@@ -223,14 +242,17 @@ const TRIGGER_FIELDS = [
   { id: "attackKind", label: "The attack kind is", kind: "select", key: "activity.attack.type.classification",
     on: ATTACK_EVENTS, entries: () => [["weapon", "Weapon attack"], ["spell", "Spell attack"], ["unarmed", "Unarmed strike"]] },
   { id: "spellLevel", label: "Spell level", kind: "number", key: "item.level", on: ["attack", "hit", "spell", "activity"] },
+  { id: "spellClass", label: "The spell's class is", kind: "select", key: "item.classIdentifier", on: ["attack", "hit", "spell", "activity"], entries: classEntries },
+  { id: "proficient", label: "It's a weapon the attacker is proficient with", kind: "yes1", key: "item.prof.multiplier", on: ATTACK_EVENTS },
+  { id: "distance", label: "The attacker's distance (ft)", kind: "number", key: "distance", on: ["hit"] },
   { id: "spellSchool", label: "Spell school", kind: "select", key: "item.school", on: ["attack", "hit", "spell", "activity"],
     entries: schoolEntries },
   { id: "attackerStatus", label: "The attacker has a condition", kind: "status", on: ["hit"],
     key: s => `statuses.${s}`, match: /^statuses\.([\w-]+)$/ },
   { id: "attackerBlindsight", label: "The attacker's blindsight (ft)", kind: "number", on: ["hit"],
-    key: "attributes.senses.ranges.blindsight" },
+    key: "attributes.senses.ranges.blindsight", missingIsZero: true },
   { id: "attackerTruesight", label: "The attacker's truesight (ft)", kind: "number", on: ["hit"],
-    key: "attributes.senses.ranges.truesight" },
+    key: "attributes.senses.ranges.truesight", missingIsZero: true },
   { id: "moved", label: "Distance of this move (ft)", kind: "number", key: "moved", on: ["moved"] },
   { id: "movedThisTurn", label: "Distance moved this turn (ft)", kind: "number", key: "movedThisTurn", on: ["moved"] },
   { id: "ownTurn", label: "It is the bearer's own turn", kind: "bool", key: "ownTurn", on: ["moved"] },
@@ -238,6 +260,9 @@ const TRIGGER_FIELDS = [
   { id: "amount", label: "Damage taken", kind: "number", key: "amount", on: ["damaged"] },
   { id: "saveAbility", label: "The save is", kind: "select", key: "ability", on: ["save"], entries: abilityEntries },
   { id: "longRest", label: "It was a long rest", kind: "bool", key: "longRest", on: ["rest"] },
+  { id: "shortRest", label: "It was a short rest", kind: "bool", key: "shortRest", on: ["rest"] },
+  { id: "hitAttackType", label: "The attack that hit is", kind: "select", key: "attackType", on: ["hit"],
+    entries: () => [["melee", "Melee"], ["ranged", "Ranged"]] },
   { id: "activityType", label: "The activity type is", kind: "select", key: "activityType", on: ["spell", "activity"],
     entries: () => Object.keys(CONFIG.DND5E.activityTypes).map(k => [k, k.charAt(0).toUpperCase() + k.slice(1)]) }
 ];
@@ -264,6 +289,11 @@ const REACTION_FIELDS = [
   { id: "damageTotal", label: "The damage amount", kind: "number", key: "total", on: ["damageIncoming"] },
   { id: "damageTypes", label: "The damage types", kind: "listDamage", key: "types", on: ["damageIncoming"] },
   { id: "ally", label: "The creature is you or an ally", kind: "bool", key: "subjectIsAlly" },
+  { id: "hitMelee", label: "Your attack is", kind: "select", key: "attackType", on: ["hitting"], entries: () => [["melee", "Melee"], ["ranged", "Ranged"]] },
+  { id: "hitKind", label: "Your attack kind is", kind: "select", key: "classification", on: ["hitting"],
+    entries: () => [["weapon", "Weapon attack"], ["spell", "Spell attack"], ["unarmed", "Unarmed strike"]] },
+  { id: "hitCrit", label: "It's a critical hit", kind: "bool", key: "critical", on: ["hitting"] },
+  { id: "targetType", label: "The target's creature type", kind: "select", key: "targetType", on: ["hitting"], entries: creatureTypeEntries },
   { id: "spellLevel", label: "The spell's level", kind: "number", key: "level", on: ["spellCast"] },
   { id: "hasComponents", label: "The spell has components (not Subtle)", kind: "bool", key: "hasComponents", on: ["spellCast"] },
   { id: "advantage", label: "The roll has advantage", kind: "bool", key: "advantage", on: ["d20Rolling"] },
@@ -277,6 +307,7 @@ const OPS = {
   number: [["gte", "is at least"], ["gt", "is more than"], ["lte", "is at most"], ["lt", "is less than"], ["exact", "is exactly"]],
   select: [["exact", "is"], ["not", "is not"]],
   bool: [["exact", "is"]],
+  yes1: [["exact", "is"]],
   text: [["exact", "is"], ["not", "is not"]],
   status: [["has", "has"], ["not", "doesn't have"]],
   listStatus: [["has", "includes"], ["not", "doesn't include"]],
@@ -288,7 +319,7 @@ const OPS = {
 function fieldValueEntries(field) {
   switch ( field.kind ) {
     case "select": return field.entries();
-    case "bool": return [["true", "Yes"], ["false", "No"]];
+    case "bool": case "yes1": return [["true", "Yes"], ["false", "No"]];
     case "status": case "listStatus": return statusEntries();
     case "listDamage": return damageEntries();
     default: return null;
@@ -308,7 +339,8 @@ function newRow(catalogue, context) {
 function rowToFilter(row, catalogue) {
   if ( row.field === "raw" ) return row.raw;
   const field = catalogue.find(f => f.id === row.field);
-  const numeric = v => (v !== "" && Number.isFinite(Number(v))) ? Number(v) : v;
+  const numeric = v => (typeof v === "boolean") ? v : (v === "true") ? true : (v === "false") ? false
+    : ((v !== "") && Number.isFinite(Number(v))) ? Number(v) : v;
   let entry;
   if ( !field ) {
     const o = row.op === "not" ? "exact" : row.op;
@@ -319,11 +351,14 @@ function rowToFilter(row, catalogue) {
     case "status": entry = { k: field.key(row.value), o: "gte", v: 1 }; break;
     case "listStatus": case "listDamage": entry = { k: field.key, o: "has", v: row.value }; break;
     case "bool": entry = { k: field.key, v: row.value === "true" }; break;
+    case "yes1":
+      entry = { k: field.key, o: "gte", v: 1 };
+      return row.value === "true" ? entry : { o: "NOT", v: entry };
     case "number":
-      // "At most" / "less than" are written as NOT "more than" / NOT "at least", so a missing value (e.g. a creature
-      // with no blindsight) counts as passing, the way a person reads it.
-      if ( row.op === "lte" ) return { o: "NOT", v: { k: field.key, o: "gt", v: Number(row.value) } };
-      if ( row.op === "lt" ) return { o: "NOT", v: { k: field.key, o: "gte", v: Number(row.value) } };
+      // For values that may be missing and then mean 0 (a creature with no blindsight), "at most" / "less than" are
+      // written as NOT "more than" / NOT "at least", so a missing value passes, the way a person reads it.
+      if ( field.missingIsZero && (row.op === "lte") ) return { o: "NOT", v: { k: field.key, o: "gt", v: Number(row.value) } };
+      if ( field.missingIsZero && (row.op === "lt") ) return { o: "NOT", v: { k: field.key, o: "gte", v: Number(row.value) } };
       entry = { k: field.key, o: row.op, v: Number(row.value) };
       break;
     default: entry = { k: field.key, v: row.value };
@@ -356,6 +391,7 @@ function filterToRow(entry, catalogue) {
       if ( op ) return { field: field.id, op, value: e.v };
     }
     if ( (field.kind === "bool") && !negate && (o === "exact") ) return { field: field.id, op: "exact", value: String(!!e.v) };
+    if ( (field.kind === "yes1") && (o === "gte") && (Number(e.v) === 1) ) return { field: field.id, op: "exact", value: String(!negate) };
     if ( ["select", "text"].includes(field.kind) && (o === "exact") ) return { field: field.id, op: negate ? "not" : "exact", value: e.v };
   }
   if ( negate && (o !== "exact") ) return { field: "raw", raw: entry };
@@ -385,8 +421,12 @@ function describeRow(row, catalogue) {
   const shown = unit ? `${valueLabel}${unit === "ft" ? " ft" : "%"}` : valueLabel;
   switch ( field.kind ) {
     case "status": return `${lower.replace(/ has a condition$/, "")} ${row.op === "not" ? "doesn't have" : "has"} ${valueLabel}`;
-    case "bool": return row.value === "true" ? lower : `not ${lower}`;
-    default: return `${lower} ${opLabel} ${shown}`;
+    case "bool": case "yes1": return row.value === "true" ? lower : `not ${lower}`;
+    default: {
+      // Labels like "The attack is" already carry the verb: "the attack is melee", not "the attack is is melee".
+      const base = /^(is|is not|was)\b/.test(opLabel) ? lower.replace(/ (is|was)$/, "") : lower;
+      return `${base} ${opLabel} ${shown}`;
+    }
   }
 }
 
@@ -470,6 +510,15 @@ function validateTrigger(model) {
     case "inspire": case "swapInitiative":
       errors.push(...selectorErrors(a.to));
       break;
+    case "tempHp":
+      if ( !formulaOk(a.formula) ) errors.push("Temporary HP needs a formula, e.g. 1d10 + 5.");
+      break;
+    case "recoverSlots":
+      if ( !formulaOk(a.budget) ) errors.push("Slot recovery needs a budget, e.g. ceil(@classes.wizard.levels / 2).");
+      break;
+    case "toggleLight":
+      if ( !(Number(a.bright) >= 0) || !(Number(a.dim) >= 0) ) errors.push("The light's radii must be numbers.");
+      break;
     case "duplicates":
       if ( !(Number(a.count) >= 1) ) errors.push("Duplicates: the count must be 1 or more.");
       if ( !(Number(a.threshold) >= 1 && Number(a.threshold) <= 6) ) errors.push("Duplicates: the target number must be 1–6.");
@@ -524,11 +573,14 @@ function describeTriggerModel(model) {
         + (a.damage.onSuccess === "half" ? " (half on a success)" : "");
       break;
     }
-    case "damage": what = `${a.formula} ${damageLabel(a.damageType).toLowerCase()} damage to the bearer`; break;
+    case "damage": what = `${a.formula} ${damageLabel(a.damageType).toLowerCase()} damage to ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the bearer"}`; break;
     case "giveEffect": what = `“${a.effect || "?"}” goes to ${describeSelector(a.to, { you: "the bearer" })}`; break;
     case "removeStatus": what = `end ${a.choose ? "one of " : ""}${(a.statuses ?? []).map(statusLabel).join(" / ") || "?"} on ${describeSelector(a.to, { you: "the bearer" })}`; break;
     case "inspire": what = `Heroic Inspiration for ${describeSelector(a.to, { you: "the bearer" })}`; break;
     case "swapInitiative": what = `the bearer may swap initiative with ${describeSelector(a.to, { you: "the bearer" })}`; break;
+    case "tempHp": what = `${a.formula} temporary HP${a.to ? ` for ${describeSelector(a.to, { you: "the bearer" })}` : ""}`; break;
+    case "recoverSlots": what = `recover spell slots worth up to ${a.budget} levels (none above level ${a.maxLevel ?? 5})`; break;
+    case "toggleLight": what = `the bearer's light turns on or off (${a.bright}/${a.dim} ft)`; break;
     case "rollActivity": what = `the source's “${a.activity || "?"}” (${a.item || "?"}) is rolled against the bearer`; break;
     case "note": what = model.then === "remove" ? "the effect ends" : "a chat message"; break;
     case "duplicates": what = `${a.count} duplicate${Number(a.count) === 1 ? "" : "s"} (a d6 each; ${a.threshold}+ and a duplicate takes the hit)`; break;
@@ -610,7 +662,7 @@ function describeReactionModel(model, item) {
           : `reduce the damage by ${o.amount}${o.types?.length ? ` (${o.types.map(damageLabel).join(", ").toLowerCase()})` : ""}`;
       break;
     case "straight": what = "the roll ignores advantage and disadvantage (the first d20 counts)"; break;
-    case "damageNext": what = `${o.mode === "reduce" ? "reduce" : "add"} ${o.formula} ${o.mode === "reduce" ? "from" : "to"} that attack's damage${o.critDouble ? " (dice doubled on a critical hit)" : ""}`; break;
+    case "damageNext": what = `${o.mode === "reduce" ? "reduce" : "add"} ${o.formula}${o.damageType ? ` ${damageLabel(o.damageType).toLowerCase()}` : ""} ${o.mode === "reduce" ? "from" : "to"} that attack's damage${o.critDouble ? " (dice doubled on a critical hit)" : ""}`; break;
     case "counter": what = `the caster makes ${/^[aeiou]/i.test(abilityLabel(o.ability)) ? "an" : "a"} `
       + `${abilityAbbr(o.ability)} save against ${o.dc === "source" ? "your spell save DC" : `DC ${o.dc}`} or the spell fails`; break;
     default: what = model.extra?.detail ? `use the item (${model.extra.detail})` : "use the item";
@@ -626,6 +678,36 @@ function describeReactionModel(model, item) {
 /*  The editor                                  */
 /* -------------------------------------------- */
 
+/** Actions offered in an activity's "right after it's used" steps. */
+const ACTIVITY_ACTIONS = ["giveEffect", "removeStatus", "inspire", "tempHp", "damage", "toggleLight", "note"];
+
+/** Effect rules ↔ effect flags. */
+function readRules(effect) {
+  const f = effect.flags?.[MODULE_ID] ?? {};
+  return {
+    noReactions: !!f.noReactions, noComponents: !!f.noComponents, askFirst: f.askFirst ?? "",
+    ignoreDamageFrom: (f.ignoreDamageFrom ?? []).join(", "),
+    attackAdd: [...(f.attackAbilities?.add ?? [])], attackProficient: !!f.attackAbilities?.proficient,
+    attackOnly: [...(f.attackAbilitiesOnly ?? [])], minLevel: f.minLevel ?? ""
+  };
+}
+
+function rulesUpdate(r) {
+  const K = k => `flags.${MODULE_ID}.${k}`;
+  const D = k => `flags.${MODULE_ID}.-=${k}`;
+  const u = {};
+  const set = (key, value, keep) => { if ( keep ) u[K(key)] = value; else u[D(key)] = null; };
+  set("noReactions", true, r.noReactions);
+  set("noComponents", true, r.noComponents);
+  set("askFirst", String(r.askFirst ?? "").trim(), String(r.askFirst ?? "").trim());
+  const ignore = String(r.ignoreDamageFrom ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  set("ignoreDamageFrom", ignore, ignore.length);
+  set("attackAbilities", { add: r.attackAdd, proficient: !!r.attackProficient }, r.attackAdd?.length);
+  set("attackAbilitiesOnly", r.attackOnly, r.attackOnly?.length);
+  set("minLevel", Number(r.minLevel), Number(r.minLevel) > 0);
+  return u;
+}
+
 const OPEN = new Map();
 
 export class TriggerEditor extends ApplicationV2 {
@@ -633,9 +715,11 @@ export class TriggerEditor extends ApplicationV2 {
    * @param {ActiveEffect|Item} document
    */
   constructor(document, opts={}) {
-    super(opts);
+    const { activity, ...rest } = opts;
+    super(rest);
     this.document = document;
-    this.mode = document.documentName === "Item" ? "reactions" : "triggers";
+    this.activity = activity ?? null;
+    this.mode = activity ? "activity" : (document.documentName === "Item" ? "reactions" : "triggers");
     this.#load();
   }
 
@@ -669,15 +753,17 @@ export class TriggerEditor extends ApplicationV2 {
   };
 
   /** Open (or focus) the editor for a document. */
-  static open(document) {
-    const existing = OPEN.get(document.uuid);
+  static open(document, { activity }={}) {
+    const key = activity?.uuid ?? document.uuid;
+    const existing = OPEN.get(key);
     if ( existing?.rendered ) return existing.bringToFront();
-    const app = new TriggerEditor(document);
-    OPEN.set(document.uuid, app);
+    const app = new TriggerEditor(document, { activity });
+    OPEN.set(key, app);
     return app.render({ force: true });
   }
 
   get title() {
+    if ( this.mode === "activity" ) return `Automation — ${this.activity.name} (${this.document.name})`;
     return `${this.mode === "reactions" ? "Reactions" : "Triggers"} — ${this.document.name}`;
   }
 
@@ -695,19 +781,34 @@ export class TriggerEditor extends ApplicationV2 {
   rawError = "";
   #saved = "";
 
+  rules = {};
+  settings = {};
+
   #load() {
-    const list = this.document.getFlag(MODULE_ID, this.mode) ?? [];
-    this.models = (Array.isArray(list) ? list : []).map(x => this.mode === "reactions" ? reactionToModel(x) : triggerToModel(x));
-    this.#saved = JSON.stringify(this.#output());
+    if ( this.mode === "activity" ) {
+      const f = this.activity.flags?.[MODULE_ID] ?? {};
+      this.models = (Array.isArray(f.onUse) ? f.onUse : []).map(action => triggerToModel({ event: ["activity"], action }));
+      this.settings = { pay: f.pay ? clone(f.pay) : null, chooseEffects: f.chooseEffects ? clone(f.chooseEffects) : null };
+    } else {
+      const list = this.document.getFlag(MODULE_ID, this.mode) ?? [];
+      this.models = (Array.isArray(list) ? list : []).map(x => this.mode === "reactions" ? reactionToModel(x) : triggerToModel(x));
+      if ( this.mode === "triggers" ) this.rules = readRules(this.document);
+    }
+    this.#saved = this.#snapshot();
     if ( this.models.length === 1 ) this.open.add(0);
   }
 
   #output() {
+    if ( this.mode === "activity" ) return this.models.map(m => modelToTrigger(m).action);
     return this.models.map(m => this.mode === "reactions" ? modelToReaction(m) : modelToTrigger(m));
   }
 
+  #snapshot() {
+    return JSON.stringify({ list: this.#output(), rules: this.rules, settings: this.settings });
+  }
+
   get dirty() {
-    return JSON.stringify(this.#output()) !== this.#saved;
+    return this.#snapshot() !== this.#saved;
   }
 
   #errors(model) {
@@ -715,6 +816,7 @@ export class TriggerEditor extends ApplicationV2 {
   }
 
   #describe(model) {
+    if ( this.mode === "activity" ) return describeTriggerModel(model).replace(/^[^:]*: /, "Right after it's used: ");
     return this.mode === "reactions" ? describeReactionModel(model, this.document) : describeTriggerModel(model);
   }
 
@@ -767,17 +869,21 @@ export class TriggerEditor extends ApplicationV2 {
 
   #html() {
     const reactions = this.mode === "reactions";
-    const intro = reactions
+    const activityMode = this.mode === "activity";
+    const intro = activityMode
+      ? "Automation for this activity: steps that run right after it's used, how it's paid for, and whether the user picks which of its effects apply."
+      : reactions
       ? "Reactions offer this item in a popup when the right moment comes up in play. Pick a preset or build one."
       : "Triggers run while this effect is on a creature (the <em>bearer</em>). Pick a preset or build one.";
-    const presets = (reactions ? REACTION_PRESETS : TRIGGER_PRESETS).map((p, i) => `
+    const presets = activityMode ? "" : (reactions ? REACTION_PRESETS : TRIGGER_PRESETS).map((p, i) => `
       <button type="button" class="aet-preset aet-edit" data-action="addPreset" data-preset="${i}" data-tooltip="${esc(p.hint)}">
         <i class="fa-solid ${p.icon}"></i><span class="aet-preset-name">${esc(p.label)}</span>
         <span class="aet-preset-hint">${esc(p.hint)}</span>
       </button>`).join("");
     const cards = this.models.map((m, i) => this.#card(m, i)).join("");
+    const noun = activityMode ? "step" : (reactions ? "reaction" : "trigger");
     const empty = `<div class="aet-empty"><i class="fa-solid fa-bolt"></i>
-      <p>No ${reactions ? "reactions" : "triggers"} yet.</p><p>Pick a preset above, or add a blank one.</p></div>`;
+      <p>No ${noun}s yet.</p><p>${activityMode ? "Add one below." : "Pick a preset above, or add a blank one."}</p></div>`;
     const readonly = this.editable ? "" : `<div class="aet-readonly"><i class="fa-solid fa-lock"></i>
       Read only — ${this.document.pack ? "this is in a compendium; import it to edit" : "you don't own this document"}.</div>`;
     const advanced = this.showAdvanced ? `
@@ -791,12 +897,13 @@ export class TriggerEditor extends ApplicationV2 {
       <div class="aet-scroll">
         ${readonly}
         <p class="aet-intro">${intro}</p>
-        <div class="aet-section-title">Start from a preset</div>
-        <div class="aet-presets">${presets}</div>
-        <div class="aet-section-title">${reactions ? "Reactions" : "Triggers"} on ${esc(this.document.name)}</div>
+        ${this.mode === "triggers" ? this.#rulesSection() : ""}
+        ${activityMode ? this.#settingsSection() : `<div class="aet-section-title">Start from a preset</div>
+        <div class="aet-presets">${presets}</div>`}
+        <div class="aet-section-title">${activityMode ? "Right after it's used" : `${reactions ? "Reactions" : "Triggers"} on ${esc(this.document.name)}`}</div>
         <div class="aet-cards">${cards || empty}</div>
         <button type="button" class="aet-add aet-edit" data-action="addBlank"><i class="fa-solid fa-plus"></i>
-          Add a blank ${reactions ? "reaction" : "trigger"}</button>
+          Add a ${activityMode ? "step" : `blank ${noun}`}</button>
         ${advanced}
       </div>
       <footer class="aet-footer">
@@ -813,7 +920,8 @@ export class TriggerEditor extends ApplicationV2 {
   #card(model, i) {
     const errors = this.#errors(model);
     const open = this.open.has(i);
-    const body = this.mode === "reactions" ? this.#reactionBody(model, i) : this.#triggerBody(model, i);
+    const body = this.mode === "reactions" ? this.#reactionBody(model, i)
+      : this.mode === "activity" ? this.#activityBody(model, i) : this.#triggerBody(model, i);
     const n = this.models.length;
     return `<section class="aet-card${open ? " open" : ""}${errors.length ? " invalid" : ""}" data-index="${i}">
       <header class="aet-card-head" data-action="toggle">
@@ -858,6 +966,56 @@ export class TriggerEditor extends ApplicationV2 {
       + this.#step(4, "Then", `<select data-path="then" class="aet-wide">${options(thenEntries(m.action.type), m.then)}</select>${label}`);
   }
 
+  #activityBody(m) {
+    const tiles = TRIGGER_ACTIONS.filter(([id]) => ACTIVITY_ACTIONS.includes(id)).map(([id, icon, label, hint]) => `<button type="button"
+      class="aet-tile aet-edit${m.action.type === id ? " active" : ""}" data-action="setAction" data-type="${id}">
+      <i class="fa-solid ${icon}"></i><strong>${esc(label)}</strong><small>${esc(hint)}</small></button>`).join("");
+    return this.#step(1, "Do", `<div class="aet-tiles">${tiles}</div>${this.#actionFields(m)}`,
+      "Runs for the creature using it. “The targets” are the creatures it targeted.");
+  }
+
+  /** Effect rules: flags on the effect itself, besides its triggers. */
+  #rulesSection() {
+    const r = this.rules;
+    const abilityBoxes = (list, key) => abilityEntries().map(([id, label]) => `<label class="aet-check aet-small-check">
+      <input type="checkbox" data-rule-list="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
+    const count = [r.noReactions, r.noComponents, r.askFirst, r.ignoreDamageFrom, r.attackAdd?.length, r.attackOnly?.length, r.minLevel]
+      .filter(Boolean).length;
+    return `<details class="aet-rules"${count ? " open" : ""}><summary><i class="fa-solid fa-sliders"></i> Effect rules
+      <span class="aet-muted">${count ? `${count} set` : "none set — optional"}</span></summary>
+      <div class="aet-fields">
+        <label class="aet-check"><input type="checkbox" data-rule="noReactions"${r.noReactions ? " checked" : ""}><span>The bearer can't take reactions</span></label>
+        <label class="aet-check"><input type="checkbox" data-rule="noComponents"${r.noComponents ? " checked" : ""}><span>The bearer's spells have no components (can't be Counterspelled)</span></label>
+        <label class="aet-inline"><span>Ignore damage from</span><input type="text" class="aet-wide" data-rule="ignoreDamageFrom" value="${esc(r.ignoreDamageFrom)}" placeholder="item names or identifiers, comma-separated (e.g. Magic Missile)"></label>
+        <label class="aet-inline"><span>Ask before applying</span><input type="text" class="aet-wide" data-rule="askFirst" value="${esc(r.askFirst)}" placeholder="a yes/no question shown before auto-applying (optional)"></label>
+        <label class="aet-inline"><span>Needs slot level</span><input type="number" class="aet-num" data-rule="minLevel" value="${esc(r.minLevel)}" placeholder="any"><span class="aet-muted">for spells that let the caster choose a benefit</span></label>
+        <div class="aet-subtitle">Weapon attacks may also use</div><div class="aet-pills">${abilityBoxes(r.attackAdd, "attackAdd")}</div>
+        <label class="aet-check"><input type="checkbox" data-rule="attackProficient"${r.attackProficient ? " checked" : ""}><span>…only with weapons the bearer is proficient with</span></label>
+        <div class="aet-subtitle">Weapon attacks must use one of</div><div class="aet-pills">${abilityBoxes(r.attackOnly, "attackOnly")}</div>
+        <p class="aet-muted">Weapon attack abilities: the best allowed one is used and shown on the sheet; the roll dialog offers the others.</p>
+      </div></details>`;
+  }
+
+  /** Activity settings: pay from several pools, choose which effects apply. */
+  #settingsSection() {
+    const s = this.settings;
+    const pools = (this.document.actor?.items.filter(i => i.system.uses?.max && i.system.identifier) ?? [])
+      .map(i => `<code>${esc(i.system.identifier)}</code>`).join(", ");
+    const effects = this.activity.effects?.length ?? 0;
+    return `<div class="aet-section-title">How it's paid and applied</div><div class="aet-settings aet-fields">
+      <label class="aet-check"><input type="checkbox" data-setting="payOn" data-rerender${s.pay ? " checked" : ""}><span>Pay from item uses, in order (e.g. Metamagic Adept's points first, then Sorcery Points)</span></label>
+      ${s.pay ? `<div class="aet-sub">
+        <label class="aet-inline"><span>Cost</span><input type="number" class="aet-num" data-setting="pay.cost" value="${esc(s.pay.cost)}" min="1"></label>
+        <label class="aet-inline"><span>Pools</span><input type="text" class="aet-wide" data-setting="pay.from" value="${esc((s.pay.from ?? []).join(", "))}" placeholder="identifiers, comma-separated"></label>
+        ${pools ? `<p class="aet-muted">On this character: ${pools}</p>` : ""}
+      </div>` : ""}
+      <label class="aet-check"><input type="checkbox" data-setting="chooseOn" data-rerender${s.chooseEffects ? " checked" : ""}${effects > 1 ? "" : " disabled"}>
+        <span>The user picks which of its ${effects} effects apply${effects > 1 ? "" : " (needs two or more)"}</span></label>
+      ${s.chooseEffects ? `<div class="aet-sub"><label class="aet-inline"><span>How many</span><input type="text" class="aet-formula" data-setting="chooseEffects.count" value="${esc(s.chooseEffects.count)}" placeholder="1"></label>
+        <p class="aet-muted">A number or formula, e.g. <code>min(2, 1 + floor(@item.level / 4))</code> (@item.level is the level it was cast at). An effect can require a slot level in its Effect rules.</p></div>` : ""}
+    </div>`;
+  }
+
   #actionFields(m) {
     const a = m.action;
     switch ( a.type ) {
@@ -892,11 +1050,28 @@ export class TriggerEditor extends ApplicationV2 {
           <button type="button" class="aet-add-small aet-edit" data-action="addMod"><i class="fa-solid fa-plus"></i> Add a modifier</button>
         </div>`;
       }
+      case "tempHp":
+        return `<div class="aet-fields"><label class="aet-inline"><span>Temporary HP</span>
+          <input type="text" class="aet-formula" data-path="action.formula" value="${esc(a.formula)}" placeholder="e.g. 1d10 + 5"></label>
+          <p class="aet-muted">${FORMULA_HINT}</p>${this.#selectorFields("action.to", a.to ?? { who: "bearer" }, "trigger")}</div>`;
+      case "recoverSlots":
+        return `<div class="aet-fields"><label class="aet-inline"><span>Budget (slot levels)</span>
+          <input type="text" class="aet-formula" data-path="action.budget" value="${esc(a.budget)}" placeholder="ceil(@classes.wizard.levels / 2)"></label>
+          <label class="aet-inline"><span>Highest slot level</span><input type="number" class="aet-num" data-path="action.maxLevel" data-type="number" value="${esc(a.maxLevel ?? 5)}"></label>
+          <p class="aet-muted">The bearer's player picks the slots. Spends one use of the item this effect is on.</p></div>`;
+      case "toggleLight":
+        return `<div class="aet-fields">
+          <label class="aet-inline"><span>Bright / dim (ft)</span><input type="number" class="aet-num" data-path="action.bright" data-type="number" value="${esc(a.bright)}">
+            <input type="number" class="aet-num" data-path="action.dim" data-type="number" value="${esc(a.dim)}"></label>
+          <label class="aet-inline"><span>Colour</span><input type="color" data-path="action.color" value="${esc(a.color || "#ffb86b")}"></label></div>`;
       case "damage":
         return `<div class="aet-fields"><label class="aet-inline"><span>Damage</span>
           <input type="text" class="aet-formula" data-path="action.formula" value="${esc(a.formula)}" placeholder="e.g. 2d6">
           <select data-path="action.damageType">${options(damageEntries(), a.damageType)}</select></label>
-          <p class="aet-muted">@-references use the source's data, e.g. <code>1d6 + @abilities.wis.mod</code>.</p></div>`;
+          <label class="aet-check"><input type="checkbox" data-special="damageTo" data-rerender${a.to ? " checked" : ""}>
+            <span>Deal it to other creatures instead of the bearer (e.g. the attacker, for thorns)</span></label>
+          ${a.to ? this.#selectorFields("action.to", a.to, "trigger") : ""}
+          <p class="aet-muted">${FORMULA_HINT}</p></div>`;
       case "rollActivity": {
         const item = this.parentItem;
         const acts = item?.system.activities?.contents ?? [];
@@ -956,7 +1131,14 @@ export class TriggerEditor extends ApplicationV2 {
       <i class="fa-solid ${icon}"></i><strong>${esc(label)}</strong></button>`).join("");
     const acts = this.document.system?.activities?.contents ?? [];
     const use = `<div class="aet-fields">
-      <label class="aet-inline"><span>Uses activity</span><select data-path="activity">${options([["", "The first reaction activity"], ...acts.map(x => [x.id, x.name])], m.activity)}</select></label>
+      <label class="aet-check"><input type="checkbox" data-special="payCharges" data-rerender${m.extra.cost ? " checked" : ""}>
+        <span>Pay with this item's charges instead of using an activity (Enspelled weapons, wands…)</span></label>
+      ${m.extra.cost ? `<div class="aet-sub">
+        <label class="aet-inline"><span>Charges</span><input type="number" class="aet-num" data-path="extra.cost.uses" data-type="number" value="${esc(m.extra.cost.uses)}" min="1"></label>
+        <label class="aet-inline"><span>Spell level</span><input type="number" class="aet-num" data-path="extra.cost.level" data-type="number" value="${esc(m.extra.cost.level)}" min="0"><span class="aet-muted">used as @castLevel</span></label>
+      </div>` : `<label class="aet-inline"><span>Uses activity</span><select data-path="activity">${options([["", "The first reaction activity"], ...acts.map(x => [x.id, x.name])], m.activity)}</select></label>`}
+      <label class="aet-check"><input type="checkbox" data-path="extra.reaction" data-type="boolean" data-invert${m.extra.reaction === false ? " checked" : ""}>
+        <span>Not a reaction (e.g. a Bonus Action): doesn't need or spend your reaction</span></label>
       <label class="aet-check"><input type="checkbox" data-path="configure" data-type="boolean"${m.configure ? " checked" : ""}>
         <span>Show the usage dialog (e.g. to pick a spell slot)</span></label>
       <label class="aet-inline"><span>Button text</span><input type="text" data-path="label" value="${esc(m.label)}" placeholder="${esc(this.document.name)}"></label>
@@ -1027,6 +1209,7 @@ export class TriggerEditor extends ApplicationV2 {
         return `<div class="aet-fields">
           <label class="aet-inline"><span>How</span><select data-path="outcome.mode">${options([["add", "Add damage (same type)"], ["reduce", "Reduce the damage"]], o.mode)}</select></label>
           <label class="aet-inline"><span>Amount</span><input type="text" class="aet-formula" data-path="outcome.formula" value="${esc(o.formula)}" placeholder="(@castLevel + 1)d6"></label>
+          ${o.mode !== "reduce" ? `<label class="aet-inline"><span>Damage type</span><select data-path="outcome.damageType">${options([["", "Same as the attack"], ...damageEntries()], o.damageType ?? "")}</select></label>` : ""}
           <label class="aet-check"><input type="checkbox" data-path="outcome.critDouble" data-type="boolean"${o.critDouble ? " checked" : ""}><span>Double the dice on a critical hit</span></label>
           <p class="aet-muted">@castLevel is the slot level the reaction was cast with. Applied when that attack's damage lands.</p></div>`;
       case "counter": {
@@ -1061,7 +1244,7 @@ export class TriggerEditor extends ApplicationV2 {
         ${j ? '<span class="aet-and">and</span>' : '<span class="aet-and">if</span>'}
         <select data-part="field" data-rerender>${options(fieldEntries, row.field)}</select>
         ${kind === "custom" ? `<input type="text" data-part="key" value="${esc(row.key)}" placeholder="e.g. bearer.attributes.hp.value">` : ""}
-        ${kind === "bool" ? "" : `<select data-part="op">${options(OPS[kind], row.op)}</select>`}
+        ${["bool", "yes1"].includes(kind) ? "" : `<select data-part="op">${options(OPS[kind], row.op)}</select>`}
         ${value}
         <button type="button" class="aet-icon aet-danger aet-edit" data-action="removeRow" data-tooltip="Remove"><i class="fa-solid fa-xmark"></i></button>
       </div>`;
@@ -1106,6 +1289,14 @@ export class TriggerEditor extends ApplicationV2 {
         model.extra.after = { type: "giveEffect", effect: first?.id ?? "", to: { who: "choose", range: 60, sight: true, notSubject: true } };
       } else delete model.extra.after;
     }
+    if ( el.dataset.special === "payCharges" ) {
+      if ( el.checked ) model.extra.cost = { uses: 1, level: 1 };
+      else delete model.extra.cost;
+    }
+    if ( el.dataset.special === "damageTo" ) {
+      if ( el.checked ) model.action.to = { who: "subject" };
+      else delete model.action.to;
+    }
     if ( el.dataset.special === "saveDamage" ) {
       if ( el.checked ) model.action.damage = { formula: "1d6", type: "poison", onSuccess: "none" };
       else delete model.action.damage;
@@ -1139,6 +1330,11 @@ export class TriggerEditor extends ApplicationV2 {
   #onChange(event) {
     const el = event.target;
     if ( el.classList.contains("aet-raw") ) return;
+    if ( el.closest(".aet-rules") || el.closest(".aet-settings") ) {
+      if ( this.#applyExtra(el) ) this.render();
+      else this.#refreshStatus();
+      return;
+    }
     if ( !el.closest(".aet-card") ) return;
     if ( this.#apply(el) ) this.render();
     else this.#refreshCard(el);
@@ -1149,6 +1345,33 @@ export class TriggerEditor extends ApplicationV2 {
     if ( !el.matches('input[type="text"], input[type="number"]') || !el.closest(".aet-card") ) return;
     this.#apply(el);
     this.#refreshCard(el);
+  }
+
+  /** Effect rules and activity settings inputs. Returns true when the form's shape changed. */
+  #applyExtra(el) {
+    if ( el.dataset.ruleList ) {
+      const list = new Set(this.rules[el.dataset.ruleList] ?? []);
+      if ( el.checked ) list.add(el.value);
+      else list.delete(el.value);
+      this.rules[el.dataset.ruleList] = [...list];
+      return false;
+    }
+    if ( el.dataset.rule ) {
+      this.rules[el.dataset.rule] = el.type === "checkbox" ? el.checked : el.value;
+      return false;
+    }
+    const key = el.dataset.setting;
+    if ( key === "payOn" ) { this.settings.pay = el.checked ? { cost: 1, from: [] } : null; return true; }
+    if ( key === "chooseOn" ) { this.settings.chooseEffects = el.checked ? { count: "1" } : null; return true; }
+    if ( key === "pay.from" ) { this.settings.pay.from = el.value.split(",").map(s => s.trim()).filter(Boolean); return false; }
+    if ( key === "pay.cost" ) { this.settings.pay.cost = Number(el.value) || 1; return false; }
+    if ( key ) foundry.utils.setProperty(this.settings, key, el.value);
+    return false;
+  }
+
+  #refreshStatus() {
+    const status = this.element.querySelector(".aet-status");
+    if ( status ) status.innerHTML = this.dirty ? '<i class="fa-solid fa-circle"></i> Unsaved changes' : "";
   }
 
   /** Update a card's sentence, warnings and the footer without re-rendering (keeps focus while typing). */
@@ -1195,6 +1418,11 @@ export class TriggerEditor extends ApplicationV2 {
   }
 
   static #onAddBlank() {
+    if ( this.mode === "activity" ) {
+      this.models.push(triggerToModel({ event: ["activity"], action: { type: "note" } }));
+      this.open = new Set([this.models.length - 1]);
+      return this.render();
+    }
     const data = this.mode === "reactions"
       ? { window: "hitBy", who: "self", outcome: { type: "none" } }
       : { event: [], action: { type: "save", ability: "con", dc: "source" }, then: "removeOnSuccess" };
@@ -1345,7 +1573,8 @@ export class TriggerEditor extends ApplicationV2 {
     try {
       let data = JSON.parse(text);
       if ( !Array.isArray(data) ) data = [data];
-      this.models = data.map(x => this.mode === "reactions" ? reactionToModel(x) : triggerToModel(x));
+      this.models = data.map(x => this.mode === "reactions" ? reactionToModel(x)
+        : this.mode === "activity" ? triggerToModel({ event: ["activity"], action: x }) : triggerToModel(x));
       this.rawError = "";
       this.open = new Set();
       ui.notifications.info("Raw data loaded — check the cards, then Save.");
@@ -1364,10 +1593,19 @@ export class TriggerEditor extends ApplicationV2 {
       return ui.notifications.warn(`Fix the highlighted ${bad.length === 1 ? "item" : "items"} first.`);
     }
     const list = this.#output();
-    const key = `flags.${MODULE_ID}.${this.mode}`;
-    await this.document.update(list.length ? { [key]: list } : { [`flags.${MODULE_ID}.-=${this.mode}`]: null });
-    this.#saved = JSON.stringify(list);
-    ui.notifications.info(`${this.mode === "reactions" ? "Reactions" : "Triggers"} saved on ${this.document.name}.`);
+    if ( this.mode === "activity" ) {
+      const s = this.settings;
+      await this.activity.update({ [`flags.${MODULE_ID}`]: {
+        onUse: list.length ? list : null, pay: s.pay?.from?.length ? s.pay : null, chooseEffects: s.chooseEffects ?? null
+      } });
+    } else {
+      const key = `flags.${MODULE_ID}.${this.mode}`;
+      const update = list.length ? { [key]: list } : { [`flags.${MODULE_ID}.-=${this.mode}`]: null };
+      if ( this.mode === "triggers" ) Object.assign(update, rulesUpdate(this.rules));
+      await this.document.update(update);
+    }
+    this.#saved = this.#snapshot();
+    ui.notifications.info(`${{ activity: "Automation", reactions: "Reactions", triggers: "Triggers" }[this.mode]} saved on ${this.activity?.name ?? this.document.name}.`);
     return this.close({ force: true });
   }
 
@@ -1384,6 +1622,13 @@ const hasReactionActivity = item => item.system?.activities?.some?.(a => a.activ
 
 /** ⚡ entry in the header menu of effect and item sheets. */
 Hooks.on("getHeaderControlsApplicationV2", (app, controls) => {
+  const activity = app.activity ?? (app.document?.documentName === "Activity" ? app.document : null);
+  if ( activity?.item ) {
+    if ( !game.user.isGM && !activity.item.isOwner ) return;
+    controls.unshift({ icon: "fa-solid fa-bolt", label: "Automation (Alivas's Engine)", action: "aetOpenAutomation",
+      onClick: () => TriggerEditor.open(activity.item, { activity }) });
+    return;
+  }
   const doc = app.document;
   if ( !doc || !["ActiveEffect", "Item"].includes(doc.documentName) ) return;
   if ( !game.user.isGM && !doc.isOwner ) return;

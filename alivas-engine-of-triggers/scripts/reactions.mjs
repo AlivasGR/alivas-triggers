@@ -10,6 +10,9 @@
  *   d20Succeeded    a creature succeeds on an attack roll or save     subject = the creature that succeeded
  *   damageIncoming  a creature is about to take damage                subject = the creature taking it
  *   spellCast       a creature starts casting a spell                 subject = the caster
+ *   hitting         the reactor itself just hit with an attack roll    subject = the attacker (e.g. Divine Smite)
+ *                   data: attackType (melee/ranged), classification (weapon/spell/unarmed), critical, targetType
+ *                   (creature type of the target), target (its roll data)
  *   d20Rolling      a creature has rolled a d20 test with advantage or disadvantage, before the result is posted
  *                   (nobody has seen it yet)                          subject = the roller
  *   leavesReach     a creature moves out of a hostile's reach         subject = the mover (Opportunity Attacks, built in)
@@ -24,6 +27,10 @@
  *     range:     60,                             // max feet between reactor and subject (optional)
  *     filter:    FilterDescription,              // against the window data (kind, total, ac/dc, types, level…)
  *                                                //   plus `reactor` (the reactor's roll data)
+ *     reaction:  false,                          // not a reaction (e.g. a Bonus Action spell): doesn't need or use one
+ *     cost:      { uses: 1, level: 1, spell },   // instead of using an activity, spend the item's own uses (charges);
+ *                                                //   level = @castLevel for the outcome; spell = id of a spell item to
+ *                                                //   cast for free afterwards (its effects apply)
  *     configure: false,                          // show dnd5e's usage dialog when used; otherwise a spell uses the
  *                                                //   lowest spell slot that can cast it
  *     sight:     true,                           // the reactor must be able to see the subject (Foundry vision)
@@ -53,17 +60,18 @@
  *                                           failure the spell fails and nothing is spent
  *   straight   {}                           d20Rolling: the roll ignores advantage and disadvantage — the FIRST of the
  *                                           two d20s is kept (no new roll); the posted roll says so
- *   damageNext { mode: "add"|"reduce", formula, critDouble }
+ *   damageNext { mode: "add"|"reduce", formula, critDouble, damageType }
  *                                           hitBy: when that attack's damage lands, add to it (same type) or reduce
  *                                           it. formula may use @castLevel (slot level the reaction was cast with);
- *                                           critDouble doubles the dice if the attack was a critical hit
+ *                                           critDouble doubles the dice if the attack was a critical hit;
+ *                                           damageType adds it as damage of that type (default: the attack's type)
  *   none                                    just use the activity (its own effects apply as usual)
  *
  * An active effect with flag `noReactions: true` stops its bearer from taking reactions.
  */
 
 import {
-  tokenFor, distanceFt, canSee, relation, controllerOf, lowestSlot, selectCreatures, giveEffect, describeSelector
+  tokenFor, distanceFt, canSee, relation, controllerOf, lowestSlot, selectCreatures, giveEffect, describeSelector, isLeadGM
 } from "./creatures.mjs";
 
 export { tokenFor, distanceFt, canSee };
@@ -145,14 +153,15 @@ function declaredActivity(item, decl) {
  * @returns {{option: object, outcome: object, label: string}[]}
  */
 function eligible(actor, window, ctx) {
-  if ( !actor || NO_REACT.some(s => actor.statuses?.has(s)) || reactionUsed(actor) ) return [];
-  if ( actor.appliedEffects?.some(e => e.getFlag(MODULE_ID, "noReactions")) ) return [];
+  if ( !actor || NO_REACT.some(s => actor.statuses?.has(s)) ) return [];
+  const noReaction = reactionUsed(actor) || actor.appliedEffects?.some(e => e.getFlag(MODULE_ID, "noReactions"));
   const out = [];
   for ( const item of actor.items ) {
     const decls = item.getFlag(MODULE_ID, "reactions");
     if ( !Array.isArray(decls) ) continue;
     for ( const [n, decl] of decls.entries() ) {
       if ( decl.window !== window ) continue;
+      if ( (decl.reaction !== false) && noReaction ) continue;
       const who = decl.who ?? (["hitBy", "damageIncoming"].includes(window) ? "self" : "other");
       const isSelf = actor.uuid === ctx.subject?.uuid;
       if ( (who === "self" && !isSelf) || (who === "other" && isSelf) ) continue;
@@ -164,14 +173,16 @@ function eligible(actor, window, ctx) {
         subjectIsAlly: ["self", "ally"].includes(relation(actor, ctx.subject, ctx.scene)),
         targetsMe: !!ctx.targets?.includes(actor.uuid)
       }, decl.filter) ) continue;
-      const activity = declaredActivity(item, decl);
-      if ( !activity || !canAfford(activity) ) continue;
+      // A declaration with `cost` just spends the item's own uses (no activity is run), e.g. an Enspelled weapon's charge.
+      const activity = decl.cost ? null : declaredActivity(item, decl);
+      if ( decl.cost ? !((item.system.uses?.value ?? 0) >= (Number(decl.cost.uses) || 1)) : (!activity || !canAfford(activity)) ) continue;
       const label = decl.label ?? item.name;
       out.push({
         label, outcome: decl.outcome ?? { type: "none" },
         detail: decl.detail ?? "",
-        option: { id: `${item.id}.${activity.id}.${n}`, label, itemId: item.id, activityId: activity.id, configure: !!decl.configure,
-          after: decl.after ?? null, subjectUuid: ctx.subject?.uuid ?? null }
+        option: { id: `${item.id}.${activity?.id ?? "cost"}.${n}`, label, itemId: item.id, activityId: activity?.id ?? null, configure: !!decl.configure,
+          cost: decl.cost ?? null,
+          after: decl.after ?? null, subjectUuid: ctx.subject?.uuid ?? null, reaction: decl.reaction !== false }
       });
     }
   }
@@ -240,6 +251,21 @@ async function showPrompt(actorUuid, situation, options) {
   });
   if ( !choice || (choice === "skip") ) return { choice: "skip" };
   const option = options.find(o => o.id === choice);
+  if ( option?.cost ) {
+    const item = actor.items.get(option.itemId);
+    const n = Number(option.cost.uses) || 1;
+    if ( !item || ((item.system.uses?.value ?? 0) < n) ) return { choice: "skip" };
+    await item.update({ "system.uses.spent": (item.system.uses.spent ?? 0) + n });
+    await note(actor, `<strong>${option.label}</strong>: ${item.name} spends ${n} ${n === 1 ? "use" : "uses"} (${item.system.uses.value} left).`);
+    // An item casting its spell: cast it for free now, so the spell's own effects apply (Shield's +5 AC).
+    const spell = option.cost.spell ? actor.items.get(option.cost.spell) : null;
+    const spellActivity = spell?.system.activities?.find(a => a.activation?.type === "reaction") ?? spell?.system.activities?.contents[0];
+    if ( spellActivity ) await spellActivity.use({ [MODULE_ID]: { reacted: true }, consume: { spellSlot: false, resources: false },
+      cause: { resources: false } },
+      { configure: false }, {});
+    if ( option.reaction !== false ) await markReactionUsed(actor);
+    return { choice, used: true, castLevel: option.cost.level ?? 1 };
+  }
   const activity = actor.items.get(option?.itemId)?.system.activities.get(option?.activityId);
   if ( !activity ) return { choice: "skip" };
   if ( option.targetUuid ) fromUuidSync(option.targetUuid)?.object?.setTarget(true, { releaseOthers: true });
@@ -248,6 +274,10 @@ async function showPrompt(actorUuid, situation, options) {
   if ( slot ) usage.spell = { slot };
   // Remember which slot level the reaction was cast with (for @castLevel).
   let castLevel = activity.item?.system.level ?? 0;
+  if ( activity.type === "cast" ) {   // an item casting its spell (Enspelled weapon, staff…): that spell's level
+    const cached = actor.items.find(i => i.flags?.dnd5e?.cachedFor?.endsWith(`Activity.${activity.id}`));
+    castLevel = activity.spell?.level || cached?.system.level || 1;
+  }
   const hookId = Hooks.on("dnd5e.activityConsumption", (used, usageConfig) => {
     if ( used.uuid !== activity.uuid ) return;
     const level = actor.system.spells?.[usageConfig.spell?.slot]?.level;
@@ -261,7 +291,7 @@ async function showPrompt(actorUuid, situation, options) {
   }
   if ( !result ) return { choice: "skip" };
   if ( option.rollAttack && (activity.type === "attack") ) await activity.rollAttack({}, { configure: false }, {});
-  await markReactionUsed(actor);
+  if ( option.reaction !== false ) await markReactionUsed(actor);
   return { choice, used: true, castLevel };
 }
 
@@ -300,7 +330,7 @@ async function runAfter(reactor, item, after, subjectUuid) {
 
 Hooks.once("ready", () => {
   game.socket.on(SOCKET, async data => {
-    if ( (data?.type === "reactionPrompt") && (data.userId === game.user.id) ) {
+    if ( (data?.type === "reactionPrompt") && (data.userId === game.user.id) && (!game.user.isGM || isLeadGM()) ) {
       const result = await showPrompt(data.actorUuid, data.situation, data.options);
       game.socket.emit(SOCKET, { type: "reactionResponse", requestId: data.requestId, ...result });
     }
@@ -311,7 +341,7 @@ Hooks.once("ready", () => {
         resolve({ choice: data.choice, used: data.used, castLevel: data.castLevel });
       }
     }
-    else if ( (data?.type === "markReaction") && (game.users.activeGM === game.user) ) {
+    else if ( (data?.type === "markReaction") && isLeadGM() ) {
       const actor = fromUuidSync(data.actorUuid);
       if ( actor ) await combatantFor(actor)?.setFlag(MODULE_ID, "reactionUsed", true);
     }
@@ -398,6 +428,24 @@ export async function attackHit(state) {
       : `<strong>the attack now misses</strong> (${cur.total} vs AC ${ac})`}.`);
     await afterReaction(reactor, picked);
   }
+  // The attacker itself: things it can do because it hit (Divine Smite). Not reactions.
+  if ( isHit() ) {
+    const data = {
+      kind: "attack", total: cur.total, ac, critical: !!cur.isCritical,
+      attackType: state.activity?.attack?.type?.value ?? "", classification: state.activity?.attack?.type?.classification ?? "",
+      targetType: target.system?.details?.type?.value ?? "", target: target.getRollData?.() ?? {}
+    };
+    const opts = eligible(attacker, "hitting", { scene, subject: attacker, data });
+    if ( opts.length ) {
+      const options = opts.map(o => ({ ...o.option, detail: o.detail || previewAttack(o.outcome, cur, ac) }));
+      const situation = `You hit <strong>${target.name}</strong> with ${state.activity.item?.name ?? "an attack"}`
+        + `${cur.isCritical ? " — <strong>critical hit</strong>" : ""}.`;
+      const { choice, castLevel } = await ask(attacker, situation, options);
+      const picked = opts.find(o => o.option.id === choice);
+      if ( picked?.outcome.type === "damageNext" ) await queueDamageMod(target, state.activity, picked, attacker, castLevel, cur.isCritical);
+      if ( picked ) await afterReaction(attacker, picked);
+    }
+  }
   return { hit: isHit(), total: cur.total, ac, changed };
 }
 
@@ -417,9 +465,9 @@ async function queueDamageMod(target, activity, picked, reactor, castLevel, isCr
   if ( crit ) roll.alter(2, 0);
   await roll.evaluate();
   await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor: reactor }),
-    flavor: `${picked.label}: ${o.mode === "reduce" ? "damage reduced by" : "extra damage"}${crit ? " (critical — dice doubled)" : ""}` });
+    flavor: `${picked.label}: ${o.mode === "reduce" ? "damage reduced by" : `extra${o.damageType ? ` ${CONFIG.DND5E.damageTypes[o.damageType]?.label ?? o.damageType}` : ""} damage`}${crit ? " (critical — dice doubled)" : ""}` });
   const key = `${target.uuid}|${activity?.uuid}`;
-  damageMods.set(key, [...(damageMods.get(key) ?? []), { mode: o.mode, amount: roll.total, label: picked.label, at: Date.now() }]);
+  damageMods.set(key, [...(damageMods.get(key) ?? []), { mode: o.mode, amount: roll.total, label: picked.label, type: o.damageType ?? null, at: Date.now() }]);
   await note(reactor, `<strong>${picked.label}</strong>: ${o.mode === "reduce" ? `${target.name} will take ${roll.total} less damage`
     : `the attack will deal ${roll.total} extra damage`} from this attack.`);
 }
@@ -436,7 +484,8 @@ export function consumeDamageMods(actor, activity, damages) {
   const result = damages.map(d => ({ ...d }));
   const hurt = result.filter(d => !(d.type in CONFIG.DND5E.healingTypes));
   for ( const mod of mods ) {
-    if ( mod.mode === "add" ) {
+    if ( (mod.mode === "add") && mod.type ) result.push({ value: mod.amount, type: mod.type, properties: new Set(["mgc"]) });
+    else if ( mod.mode === "add" ) {
       if ( hurt[0] ) hurt[0].value += mod.amount;
     } else {
       let left = mod.amount;
