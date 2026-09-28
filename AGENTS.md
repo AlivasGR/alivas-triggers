@@ -1,215 +1,173 @@
-# AGENTS.md — contributing to Alivas's Triggers
+# AGENTS.md — working on Alivas's Triggers
 
-Guide for contributors and coding agents. Read it before changing anything; it explains what the two modules are, how
-they're built, and the workflow every change follows.
+Read this before changing anything. It tells you what the two modules are, where the rules come from, how to work
+**with or without a Foundry VTT install**, and how to leave work for the next person.
+
+Quick links: [tasks/](tasks/README.md) (open work, handoffs) · [.claude/skills/](.claude/skills/) (step-by-step
+recipes for repeated jobs) · [README.md](README.md) (user docs).
 
 ---
 
 ## 1. What this is
 
-Two Foundry VTT modules that bring PF2e-level automation to the **dnd5e** system, without midi-qol or DAE:
+Two Foundry VTT modules that bring PF2e-level automation to the **dnd5e** system (no midi-qol / DAE):
 
 | Module | Folder / id | Job |
 |---|---|---|
-| **Alivas's Engine of Triggers** | `alivas-engine-of-triggers` | The code: triggers, reactions, the save/attack workflow, areas, creature pickers, the trigger editor UI. Knows nothing about specific spells. |
-| **Alivas's Box of Triggers** | `alivas-box-of-triggers` | The content: a compendium of **patches** — item data (activities, effects, engine flags) the Box applies onto matching items in a world — plus weapon options. Almost no logic. |
+| **Alivas's Engine of Triggers** | `alivas-engine-of-triggers` | The code: triggers, reactions, the save/attack/heal workflow, areas, weapon masteries, creature pickers, the editor UI, settings. Knows nothing about specific spells. |
+| **Alivas's Box of Triggers** | `alivas-box-of-triggers` | The content: a compendium of **patches** (item data + engine flags) applied onto matching items in a world, plus weapon options. Almost no logic. |
 
-**The core rule: Engine = mechanisms, Box = data.** Code that makes automation *possible* goes in the Engine and must
-be generic and reusable (an event, an action, an effect rule, a selector option). Automating a *specific* spell,
-feature, item or monster is done in the Box as a patch. Never put spell-specific code in the Engine; never put logic in
-a patch.
+**Engine = mechanisms, Box = data.** Code that makes automation *possible* is generic and reusable (an event, an
+action, an effect rule, a reaction option). Automating a *specific* spell / feature / item / monster is a Box patch.
+Never put spell-specific code in the Engine; never put logic in a patch.
 
-**Reuse before adding.** Before writing a new engine piece, check whether existing pieces already cover it (events,
-actions, effect rules, areas, the save routine). When something new is needed, build it as a general mechanism and
-express the specific case as data. Example: Fireball is not special-cased — it is "an area that, when it appears,
-resolves its activity's save on everyone inside, then removes itself if instantaneous".
+**Reuse before adding.** Check the existing pieces (§4) first. When something new is needed, build it as a general
+mechanism and express the case as data. Every engine capability must also be reachable in the editor UI.
 
-Targets: **Foundry v14**, **dnd5e 6.x**, the **2024 rules** (2014 content should keep working where it can). Items
-often arrive via Plutonium or the dnd5e SRD compendia, so patches match both.
+Targets: **Foundry v14**, **dnd5e 6.x**, the **2024 rules** (2014 content keeps working where it can; never silently
+turn 2014 content into 2024).
 
 ---
 
-## 2. Repository layout
+## 2. Rules source (verify, don't recall)
+
+1. **5etools is the official source for 2024 rules text and numbers**: <https://5e.tools/>. The raw data is in the
+   GitHub mirror `5etools-mirror-3/5etools-src`, folder `data/` (`class/class-<name>.json`, `spells/spells-xphb.json`,
+   `bestiary/bestiary-xmm.json`, `items.json`, `races.json`, `backgrounds.json`, `feats.json`,
+   `optionalfeatures.json`, `foundry-*.json` = Plutonium's automation data). Fetch the JSON; grep for the entry.
+2. Inside Foundry the same data arrives through **Plutonium** (it imports from 5etools); items imported that way carry
+   `system.source.book` like `PHB 2024` / `MM'25` and `flags.plutonium`.
+3. dnd5e's own SRD 2024 compendia (`foundryvtt/dnd5e` repo, `packs/_source/classes24`, `spells24`, `feats24`,
+   `origins24`, `actors24`, `equipment24`…) are the source for **item data structure** (activities, effects) and for
+   SRD copies users may have.
+4. Go outside 5etools **only** if it explicitly doesn't have the answer (homebrew, third-party). Say where the text came
+   from in the task log.
+
+Never ship rules text: patches keep the user's own item description (see §5).
+
+---
+
+## 3. Repository layout
 
 ```
-AGENTS.md / CLAUDE.md      this guide (CLAUDE.md just imports it)
+AGENTS.md / CLAUDE.md      this guide (CLAUDE.md imports it)
+tasks/                     open work, handoffs, work logs — one file per task (tasks/README.md = index + template)
+.claude/skills/            recipes for repeated jobs (new-patch, live-test, handoff, character-pass)
 README.md, LICENSE         user docs (MIT)
 package.json               npm scripts: pack, release, strip-rules-text
-scripts/
-  set-version.cjs          stamps version + manifest/download URLs into both module.json
-  strip-rules-text.cjs     removes copyrighted rules text from pack sources (--check to verify)
-  release.cjs              maintainer release script (§6)
+scripts/                   set-version.cjs, strip-rules-text.cjs, release.cjs (maintainer)
 alivas-engine-of-triggers/
-  module.json              also declares documentTypes.RegionBehavior.area (the area behavior)
-  scripts/main.mjs         events, trigger runner, ACTIONS, effect rules, damage pipeline, settings, api
-  scripts/reactions.mjs    reaction windows (popups): hitBy, d20Succeeded, damageIncoming, spellCast, d20Rolling, hitting, leavesReach…
-  scripts/creatures.mjs    geometry/vision, selectors, the creature picker, runAs (UI on another user's client), GM relays, lead-GM election
-  scripts/workflow.mjs     save + attack workflow, the ONE save routine (rollSaveOutcome), evasion, the player save popup
-  scripts/areas.mjs        automated areas (a Region behavior): appear / enter / leave / turn start / turn end
-  scripts/editor.mjs       the trigger editor (ApplicationV2): triggers / reactions / activity / area modes
-  styles/editor.css
+  module.json              also declares documentTypes.RegionBehavior.area
+  scripts/main.mjs         events, trigger runner, ACTIONS, effect rules, damage pipeline, masteries, settings, api
+  scripts/reactions.mjs    reaction windows and popups
+  scripts/creatures.mjs    geometry/vision, selectors, creature picker, runAs, GM relays, lead-GM election
+  scripts/workflow.mjs     save / attack / heal workflow, the ONE save routine, evasion, follow-up attacks
+  scripts/areas.mjs        automated areas (Region behavior): appear / enter / leave / turn start / turn end
+  scripts/editor.mjs       trigger editor (triggers / reactions / activity / area modes), sheet summaries
+  scripts/settings-app.mjs the grouped "Automation settings" window
 alivas-box-of-triggers/
-  module.json
-  scripts/main.mjs         patch matching, buildPatched, Review & apply, auto-patch on create/import, weapon options, cast-links, school choice
-  packs/_source/fixed-items/*.json     patch sources — one file per patch (the source of truth)
-  packs/_source/weapon-options/*.json  weapon option carriers
-  packs/<name>/            built LevelDB compendia (gitignored; `npm run pack`)
-dist/                      release zips (gitignored)
+  scripts/main.mjs         patch matching, buildPatched, Review & apply, auto-patch on create/import, weapon options
+  packs/_source/fixed-items/*.json     patch sources (source of truth)
+  packs/_source/weapon-options/*.json
+  packs/<name>/            built compendia (gitignored; `npm run pack`)
 ```
 
-Setup: `npm install`, then link (symlink / junction) `alivas-engine-of-triggers` and `alivas-box-of-triggers` into
-your Foundry `Data/modules` folder. Code edits are live after reloading Foundry (F5); compendium changes need
-`npm run pack` with Foundry closed.
-
-Reading source is the fastest way to answer questions: dnd5e ships as one large `dnd5e.mjs` in its system folder, and
-Foundry's client/common source is under the installation's `resources/app/`. Grep them.
+`npm install` once. Build compendia with `npm run pack` (Foundry must be **closed** if it's running).
 
 ---
 
-## 3. How the Engine works
+## 4. The Engine in one page
 
-### Triggers (on effects)
-An ActiveEffect carries `flags["alivas-engine-of-triggers"].triggers = [ { event, filter, action, then, label, … } ]`.
-While the effect is active on a creature (the **bearer**), `fire(event, bearer, context)` runs matching triggers via
-`runTriggerList` (filter → action → `then`).
+**Triggers** (on effects): `flags["alivas-engine-of-triggers"].triggers = [{ event, filter, action, then, label, ask,
+needsUses, oncePerTurn, every }]`, run while the effect is active on its **bearer**.
+* events — bearer: attack, spell, activity, save, check, moved, rest, initiative, missed, dealt, damageRolled,
+  collided, interval · to the bearer: hit, damaged, statusGained, applied · turns: turnStart/End, roundStart/End,
+  sourceTurnStart/End · area: areaCreated, areaEnter, areaLeave, areaTurnStart, areaTurnEnd.
+* actions — save, damage, activityDamage, useActivity, giveEffect, removeStatus, tempHp, recoverSlots, storeSpell,
+  repeatActivity, drainMaxHp, spendHitDie, inspire, swapInitiative, toggleLight, rollActivity, note, duplicates.
+* selectors `to: { who: choose|all|self|bearer|source|subject|targets, range, from, side, sight, count… }`.
 
-* **event** (string or array). The bearer's own: attack, spell, activity, save, check, moved, rest, initiative, missed,
-  dealt, damageRolled, collided, interval. Happens to the bearer: hit, damaged, statusGained, applied. Turns/rounds:
-  turnStart, turnEnd, roundStart, roundEnd, sourceTurnStart, sourceTurnEnd. **Area**: areaCreated, areaEnter,
-  areaLeave, areaTurnStart, areaTurnEnd.
-* **filter**: a `dnd5e.Filter` array over roll data + event data. Always available: `sourceTurn`, `subjectIsSource`,
-  `subjectIsSummoner`; per event: `amount`, `spellLevel`, `isSpell`, `identifier`, `duplicateDice`, `critical`,
-  `attackType`, `longRest`/`shortRest`, …
-* **action.type** (`ACTIONS` in main.mjs): save (the bearer, or `to` creatures; damage; failStatus), damage,
-  activityDamage, useActivity, giveEffect, removeStatus, tempHp, recoverSlots, storeSpell, repeatActivity, drainMaxHp,
-  inspire, swapInitiative, toggleLight, rollActivity, note, duplicates, restoreDuplicates.
-* **then**: keep | remove | removeOnSuccess | removeOnFailure | removeWhenDepleted.
-* Extras: `oncePerTurn` (area events), `every` (seconds of game time, for `interval`).
-* Context carries `subject` (the triggering creature) and `targets`. Selectors (`to: { who: … }`) resolve against them:
-  who = choose | all | self | bearer | source | subject | targets, plus range, `from: "subject"`, side, sight, pool,
-  able, `self: false`, notSubject, count.
+**Effect rules** (flags): area, stopOnCollision, attackedWith / attacksWith (advantage/disadvantage, once, by),
+disengaged, extraAttack, evasion, saveAdvantageAgainst, healingExtraDie, noHealing, dropSave, onlyIf, saveDamage,
+ownRollsOnly, ignoreDamageFrom, noReactions, noComponents, askFirst, attackAbilities(Only), minLevel.
 
-### Activity flags
-`onUse` (actions right after use), `pay` (cost from several pools), `chooseEffects`, `targetFilter` (use this activity
-automatically for a single matching target), `summonEffects` (effects placed on summoned creatures), `area.triggers`
-(triggers for the template it places), `removeAfterUse` (stored spells).
+**Activity flags**: onUse, pay, chooseEffects, targetFilter, summonEffects, repeat, mastery, properties, area.triggers.
 
-### Effect rules (flags on effects, besides triggers)
-noReactions, noComponents, askFirst, ignoreDamageFrom, attackAbilities / attackAbilitiesOnly, minLevel, saveDamage,
-**area** `{ radius, color }` (a moving area around the bearer), stopOnCollision, onlyIf (auto-apply only to matching
-targets), noHealing, dropSave (Undead Fortitude-style), evasion `[abilities]`, ownRollsOnly (roll bonuses don't reach
-summons).
+**Reactions** (on items): `reactions = [{ window, who, activity, outcome, filter, cost, free, oncePerTurn, onceKey,
+requiresItem, atTarget, after, refundUnlessSuccess… }]`. Windows: hitBy, d20Succeeded, d20Failed, damageIncoming,
+spellCast, d20Rolling, hitting, leavesReach. Outcomes: acBonus, reroll, modifyRoll, damage, counter, straight,
+damageNext, none. Headers of `reactions.mjs` / `main.mjs` document every field.
 
-### Reactions (on items)
-`flags["alivas-engine-of-triggers"].reactions = [ { window, who, outcome, cost, after, … } ]` — popups offered to the
-right creature's controller at the right moment (Shield, Silvery Barbs, Counterspell, Divine Smite…). See the header of
-reactions.mjs.
+**Workflow** (settings in *Automation settings*): saves (targeted → `resolveSave`; templates → their area), attacks
+(roll → hit → damage → rider saves → masteries), healing, weapon masteries. **One save routine:**
+`Workflow.rollSaveOutcome` — don't add another.
 
-### Workflow (workflow.mjs)
-World settings, separately for player-owned creatures and NPCs:
-* **Save activities**: targeted → `resolveSave`; with a template → its **area** resolves it (areaCreated →
-  useActivity). One damage roll, per-result multiplier (Evasion counts), effects on failure, a summary card.
-* **Attacks** (off / attack / full): roll on use; *full* = damage on a hit, applied, then **rider saves** (the item's
-  save activities with no activation of their own) against each creature hit.
-* **One save routine**: `Workflow.rollSaveOutcome(actor, spec, label)` rolls on the creature's controller's client
-  (player popup or automatic) and then lets reactions respond. Every save in the engine goes through it — don't add
-  another.
+**Multi-client**: once-only work runs on the lead GM (`Creatures.isLeadGM()`); players act on things they don't own
+through GM relays; UI for a specific user goes through `Creatures.runAs`.
 
-### Areas (areas.mjs)
-A Region with the behavior type `alivas-engine-of-triggers.area`. Foundry reports tokens entering/exiting (including
-when the region moves) and starting/ending turns inside; `behaviorActivated` marks creation. Handled only on the lead
-GM. Owners: an effect with the `area` rule (region attached to the bearer's token, moving with it) or an activity (its
-template — the `dnd5e.createMeasuredTemplate` hook adds the behavior). The bearer and non-creatures are skipped.
-
-### Multi-client rules (important)
-* Anything that must happen once runs on the **lead GM** (`Creatures.isLeadGM()`, which works even with one GM account
-  open in several windows).
-* Players can't modify creatures they don't own: damage and effects go through GM relays (`applyDamageAs`,
-  `Creatures.giveEffect`, socket messages).
-* UI for a specific user (a player's popup) runs via `Creatures.runAs(user, handler, payload)`.
-
-### Facts about dnd5e 6 / Foundry v14 worth knowing
-* Spell templates are **Regions**. A new region's `tokens` list fills in late — test points with `region.testPoint`
-  (see `tokenInRegion`). Regions can be attached to a token (`attachment.token`); the `emanation` shape is a radius
-  around a token.
-* `preMoveToken` can only reject a move. Foundry already stops tokens at hostile creatures (`movement.constrained`).
-* Old effect keys are shimmed (`system.bonuses.msak.attack` → `system.rolls.attack.msak.bonus`).
-* An upcast activity is an item copy with `flags.dnd5e.scaling`; `usageMessage.getAssociatedActivity()` returns it
-  scaled.
-* dnd5e resizes tokens on size changes itself. Transfer effects on unequipped or un-attuned (attunement "required")
-  items are suppressed; items without the magical property don't show attunement.
-* `dnd5e.postUseActivity` is called synchronously: set `usageConfig.subsequentActions = false` in it (before any
-  `await`) to stop dnd5e's own follow-up roll.
-* A combat may have no scene; resolve "whose turn is it" with `combatOf(actor)` (prefers the same scene's combat).
+**dnd5e 6 / v14 facts**: templates are Regions (test points with `region.testPoint`; a new region's token list fills
+late); `preMoveToken` can only reject; healing damage values are **positive** with a healing type; old effect keys are
+shimmed; upcast activities carry `flags.dnd5e.scaling` (the usage card's `getAssociatedActivity()` is scaled);
+`postUseActivity` is sync — set `usageConfig.subsequentActions = false` before any await.
 
 ---
 
-## 4. How the Box works
+## 5. The Box in one page
 
-A patch is a full item document in `packs/_source/fixed-items/<file>.json` with
-`flags["alivas-box-of-triggers"] = { version, match: [ keys… ] }`.
-
-* **Match keys** — every field of a key must equal the item's: `name`, `type`, `book`, `page`, `compendiumSource`,
-  `owner` (actor name), `identifier`. Use `identifier` for rules that are identical everywhere (Evasion, Undead
-  Fortitude); `owner` when one item name means different things on different creatures (Life Drain on a Specter vs a
-  Wight); `compendiumSource` for dnd5e SRD copies; `book` for Plutonium imports.
-* **Applying** replaces mechanics (system data, effects, flags) and **keeps** the target's own description, image,
-  uses spent, preparation, equipment and attunement state. So a patch can be built from any copy of the item.
-* **Versioning**: bump `version` whenever a patch changes; Review & apply then offers it again.
-* **Auto-patching**: items created or imported (`preCreateItem`), actors created with items (`preCreateActor` — so
-  summons and dragged-in monsters are patched), Plutonium "update existing" (`updateItem`).
-* **Review & apply** (module settings) patches items already in a world.
-* **No rules text**: patches must not ship WotC or third-party text. Run `npm run strip-rules-text` after changing
-  patches; `node scripts/strip-rules-text.cjs --check` must pass (the release refuses otherwise). Users keep their
-  items' own descriptions, so nothing is lost.
-* Two patches must not share an `_id` (packing fails). Compendium monsters sometimes share item ids — give the patch a
-  unique one.
+A patch = a full item document in `packs/_source/fixed-items/<file>.json` with
+`flags["alivas-box-of-triggers"] = { version, match: [keys…] }`.
+* **Match keys** (all fields must equal): `name`, `type`, `book`, `page`, `identifier`, `compendiumSource`, `owner`.
+  2024 PHB via Plutonium → `{ type, identifier, book: "PHB 2024" }`; dnd5e SRD copy → `{ type, identifier,
+  compendiumSource: "Compendium.dnd5e.classes24.Item.<id>" }`; same rule everywhere (Evasion) → `{ type, identifier }`;
+  per creature → `owner`. Never match 2014 copies with a 2024 patch.
+* Applying replaces mechanics and **keeps** the user's description, image, uses spent, preparation, equipment and
+  attunement. So a patch can be built from any copy of the item.
+* Bump `version` whenever a patch changes. Unique `_id` per patch.
+* After editing patches: `npm run strip-rules-text` then `node scripts/strip-rules-text.cjs --check`.
 
 ---
 
-## 5. Workflow for every change
+## 6. Working with or without Foundry
 
-1. **Collect before designing.** Look at what exists: the item data, the exact rules text (the 2024 books; the
-   5etools data on GitHub is a quick way to read it), and what dnd5e already does natively — often more than expected.
-   Verify numbers; don't recall them.
-2. **Design generically** (§1). Name the existing pieces you reuse.
-3. **Implement.** `node --check <file>` every edited `.mjs`.
-4. **Test live** (§7) with throwaway data. Report what was tested and what wasn't.
-5. **Editor**: every engine capability must be reachable in the editor, round-trip cleanly
-   (`converters.triggerToModel` → `modelToTrigger` returns the same data) and describe itself in plain English. Keep
-   the UX clean and frictionless.
-6. **Box**: express the specific case as a patch, strip rules text, bump the version, `npm run pack`.
-7. Commit with a clear message.
+Detect first: is a Foundry server reachable (e.g. `http://localhost:30000`) with this repo's modules linked into its
+`Data/modules`? Don't install Foundry or ask anyone to — work in the mode you have.
 
----
+| Work | No Foundry | With Foundry |
+|---|---|---|
+| Read rules (5etools), design | ✅ | ✅ |
+| Engine / editor code (`node --check`, careful reading of dnd5e source from its GitHub repo) | ✅ | ✅ |
+| New / changed Box patches from 5etools + dnd5e `packs/_source` data | ✅ | ✅ (can also dump real items) |
+| Strip rules text, pack compendia | ✅ | ✅ (Foundry closed) |
+| Live test, editor round-trip in the UI, release | ❌ → leave a task | ✅ |
 
-## 6. Build and release
+**Without Foundry**: do everything else, then record the untested part as a task with status `needs-live-test` and an
+exact checklist (skill: `handoff`). Mark the code/patch as untested in your commit message. Never claim something works
+that you couldn't run.
 
-* Foundry must be **closed** to pack (LevelDB lock).
-* `npm run pack` — rebuild both compendia from `packs/_source`.
-* Releases are cut by the maintainer with `npm run release -- X.Y.Z` (stamps versions, checks rules text, packs,
-  publishes the public repository, zips, creates the GitHub release with `<id>.zip` and `<id>.json`). Both modules
-  share one version. Contributors: open a pull request instead.
-* After a release, users update the modules, run **Review & apply** for items already in their worlds, and reload.
+**With Foundry** (skill: `live-test`): test on a throwaway scene with throwaway actors (`ZZ …`), never on a scene
+or combat with a game in progress; snapshot and restore any real character you touch; stub placement clicks when
+testing templates / summons; clean up. Then pick up any `needs-live-test` tasks you can.
 
 ---
 
-## 7. Testing
+## 7. Every change
 
-* Use a **test world** or throwaway scenes/actors — never a world with a game in progress. Name test documents so
-  they're easy to find and delete (e.g. `ZZ …`), and delete them afterwards.
-* If you test on a real character, snapshot its HP / slots / uses first and restore them; cast with
-  `consume: { spellSlot: false }` and `concentration: { begin: false }` where possible.
-* Placement clicks (templates, summons) can be stubbed for a test — restore the original in `finally`:
-  ```js
-  dnd5e.canvas.TemplatePlacement.prototype._place = async () => [{ type: "circle", x, y, radius, rotation: 0 }];
-  dnd5e.canvas.TokenPlacement.prototype._place = async function() {
-    return this.config.tokens.map((t, i) => ({ x, y, elevation: 0, level: canvas.level?.id, rotation: 0,
-      prototypeToken: t, index: { total: i, unique: 0 } }));
-  };
-  ```
-* A patch that isn't packed yet can be tried in the browser: fetch
-  `/modules/alivas-box-of-triggers/packs/_source/fixed-items/<file>.json` and apply it with
-  `game.modules.get("alivas-box-of-triggers").api.buildPatched({ data, version, keys: match }, item.toObject())`.
-* Reaction popups (a nearby creature that could react) can delay a hit until answered or timed out — expected.
-* Camera animations don't run in a hidden browser window; check state with console probes rather than screenshots.
+1. Collect: the rules text (5etools), the current item data, what dnd5e already does natively.
+2. Design generically (§1). Name the pieces you reuse.
+3. Implement; `node --check` each edited `.mjs`.
+4. Editor: new capability reachable, round-trips (`converters.triggerToModel` ⇄ `modelToTrigger`, `reactionToModel` ⇄
+   `modelToReaction`), describes itself in plain English.
+5. Box: patch + strip rules text + version bump + `npm run pack`.
+6. Test live, or leave a `needs-live-test` task (§6).
+7. Update the task file's log (§8) and commit with a clear message.
+
+---
+
+## 8. Leaving work for others (tasks/)
+
+`tasks/README.md` is the index; each task is `tasks/T-<nnn>-<slug>.md` using the template there. A task file is written
+for an LLM to pick up cold: goal, sources, exact files, acceptance checks, what's done, what's left, and a dated log.
+When you stop mid-way (or can't test), update **Status**, **Done**, **Left** and append to **Log** — the next person
+starts from that file alone. Statuses: `open`, `in-progress`, `needs-live-test`, `blocked`, `done`.
+
+Releases are cut by the maintainer (`npm run release -- X.Y.Z`); contributors open pull requests.
