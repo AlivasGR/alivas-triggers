@@ -288,8 +288,8 @@ function planTable(rows, { selectable=false }={}) {
     <td>${selectable && r.status === "outdated" ? `<input type="checkbox" name="row" value="${i}" checked>` : ""}</td>
     <td>${r.item.name}${r.link ? ` <em>(casts ${r.spell})</em>` : ""}</td><td>${r.owner || "World item"}</td>
     <td>${r.current ?? "—"} → ${r.version}</td><td>${label(r)}</td></tr>`).join("");
-  return `<table><thead><tr><th></th><th>Item</th><th>On</th><th>Version</th><th>Status</th></tr></thead>
-    <tbody>${tr || `<tr><td colspan="5">No patchable items in this world.</td></tr>`}</tbody></table>`;
+  return `<div style="max-height:60vh;overflow-y:auto"><table><thead><tr><th></th><th>Item</th><th>On</th><th>Version</th><th>Status</th></tr></thead>
+    <tbody>${tr || `<tr><td colspan="5">No patchable items in this world.</td></tr>`}</tbody></table></div>`;
 }
 
 async function openDialog() {
