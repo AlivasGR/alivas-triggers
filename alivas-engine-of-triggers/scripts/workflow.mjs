@@ -66,7 +66,9 @@ export async function resolveSave(activity, targets, { usage=null, label, origin
   label ??= activity.item.name;
 
   // Saves, all at once.
-  const results = await Promise.all(targets.map(async actor => ({ actor, ...(await rollSaveOutcome(actor, { ability, dc }, label)) })));
+  const statuses = (activity.effects ?? []).flatMap(p => Array.from(p.effect?.statuses ?? []));
+  const results = await Promise.all(targets.map(async actor => ({ actor,
+    ...(await rollSaveOutcome(actor, { ability, dc, advantage: hasSaveAdvantage(actor, statuses) }, label)) })));
 
   // Damage: one roll for everyone.
   let damages = null;
@@ -80,7 +82,7 @@ export async function resolveSave(activity, targets, { usage=null, label, origin
       } });
       message = game.messages.contents.at(-1);
       if ( rolls?.length ) damages = dnd5e.dice.aggregateDamageRolls(rolls, { respectProperties: true }).map(roll => ({
-        value: Math.max(0, roll.total) * ((roll.options.type in CONFIG.DND5E.healingTypes) ? -1 : 1),
+        value: Math.max(0, roll.total),
         type: roll.options.type, properties: Array.from(roll.options.properties ?? [])
       }));
     }
@@ -115,6 +117,24 @@ export async function resolveSave(activity, targets, { usage=null, label, origin
 export function hasEvasion(actor, ability) {
   if ( !actor || actor.statuses?.has("incapacitated") ) return false;
   return (actor.appliedEffects ?? []).some(e => (e.getFlag?.(MODULE_ID, "evasion") ?? []).includes(ability));
+}
+
+/**
+ * Effect rule `saveAdvantageAgainst: [statusIds]` (Dwarven Resilience: poisoned): advantage on saves against
+ * something that would give one of those conditions.
+ */
+export function hasSaveAdvantage(actor, statuses=[]) {
+  if ( !statuses.length ) return false;
+  return (actor?.appliedEffects ?? []).some(e => (e.getFlag?.(MODULE_ID, "saveAdvantageAgainst") ?? []).some(s => statuses.includes(s)));
+}
+
+/**
+ * A healing formula as rolled by this healer: with the healingExtraDie rule, its first die term rolls one more die and
+ * keeps the rest (1d8 → 2d8kh1, 2d4 → 3d4kh2).
+ */
+export function healingDieFormula(healer, formula) {
+  if ( !(healer?.appliedEffects ?? []).some(e => e.getFlag?.(MODULE_ID, "healingExtraDie")) ) return formula;
+  return String(formula).replace(/(\d*)d(\d+)(?![\dkK])/, (m, n, x) => `${(Number(n) || 1) + 1}d${x}kh${Number(n) || 1}`);
 }
 
 /** Trigger save damage spec with Evasion applied for this creature (see saveDamage). */
@@ -211,6 +231,67 @@ async function summary(activity, label, ability, dc, results) {
 /*  Hooks                                       */
 /* -------------------------------------------- */
 
+/* -------------------------------------------- */
+/*  Follow-up attacks                           */
+/* -------------------------------------------- */
+
+const followUps = new Map();   // actor uuid → turn key of the Extra Attack already offered
+
+/**
+ * Offer more attacks after one (Extra Attack, Flurry of Blows' second strike): for each, the user picks what to attack
+ * with (or a swap such as Hand of Healing) and a target, then it's used as a free follow-up (no resources spent).
+ * @param {Actor5e} actor
+ * @param {object} spec
+ * @param {number} spec.count            How many more.
+ * @param {Activity[]} spec.activities   What each can be made with.
+ * @param {string} spec.label
+ * @param {Activity} [spec.swap]         An alternative (e.g. a heal) usable instead of one of them, free.
+ */
+export async function followUpAttacks(actor, { count, activities, label, swap=null }) {
+  let swapLeft = !!swap;
+  for ( let i = 0; i < count; i++ ) {
+    const choices = activities.map(a => ({ value: a.uuid, label: a.item.name + (a.name && (a.name !== a.item.name) && !/^attack$/i.test(a.name) ? ` — ${a.name}` : "") }));
+    if ( swapLeft ) choices.push({ value: swap.uuid, label: `${swap.item.name} instead` });
+    choices.push({ value: "none", label: "Done" });
+    const pick = choices.length === 2 ? choices[0].value : await Creatures.HANDLERS.pickOption({ title: `${label} — ${actor.name}`,
+      prompt: `<p><strong>${label}</strong>: attack ${i + 1} of ${count} — with what?</p>`, options: choices });
+    if ( !pick || (pick === "none") ) return;
+    const activity = fromUuidSync(pick);
+    if ( !activity ) return;
+    const healing = activity === swap;
+    if ( healing ) swapLeft = false;
+    const reach = Math.max(5, activity.item.system.range?.reach ?? activity.range?.reach ?? 5);
+    const [target] = await Creatures.selectCreatures(actor, { who: "choose", side: healing ? "ally" : "enemy",
+      range: healing ? (activity.range?.value || 5) : reach }, { title: `${label} — target` });
+    if ( !target ) return;
+    Creatures.tokenFor(target)?.object?.setTarget(true, { releaseOthers: true });
+    await activity.use({ consume: { resources: false, spellSlot: false }, [MODULE_ID]: { followUp: true } }, { configure: false }, {});
+  }
+}
+
+Hooks.on("dnd5e.postUseActivity", (activity, usageConfig) => {
+  const actor = activity?.actor;
+  if ( !actor?.isOwner || usageConfig?.[MODULE_ID]?.followUp || (activity.type !== "attack") ) return;
+  // Activity flag repeat: { count, swap: identifier } (Flurry of Blows: two strikes, one may be Hand of Healing).
+  const repeat = activity.flags?.[MODULE_ID]?.repeat;
+  if ( repeat?.count > 1 ) {
+    const swapItem = repeat.swap ? actor.items.find(i => i.system.identifier === repeat.swap) : null;
+    const swap = swapItem?.system.activities.find(a => ["heal", "utility"].includes(a.type)) ?? null;
+    setTimeout(() => followUpAttacks(actor, { count: repeat.count - 1, activities: [activity], label: activity.item.name, swap }), 1500);
+    return;
+  }
+  // Effect rule extraAttack: { count } — after an attack made with the Attack action, once per turn.
+  const extra = (actor.appliedEffects ?? []).map(e => e.getFlag(MODULE_ID, "extraAttack")?.count ?? 0).reduce((a, b) => Math.max(a, b), 0);
+  if ( !extra || (activity.activation?.type !== "action") ) return;
+  const combat = game.combats.find(c => c.started && c.combatants.some(cb => cb.actor?.uuid === actor.uuid || cb.actorId === actor.id));
+  const turn = combat ? `${combat.id}:${combat.round}:${combat.turn}` : null;
+  if ( turn && (followUps.get(actor.uuid) === turn) ) return;
+  if ( turn ) followUps.set(actor.uuid, turn);
+  const activities = actor.items.filter(i => ["weapon"].includes(i.type) && (i.system.equipped !== false || i.system.identifier === "unarmed-strike"))
+    .flatMap(i => i.system.activities.filter(a => (a.type === "attack") && (a.activation?.type === "action")));
+  setTimeout(() => followUpAttacks(actor, { count: extra, activities, label: "Extra Attack" }), 1500);
+});
+
 // Runs synchronously first: where the workflow takes over, dnd5e's own follow-up roll (attack dialog, save damage) is
 // switched off (dnd5e checks usageConfig.subsequentActions right after this hook).
 Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
@@ -228,6 +309,13 @@ Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
     if ( !targets.length ) return;
     usageConfig.subsequentActions = false;
     resolveSave(activity, targets, { usage: results?.message ?? null, origin });
+    return;
+  }
+  // Healing (setting wfHeal): roll it and apply it to the targets, or the user if no one is targeted.
+  if ( (activity.type === "heal") && deps.setting("wfHeal") && activity.healing ) {
+    usageConfig.subsequentActions = false;
+    const targets = targetsOf();
+    applyHealing(activity, targets.length ? targets : [actor], origin);
     return;
   }
   if ( (activity.type === "attack") && (modeFor("Attack", actor) !== "off") && game.user.targets?.size ) {
@@ -262,10 +350,21 @@ async function rollHitDamage(activity, hit, roll) {
   if ( !rolls?.length || (deps.setting("triggerDamage") !== "auto") ) return;
   const message = game.messages.contents.at(-1);
   const damages = dnd5e.dice.aggregateDamageRolls(rolls, { respectProperties: true }).map(r => ({
-    value: Math.max(0, r.total) * ((r.options.type in CONFIG.DND5E.healingTypes) ? -1 : 1),
+    value: Math.max(0, r.total),
     type: r.options.type, properties: Array.from(r.options.properties ?? [])
   }));
   for ( const actor of hit ) await deps.applyDamageAs(actor, damages, activity, { messageId: message?.id });
+}
+
+/** Roll a heal activity once and apply it to each creature (the damage pipeline runs, so "can't regain HP" counts). */
+async function applyHealing(activity, recipients, origin) {
+  const rolls = await activity.rollDamage({}, { configure: false }, { data: {
+    system: { targets: recipients.flatMap(descriptors), ...(origin ? { origin } : {}) } } });
+  if ( !rolls?.length || (deps.setting("triggerDamage") !== "auto") ) return;
+  const message = game.messages.contents.at(-1);
+  const damages = dnd5e.dice.aggregateDamageRolls(rolls, { respectProperties: true })
+    .map(r => ({ value: Math.max(0, r.total), type: r.options.type, properties: Array.from(r.options.properties ?? []) }));
+  for ( const actor of recipients ) await deps.applyDamageAs(actor, damages, activity, { messageId: message?.id });
 }
 
 /** Does this attack's damage get rolled by the workflow (so other code shouldn't roll it too)? */

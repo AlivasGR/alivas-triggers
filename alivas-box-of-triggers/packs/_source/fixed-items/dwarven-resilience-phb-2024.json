@@ -1,0 +1,110 @@
+{
+  "_id": "fnxvvzOxvOmjQlOB",
+  "name": "Dwarven Resilience",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "188",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Dwarven Resilience (PHB 2024 p. 188). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Dwarf",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "race",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {},
+    "identifier": "dwarven-resilience",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/commodities/treasure/statue-carved-figurehead.webp",
+  "flags": {
+    "plutonium": {
+      "page": "raceFeature",
+      "source": "XPHB",
+      "hash": "dwarven%20resilience_dwarf_xphb_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "dwarven-resilience"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "dwarvenResilienc",
+      "name": "Dwarven Resilience",
+      "img": "icons/commodities/treasure/statue-carved-figurehead.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.traits.dr.value",
+            "type": "add",
+            "value": "poison",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "saveAdvantageAgainst": [
+            "poisoned"
+          ]
+        }
+      },
+      "_key": "!items.effects!fnxvvzOxvOmjQlOB.dwarvenResilienc"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404207363,
+    "modifiedTime": 1790404207363,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!fnxvvzOxvOmjQlOB"
+}

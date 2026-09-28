@@ -1,0 +1,261 @@
+{
+  "_id": "ZAGIOUzOP0kMuk6b",
+  "name": "Psychic Blades",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "136",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Psychic Blades (PHB 2024 p. 136). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Rogue 3 (Soulknife)",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "psychicBladeMain": {
+        "_id": "psychicBladeMain",
+        "type": "attack",
+        "name": "Psychic Blade",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "value": 60,
+          "long": 120,
+          "reach": 5,
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "type": "creature",
+            "count": "1",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "attack": {
+          "ability": "dex",
+          "bonus": "",
+          "flat": false,
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
+        },
+        "damage": {
+          "critical": {
+            "allow": true
+          },
+          "includeBase": false,
+          "parts": [
+            {
+              "number": 1,
+              "denomination": 6,
+              "bonus": "@mod",
+              "types": [
+                "psychic"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "properties": [
+              "fin",
+              "thr",
+              "mgc"
+            ],
+            "mastery": "vex"
+          }
+        }
+      },
+      "psychicBladeBonu": {
+        "_id": "psychicBladeBonu",
+        "type": "attack",
+        "name": "Psychic Blade (Bonus Action)",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "value": 60,
+          "long": 120,
+          "reach": 5,
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "type": "creature",
+            "count": "1",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "attack": {
+          "ability": "dex",
+          "bonus": "",
+          "flat": false,
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
+        },
+        "damage": {
+          "critical": {
+            "allow": true
+          },
+          "includeBase": false,
+          "parts": [
+            {
+              "number": 1,
+              "denomination": 4,
+              "bonus": "@mod",
+              "types": [
+                "psychic"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "properties": [
+              "fin",
+              "thr",
+              "mgc"
+            ],
+            "mastery": "vex"
+          }
+        }
+      }
+    },
+    "identifier": "psychic-blades",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/melee/weapons-crossed-swords-white-blue.webp",
+  "flags": {
+    "plutonium": {
+      "page": "subclassFeature",
+      "source": "XPHB",
+      "hash": "psychic%20blades_rogue_xphb_soulknife_xphb_3_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "psychic-blades",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1788007101800,
+    "modifiedTime": 1788007101800,
+    "lastModifiedBy": "RhhCKSf9MaRpV4se",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!ZAGIOUzOP0kMuk6b"
+}

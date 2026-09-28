@@ -1,0 +1,421 @@
+{
+  "_id": "ZlSicFNrR23Ks7Y5",
+  "name": "Sneak Attack",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "128",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Sneak Attack (PHB 2024 p. 128). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Rogue 1",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "damage",
+        "activation": {
+          "type": "",
+          "override": false
+        },
+        "uses": {
+          "recovery": [
+            {
+              "period": "turn",
+              "type": "recoverAll"
+            }
+          ],
+          "max": "1",
+          "spent": 0
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "damage": {
+          "critical": {
+            "allow": true
+          },
+          "parts": [
+            {
+              "custom": {
+                "enabled": true,
+                "formula": "@scale.rogue.sneak-attack"
+              },
+              "types": [
+                "acid",
+                "bludgeoning",
+                "cold",
+                "fire",
+                "force",
+                "lightning",
+                "necrotic",
+                "piercing",
+                "poison",
+                "psychic",
+                "radiant",
+                "slashing",
+                "thunder"
+              ],
+              "scaling": {
+                "number": 1
+              },
+              "modifiers": []
+            }
+          ]
+        },
+        "_id": "dnd5eactivity000",
+        "img": null,
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "effects": [],
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "sneak-attack",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/melee/strike-dagger-arcane-pink.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "sneak%20attack_rogue_xphb_1_xphb"
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitting",
+          "who": "self",
+          "activity": "dnd5eactivity000",
+          "reaction": false,
+          "oncePerTurn": true,
+          "onceKey": "sneak-attack",
+          "filter": [
+            {
+              "o": "OR",
+              "v": [
+                {
+                  "k": "weaponProperties",
+                  "o": "has",
+                  "v": "fin"
+                },
+                {
+                  "k": "attackType",
+                  "v": "ranged"
+                }
+              ]
+            },
+            {
+              "o": "OR",
+              "v": [
+                {
+                  "k": "advantage",
+                  "v": true
+                },
+                {
+                  "k": "allyNearTarget",
+                  "v": true
+                }
+              ]
+            },
+            {
+              "k": "disadvantage",
+              "v": false
+            }
+          ],
+          "label": "Sneak Attack",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "@scale.rogue.sneak-attack",
+            "critDouble": true
+          }
+        },
+        {
+          "window": "hitting",
+          "who": "self",
+          "activity": "dnd5eactivity000",
+          "reaction": false,
+          "oncePerTurn": true,
+          "onceKey": "sneak-attack",
+          "filter": [
+            {
+              "o": "OR",
+              "v": [
+                {
+                  "k": "weaponProperties",
+                  "o": "has",
+                  "v": "fin"
+                },
+                {
+                  "k": "attackType",
+                  "v": "ranged"
+                }
+              ]
+            },
+            {
+              "o": "OR",
+              "v": [
+                {
+                  "k": "advantage",
+                  "v": true
+                },
+                {
+                  "k": "allyNearTarget",
+                  "v": true
+                }
+              ]
+            },
+            {
+              "k": "disadvantage",
+              "v": false
+            }
+          ],
+          "label": "Sneak Attack + Poison",
+          "requiresItem": "poison-cost-1d6",
+          "detail": "one die fewer; Con save or Poisoned",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(@scale.rogue.sneak-attack.number - 1)d@scale.rogue.sneak-attack.faces",
+            "critDouble": true
+          },
+          "after": {
+            "type": "useActivity",
+            "item": "poison-cost-1d6",
+            "to": {
+              "who": "hit"
+            }
+          }
+        },
+        {
+          "window": "hitting",
+          "who": "self",
+          "activity": "dnd5eactivity000",
+          "reaction": false,
+          "oncePerTurn": true,
+          "onceKey": "sneak-attack",
+          "filter": [
+            {
+              "o": "OR",
+              "v": [
+                {
+                  "k": "weaponProperties",
+                  "o": "has",
+                  "v": "fin"
+                },
+                {
+                  "k": "attackType",
+                  "v": "ranged"
+                }
+              ]
+            },
+            {
+              "o": "OR",
+              "v": [
+                {
+                  "k": "advantage",
+                  "v": true
+                },
+                {
+                  "k": "allyNearTarget",
+                  "v": true
+                }
+              ]
+            },
+            {
+              "k": "disadvantage",
+              "v": false
+            }
+          ],
+          "label": "Sneak Attack + Trip",
+          "requiresItem": "trip-cost-1d6",
+          "detail": "one die fewer; Dex save or Prone (Large or smaller)",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(@scale.rogue.sneak-attack.number - 1)d@scale.rogue.sneak-attack.faces",
+            "critDouble": true
+          },
+          "after": {
+            "type": "useActivity",
+            "item": "trip-cost-1d6",
+            "to": {
+              "who": "hit"
+            }
+          }
+        },
+        {
+          "window": "hitting",
+          "who": "self",
+          "activity": "dnd5eactivity000",
+          "reaction": false,
+          "oncePerTurn": true,
+          "onceKey": "sneak-attack",
+          "filter": [
+            {
+              "o": "OR",
+              "v": [
+                {
+                  "k": "weaponProperties",
+                  "o": "has",
+                  "v": "fin"
+                },
+                {
+                  "k": "attackType",
+                  "v": "ranged"
+                }
+              ]
+            },
+            {
+              "o": "OR",
+              "v": [
+                {
+                  "k": "advantage",
+                  "v": true
+                },
+                {
+                  "k": "allyNearTarget",
+                  "v": true
+                }
+              ]
+            },
+            {
+              "k": "disadvantage",
+              "v": false
+            }
+          ],
+          "label": "Sneak Attack + Withdraw",
+          "requiresItem": "withdraw-cost-1d6",
+          "detail": "one die fewer; move half your Speed without Opportunity Attacks",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(@scale.rogue.sneak-attack.number - 1)d@scale.rogue.sneak-attack.faces",
+            "critDouble": true
+          },
+          "after": {
+            "type": "giveEffect",
+            "effect": "sneakWithdrawEff",
+            "to": {
+              "who": "self"
+            }
+          }
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "sneak-attack",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "sneakWithdrawEff",
+      "name": "Withdrawing",
+      "img": "icons/skills/melee/strike-dagger-arcane-pink.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "disengaged": true
+        }
+      },
+      "_key": "!items.effects!ZlSicFNrR23Ks7Y5.sneakWithdrawEff"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1788007101797,
+    "modifiedTime": 1788007101797,
+    "lastModifiedBy": "RhhCKSf9MaRpV4se",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!ZlSicFNrR23Ks7Y5"
+}

@@ -13,6 +13,8 @@
  *   hitting         the reactor itself just hit with an attack roll    subject = the attacker (e.g. Divine Smite)
  *                   data: attackType (melee/ranged), classification (weapon/spell/unarmed), critical, targetType
  *                   (creature type of the target), target (its roll data)
+ *   d20Failed       a creature fails a check with a known DC             subject = that creature
+ *                   data: skill, tool, proficient
  *   d20Rolling      a creature has rolled a d20 test with advantage or disadvantage, before the result is posted
  *                   (nobody has seen it yet)                          subject = the roller
  *   leavesReach     a creature moves out of a hostile's reach         subject = the mover (Opportunity Attacks, built in)
@@ -36,7 +38,12 @@
  *     sight:     true,                           // the reactor must be able to see the subject (Foundry vision)
  *     detail:    "text",                         // shown next to the option in the popup (optional)
  *     outcome:   { type: ..., ... },             // what it does to the moment
+ *     oncePerTurn: true,                         // at most once per turn (in combat)
+ *     atTarget:  true,                           // hitting: use the activity on the creature that was hit
  *     after:     { type: "giveEffect", effect, to: SELECTOR }
+ *              | { type: "useActivity", activity, to: SELECTOR, when: "zeroed" }
+ *                                                // use another activity of the item on creatures the SELECTOR picks
+ *                                                //   (damageIncoming, when: "zeroed" = only if the damage became 0)
  *                                                // afterwards, give one of this item's effects (id or name) to the
  *                                                //   creatures the SELECTOR picks (creatures.mjs), e.g.
  *                                                //   { who: "choose", range: 60, sight: true, notSubject: true }.
@@ -71,7 +78,8 @@
  */
 
 import {
-  tokenFor, distanceFt, canSee, relation, controllerOf, lowestSlot, selectCreatures, giveEffect, describeSelector, isLeadGM
+  tokenFor, distanceFt, canSee, relation, controllerOf, lowestSlot, selectCreatures, giveEffect, describeSelector, isLeadGM,
+  runAs, HANDLERS
 } from "./creatures.mjs";
 
 export { tokenFor, distanceFt, canSee };
@@ -162,7 +170,7 @@ function eligible(actor, window, ctx) {
     for ( const [n, decl] of decls.entries() ) {
       if ( decl.window !== window ) continue;
       if ( (decl.reaction !== false) && noReaction ) continue;
-      const who = decl.who ?? (["hitBy", "damageIncoming"].includes(window) ? "self" : "other");
+      const who = decl.who ?? (["hitBy", "damageIncoming", "hitting"].includes(window) ? "self" : (window === "d20Failed" ? "any" : "other"));
       const isSelf = actor.uuid === ctx.subject?.uuid;
       if ( (who === "self" && !isSelf) || (who === "other" && isSelf) ) continue;
       if ( decl.range && !isSelf
@@ -174,19 +182,51 @@ function eligible(actor, window, ctx) {
         targetsMe: !!ctx.targets?.includes(actor.uuid)
       }, decl.filter) ) continue;
       // A declaration with `cost` just spends the item's own uses (no activity is run), e.g. an Enspelled weapon's charge.
-      const activity = decl.cost ? null : declaredActivity(item, decl);
-      if ( decl.cost ? !((item.system.uses?.value ?? 0) >= (Number(decl.cost.uses) || 1)) : (!activity || !canAfford(activity)) ) continue;
+      // free: nothing to use or pay (an ability that's simply active, e.g. while a transformation lasts).
+      const activity = (decl.cost || decl.free) ? null : declaredActivity(item, decl);
+      if ( !decl.free && (decl.cost ? !((item.system.uses?.value ?? 0) >= (Number(decl.cost.uses) || 1)) : (!activity || !canAfford(activity))) ) continue;
+      const turn = turnKeyOf(actor);
+      if ( decl.requiresItem && !actor.items.some(i => i.system.identifier === decl.requiresItem) ) continue;
+      const onceKey = decl.onceKey ?? n;
+      // A shared onceKey (Sneak Attack and its Cunning Strike variants) counts across items; otherwise just this one.
+      const usedIn = decl.onceKey ? [...actor.items] : [item];
+      if ( decl.oncePerTurn && turn && usedIn.some(i => i.getFlag(MODULE_ID, `usedTurn.${onceKey}`) === turn) ) continue;
       const label = decl.label ?? item.name;
       out.push({
         label, outcome: decl.outcome ?? { type: "none" },
         detail: decl.detail ?? "",
         option: { id: `${item.id}.${activity?.id ?? "cost"}.${n}`, label, itemId: item.id, activityId: activity?.id ?? null, configure: !!decl.configure,
-          cost: decl.cost ?? null,
+          cost: decl.cost ?? null, free: !!decl.free, decl: decl.onceKey ?? n, oncePerTurn: !!decl.oncePerTurn, hitUuid: ctx.target?.uuid ?? null,
+          refund: decl.refundUnlessSuccess ?? null,
+          quiet: ["damageNext", "damage"].includes(decl.outcome?.type),
+          targetUuid: (decl.atTarget && ctx.target) ? (tokenFor(ctx.target, ctx.scene)?.uuid ?? null) : null,
           after: decl.after ?? null, subjectUuid: ctx.subject?.uuid ?? null, reaction: decl.reaction !== false }
       });
     }
   }
   return out;
+}
+
+/** Another creature hostile to the target, within 5 ft of it and not incapacitated (Sneak Attack's "ally"). */
+function allyNear(target, attacker, scene) {
+  const tt = tokenFor(target, scene);
+  if ( !tt ) return false;
+  return scene.tokens.some(t => t.actor && (t.id !== tt.id) && (t.actor.uuid !== attacker.uuid) && (t.disposition !== tt.disposition)
+    && (t.disposition !== CONST.TOKEN_DISPOSITIONS.NEUTRAL) && !["incapacitated", "unconscious", "dead"].some(s => t.actor.statuses?.has(s))
+    && (distanceFt(t, tt) <= 5));
+}
+
+/** "combat:round:turn" of the running combat this creature is in, or null out of combat. */
+function turnKeyOf(actor) {
+  const combat = game.combats.find(c => c.started && c.combatants.some(cb => (cb.actor?.uuid === actor.uuid) || (!actor.isToken && (cb.actorId === actor.id))));
+  return combat ? `${combat.id}:${combat.round}:${combat.turn}` : null;
+}
+
+/** Remember a oncePerTurn reaction was used this turn. */
+async function markTurn(actor, option) {
+  const turn = option?.oncePerTurn ? turnKeyOf(actor) : null;
+  const item = turn ? actor.items.get(option.itemId) : null;
+  if ( item ) await item.setFlag(MODULE_ID, `usedTurn.${option.decl}`, turn);
 }
 
 /** Creatures that could react on a scene: everyone in a started combat, then other tokens on the scene. */
@@ -251,6 +291,11 @@ async function showPrompt(actorUuid, situation, options) {
   });
   if ( !choice || (choice === "skip") ) return { choice: "skip" };
   const option = options.find(o => o.id === choice);
+  if ( option?.free ) {
+    if ( option.reaction !== false ) await markReactionUsed(actor);
+    await markTurn(actor, option);
+    return { choice, used: true };
+  }
   if ( option?.cost ) {
     const item = actor.items.get(option.itemId);
     const n = Number(option.cost.uses) || 1;
@@ -264,12 +309,15 @@ async function showPrompt(actorUuid, situation, options) {
       cause: { resources: false } },
       { configure: false }, {});
     if ( option.reaction !== false ) await markReactionUsed(actor);
+    await markTurn(actor, option);
     return { choice, used: true, castLevel: option.cost.level ?? 1 };
   }
   const activity = actor.items.get(option?.itemId)?.system.activities.get(option?.activityId);
   if ( !activity ) return { choice: "skip" };
   if ( option.targetUuid ) fromUuidSync(option.targetUuid)?.object?.setTarget(true, { releaseOthers: true });
   const usage = { [MODULE_ID]: { reacted: true } };
+  // The outcome deals with the damage itself (Hand of Harm, Deflect Attacks): don't let dnd5e roll it too.
+  if ( option.quiet ) usage.subsequentActions = false;
   const slot = !option.configure && lowestSlot(activity);
   if ( slot ) usage.spell = { slot };
   // Remember which slot level the reaction was cast with (for @castLevel).
@@ -292,6 +340,7 @@ async function showPrompt(actorUuid, situation, options) {
   if ( !result ) return { choice: "skip" };
   if ( option.rollAttack && (activity.type === "attack") ) await activity.rollAttack({}, { configure: false }, {});
   if ( option.reaction !== false ) await markReactionUsed(actor);
+  await markTurn(actor, option);
   return { choice, used: true, castLevel };
 }
 
@@ -304,14 +353,17 @@ async function showPrompt(actorUuid, situation, options) {
  * @param {string} [subjectUuid]  The triggering creature.
  */
 /** Run a picked reaction's afterwards step (after its outcome is resolved and announced). */
-function afterReaction(reactor, picked) {
+function afterReaction(reactor, picked, { zeroed=false }={}) {
   const after = picked?.option?.after;
   if ( !after ) return;
-  const item = reactor.items.get(picked.option.itemId);
-  return item ? runAfter(reactor, item, after, picked.option.subjectUuid) : undefined;
+  if ( (after.when === "zeroed") && !zeroed ) return;
+  // after.item: the follow-up belongs to another item of the reactor (identifier), e.g. a Cunning Strike option.
+  const item = after.item ? reactor.items.find(i => i.system.identifier === after.item) : reactor.items.get(picked.option.itemId);
+  return item ? runAfter(reactor, item, after, picked.option.subjectUuid, picked.option.hitUuid) : undefined;
 }
 
-async function runAfter(reactor, item, after, subjectUuid) {
+async function runAfter(reactor, item, after, subjectUuid, hitUuid) {
+  if ( after?.type === "useActivity" ) return afterUseActivity(reactor, item, after, subjectUuid, hitUuid);
   if ( after?.type !== "giveEffect" ) return;
   const effect = item.effects.get(after.effect) ?? item.effects.getName(after.effect);
   if ( !effect ) return;
@@ -430,20 +482,26 @@ export async function attackHit(state) {
   }
   // The attacker itself: things it can do because it hit (Divine Smite). Not reactions.
   if ( isHit() ) {
+    const mode = roll.options?.advantageMode ?? 0;
     const data = {
-      kind: "attack", total: cur.total, ac, critical: !!cur.isCritical,
+      kind: "attack", total: cur.total, ac, critical: !!cur.isCritical, advantage: mode > 0, disadvantage: mode < 0,
+      weaponProperties: [...(state.activity?.item?.system?.properties ?? []), ...(state.activity?.flags?.[MODULE_ID]?.properties ?? [])],
+      allyNearTarget: allyNear(target, attacker, scene),
       attackType: state.activity?.attack?.type?.value ?? "", classification: state.activity?.attack?.type?.classification ?? "",
       targetType: target.system?.details?.type?.value ?? "", target: target.getRollData?.() ?? {}
     };
-    const opts = eligible(attacker, "hitting", { scene, subject: attacker, data });
-    if ( opts.length ) {
+    // Several things can follow one hit (Stunning Strike and Hand of Harm): after each pick, offer the rest.
+    let opts = eligible(attacker, "hitting", { scene, subject: attacker, data, target });
+    while ( opts.length ) {
       const options = opts.map(o => ({ ...o.option, detail: o.detail || previewAttack(o.outcome, cur, ac) }));
       const situation = `You hit <strong>${target.name}</strong> with ${state.activity.item?.name ?? "an attack"}`
         + `${cur.isCritical ? " — <strong>critical hit</strong>" : ""}.`;
       const { choice, castLevel } = await ask(attacker, situation, options);
       const picked = opts.find(o => o.option.id === choice);
-      if ( picked?.outcome.type === "damageNext" ) await queueDamageMod(target, state.activity, picked, attacker, castLevel, cur.isCritical);
-      if ( picked ) await afterReaction(attacker, picked);
+      if ( !picked ) break;
+      if ( picked.outcome.type === "damageNext" ) await queueDamageMod(target, state.activity, picked, attacker, castLevel, cur.isCritical);
+      await afterReaction(attacker, picked);
+      opts = eligible(attacker, "hitting", { scene, subject: attacker, data, target }).filter(o => o.option.id !== picked.option.id);
     }
   }
   return { hit: isHit(), total: cur.total, ac, changed };
@@ -539,19 +597,88 @@ export async function saveSucceeded(state) {
 }
 
 /**
+ * A check failed against a known DC (Psi-Bolstered Knack, Bardic-style help). Offers d20Failed to the creature and
+ * others; a modifyRoll outcome can turn it into a success. `refundUnlessSuccess: { item, uses }` gives back what the
+ * reaction spent (uses of the item with that identifier) if the check still fails.
+ * @param {{actor, roll, dc, label, data}} state   data: skill, tool, proficient…
+ * @returns {Promise<{success: boolean, total: number, changed: boolean}>}
+ */
+export async function checkFailed(state) {
+  const { roll, actor, dc } = state;
+  let cur = { total: roll.total, isCritical: roll.isCritical, isFumble: roll.isFumble };
+  const scene = tokenFor(actor)?.parent;
+  const success = () => cur.total >= dc;
+  let changed = false;
+  for ( const reactor of [actor, ...candidates(scene).filter(a => a.uuid !== actor.uuid)] ) {
+    if ( success() ) break;
+    const opts = eligible(reactor, "d20Failed", { scene, subject: actor, data: { kind: "check", total: cur.total, dc, ...(state.data ?? {}) } });
+    if ( !opts.length ) continue;
+    const options = opts.map(o => ({ ...o.option, detail: describeRollOutcome(o.outcome) || o.detail }));
+    const situation = `<strong>${actor.name}</strong> fails ${state.label ?? "a check"} (${cur.total} vs DC ${dc}).`;
+    const { choice } = await ask(reactor, situation, options);
+    const picked = opts.find(o => o.option.id === choice);
+    if ( !picked ) continue;
+    cur = await applyRollOutcome(picked.outcome, cur, roll, actor, reactor, picked.label);
+    changed = true;
+    const refund = picked.option.refund;
+    if ( !success() && refund?.item ) {
+      const pool = reactor.items.find(i => i.system.identifier === refund.item);
+      if ( pool?.system.uses ) await pool.update({ "system.uses.spent": Math.max(0, (pool.system.uses.spent ?? 0) - (Number(refund.uses) || 1)) });
+    }
+    await note(reactor, `<strong>${picked.label}</strong>: ${actor.name} ${success() ? "<strong>now succeeds</strong>" : "still fails"} (${cur.total} vs DC ${dc})${!success() && refund ? " — nothing spent" : ""}.`);
+    await afterReaction(reactor, picked);
+  }
+  return { success: success(), total: cur.total, changed };
+}
+
+/**
  * Damage is about to be applied. Offers damageIncoming to the creature (and "other" reactors in range, e.g. someone
  * shielding an ally). Resolves to the damages to apply.
  * @param {Actor5e} actor
  * @param {object[]} damages  DamageDescription[]
  */
-export async function damageIncoming(actor, damages) {
+/**
+ * A reaction's follow-up activity (Deflect Attacks' redirect): the reactor's controller picks the creatures (they may
+ * pick no one, which skips it — and its cost), then the activity is used on them there (its cost and the save
+ * workflow apply as usual).
+ */
+async function afterUseActivity(reactor, item, after, subjectUuid, hitUuid) {
+  const activity = (after.activity ? (item.system.activities.get(after.activity) ?? item.system.activities.getName(after.activity)) : null)
+    ?? item.system.activities.contents[0];
+  if ( !activity || !canAfford(activity) ) return;
+  const subject = subjectUuid ? fromUuidSync(subjectUuid) : null;
+  // to.who "hit": the creature the attack hit (hitting reactions).
+  const hit = hitUuid ? fromUuidSync(hitUuid) : null;
+  const recipients = (after.to?.who === "hit") ? (hit ? [hit] : []) : (after.to?.who === "self") ? [reactor]
+    : await selectCreatures(reactor, after.to ?? { who: "choose" }, {
+    subject, title: `${item.name} — choose`, prompt: `<p><strong>${activity.name || item.name}</strong>: choose a creature, or no one to skip.</p>`
+  });
+  if ( !recipients.length ) return;
+  const user = controllerOf(reactor);
+  const payload = { actorUuid: reactor.uuid, itemId: item.id, activityId: activity.id, targets: recipients.map(a => tokenFor(a)?.uuid).filter(Boolean) };
+  if ( user && (user.id !== game.user.id) ) return runAs(user, "useActivityOn", payload);
+  return HANDLERS.useActivityOn(payload);
+}
+
+/** On the controller's client: target these tokens and use the activity. */
+HANDLERS.useActivityOn = async function({ actorUuid, itemId, activityId, targets }) {
+  const actor = fromUuidSync(actorUuid);
+  const activity = actor?.items.get(itemId)?.system.activities.get(activityId);
+  if ( !activity || !actor.isOwner ) return false;
+  const tokens = (targets ?? []).map(u => fromUuidSync(u)?.object).filter(Boolean);
+  tokens.forEach((tk, i) => tk.setTarget(true, { releaseOthers: i === 0, groupSelection: i > 0 }));
+  await activity.use({}, { configure: false }, {});
+  return true;
+};
+
+export async function damageIncoming(actor, damages, { fromAttack=false }={}) {
   const scene = tokenFor(actor)?.parent;
   const total = damages.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
   if ( total <= 0 ) return damages;
   const types = Array.from(new Set(damages.map(d => d.type).filter(Boolean)));
   const result = damages.map(d => ({ ...d }));
   for ( const reactor of [actor, ...candidates(scene).filter(a => a.uuid !== actor.uuid)] ) {
-    const opts = eligible(reactor, "damageIncoming", { scene, subject: actor, data: { kind: "damage", total, types } });
+    const opts = eligible(reactor, "damageIncoming", { scene, subject: actor, data: { kind: "damage", total, types, fromAttack } });
     if ( !opts.length ) continue;
     const options = opts.map(o => ({ ...o.option, detail: describeDamageOutcome(o.outcome) || o.detail }));
     const now = result.reduce((s, d) => s + d.value, 0);
@@ -574,8 +701,9 @@ export async function damageIncoming(actor, damages) {
         }
       }
     }
-    await note(reactor, `<strong>${picked.label}</strong>: ${actor.name} takes ${result.reduce((s, d) => s + d.value, 0)} instead of ${now}.`);
-    await afterReaction(reactor, picked);
+    const left = result.reduce((s, d) => s + d.value, 0);
+    await note(reactor, `<strong>${picked.label}</strong>: ${actor.name} takes ${left} instead of ${now}.`);
+    await afterReaction(reactor, picked, { zeroed: left <= 0 });
   }
   return result;
 }
@@ -691,7 +819,8 @@ export async function leavesReach(tokenDoc, movement) {
   const mover = tokenDoc.actor;
   const combat = game.combats.find(c => c.started && c.combatants.some(cb => cb.tokenId === tokenDoc.id));
   if ( !mover || !combat ) return;
-  if ( mover.statuses?.has("disengaged") || mover.effects.some(e => e.active && /disengag/i.test(e.name)) ) return;
+  // Disengaged (status, an effect with the disengaged rule, or one named so): no Opportunity Attacks.
+  if ( mover.statuses?.has("disengaged") || (mover.appliedEffects ?? []).some(e => e.getFlag(MODULE_ID, "disengaged") || /disengag/i.test(e.name)) ) return;
   const origin = movement.origin ?? {};
   for ( const cb of combat.combatants ) {
     const reactorToken = cb.token;

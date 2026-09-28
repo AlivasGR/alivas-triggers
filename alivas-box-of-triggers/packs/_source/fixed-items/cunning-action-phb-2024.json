@@ -1,0 +1,360 @@
+{
+  "_id": "jmi8eDvTe6a6sgQv",
+  "name": "Cunning Action",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "129",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Cunning Action (PHB 2024 p. 129). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Rogue 2",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Dash",
+        "type": "utility",
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "effects": [],
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "behaviors": []
+      },
+      "dnd5eactivity001": {
+        "name": "Disengage",
+        "type": "utility",
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "_id": "dnd5eactivity001",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "type": "self"
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "effects": [
+          {
+            "_id": "cunningDisengage",
+            "level": {}
+          }
+        ],
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "behaviors": []
+      },
+      "dnd5eactivity002": {
+        "name": "Hide",
+        "type": "utility",
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "target": {
+          "affects": {
+            "type": "self",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "cunningActionxxx",
+            "level": {},
+            "uuid": null
+          }
+        ],
+        "_id": "dnd5eactivity002",
+        "img": null,
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "cunning-action",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/control/hypnosis-mesmerism-watch.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "cunning%20action_rogue_xphb_2_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "cunning-action",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "cunningActionxxx",
+      "name": "Hiding",
+      "img": "icons/magic/control/hypnosis-mesmerism-watch.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "item": "Actor.SeHbRsdRYcbQwrtT.Item.jmi8eDvTe6a6sgQv",
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [
+        "hiding"
+      ],
+      "disabled": false,
+      "duration": {
+        "units": "seconds",
+        "value": null,
+        "expiry": null,
+        "expired": false
+      },
+      "origin": null,
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "hiding"
+        },
+        "alivas-engine-of-triggers": {
+          "attacksWith": {
+            "mode": "advantage",
+            "once": true
+          },
+          "attackedWith": {
+            "mode": "disadvantage"
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.367",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1788007101804,
+        "modifiedTime": 1790404261940,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!jmi8eDvTe6a6sgQv.cunningActionxxx"
+    },
+    {
+      "_id": "cunningDisengage",
+      "name": "Disengaged",
+      "img": "icons/magic/control/hypnosis-mesmerism-watch.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "disengaged": true
+        }
+      },
+      "_key": "!items.effects!jmi8eDvTe6a6sgQv.cunningDisengage"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1788007101803,
+    "modifiedTime": 1790404261939,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!jmi8eDvTe6a6sgQv"
+}

@@ -99,6 +99,7 @@ import * as Reactions from "./reactions.mjs";
 import * as Creatures from "./creatures.mjs";
 import * as Workflow from "./workflow.mjs";
 import * as Areas from "./areas.mjs";
+import { registerSettingsMenu } from "./settings-app.mjs";
 import { TriggerEditor, describeTrigger, describeReaction } from "./editor.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
@@ -158,7 +159,10 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
     return token.actor && Number.isFinite(ac) && (roll.isCritical || (!roll.isFumble && (roll.total >= ac)));
   });
   for ( const token of game.user.targets ) {
-    if ( token.actor && !hits.includes(token) ) fire("missed", subject.actor, missContext(subject, rolls, token.actor));
+    if ( token.actor && !hits.includes(token) ) {
+      fire("missed", subject.actor, missContext(subject, rolls, token.actor));
+      applyMastery(subject, token.actor, { hit: false, roll });
+    }
   }
   const landed = [];
   for ( const token of hits ) {
@@ -187,6 +191,7 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
       data: { distance, attackType: subject.attack?.type?.value ?? "" } });
     if ( isAbsorbed(target, subject) ) continue;
     landed.push(target);
+    await applyMastery(subject, target, { hit: true, roll });
     if ( setting("autoApplyEffects") && subject.effects?.length ) {
       await autoApply(subject, target, subject.effects, findUsageMessage(subject));
     }
@@ -412,6 +417,116 @@ Hooks.on("updateWorldTime", async (worldTime, delta) => {
   }
 });
 
+/**
+ * Effect rule `attackedWith: { mode: "advantage"|"disadvantage", once }` (Dodge; Stunning Strike's slowed target):
+ * attack rolls against the bearer have that mode; with `once`, the effect ends after the next attack against it.
+ */
+Hooks.on("dnd5e.preRollAttackV2", config => {
+  const attacker = config.subject?.actor;
+  const apply = rule => {
+    if ( rule?.mode === "advantage" ) config.advantage = true;
+    if ( rule?.mode === "disadvantage" ) config.disadvantage = true;
+  };
+  for ( const token of game.user.targets ?? [] ) {
+    for ( const effect of token.actor?.appliedEffects ?? [] ) {
+      const rule = effect.getFlag(MODULE_ID, "attackedWith");
+      if ( rule && (!rule.by || (rule.by === attacker?.uuid)) ) apply(rule);
+    }
+  }
+  // attacksWith: the bearer's own attacks (Steady Aim, hidden, sapped).
+  for ( const effect of attacker?.appliedEffects ?? [] ) apply(effect.getFlag(MODULE_ID, "attacksWith"));
+});
+Hooks.on("dnd5e.rollAttackV2", (rolls, { subject }={}) => {
+  const attacker = subject?.actor;
+  for ( const token of game.user.targets ?? [] ) {
+    for ( const effect of token.actor?.appliedEffects ?? [] ) {
+      const rule = effect.getFlag(MODULE_ID, "attackedWith");
+      if ( rule?.once && (!rule.by || (rule.by === attacker?.uuid)) ) deleteEffectAs(effect);
+    }
+  }
+  for ( const effect of attacker?.appliedEffects ?? [] ) if ( effect.getFlag(MODULE_ID, "attacksWith")?.once ) deleteEffectAs(effect);
+});
+
+/**
+ * Effect rule `healingExtraDie` (Triage Expert's Bedside Manner): the bearer's healing rolls roll one extra die and drop
+ * the lowest.
+ */
+Hooks.on("dnd5e.preRollDamageV2", config => {
+  const actor = config.subject?.actor;
+  if ( !actor ) return;
+  for ( const roll of config.rolls ?? [] ) {
+    if ( !(roll.options?.type in CONFIG.DND5E.healingTypes) ) continue;
+    // Resolve references first (@scale.monk.die → 1d8) so the die itself can be changed.
+    const data = roll.data ?? config.subject?.getRollData?.() ?? actor.getRollData();
+    roll.parts = (roll.parts ?? []).map(p => Workflow.healingDieFormula(actor,
+      CONFIG.Dice.BasicRoll.replaceFormulaData(String(p), data, { missing: 0 })));
+  }
+});
+
+/* -------------------------------------------- */
+/*  Weapon masteries                            */
+/* -------------------------------------------- */
+
+/**
+ * The mastery an attack uses, if its attacker can use it: the weapon's mastery when the attacker has chosen that weapon
+ * (dnd5e's weapon mastery list), or an activity's own `mastery` flag (e.g. a Psychic Blade's free Vex).
+ */
+function masteryOf(activity) {
+  const own = activity?.flags?.[MODULE_ID]?.mastery;
+  if ( own ) return own;
+  const item = activity?.item;
+  const actor = activity?.actor;
+  const id = item?.system?.mastery;
+  if ( !id || !actor ) return null;
+  const known = actor.system.traits?.weaponProf?.mastery?.value;
+  const base = item.system.type?.baseItem;
+  return (known?.has?.(base) || known?.includes?.(base)) ? id : null;
+}
+
+/** Apply a weapon mastery after an attack (setting wfMastery): hit → vex, sap, slow, topple; miss → graze. */
+async function applyMastery(activity, target, { hit, roll }) {
+  if ( !setting("wfMastery") ) return;
+  const mastery = masteryOf(activity);
+  const attacker = activity?.actor;
+  if ( !mastery || !attacker || !target ) return;
+  const label = `${activity.item.name} (${mastery[0].toUpperCase()}${mastery.slice(1)})`;
+  const origin = activity.item.uuid;
+  const give = (name, flags, changes=[], expiry="sourceStart") => Creatures.giveEffect({ name: `${name} (${attacker.name})`,
+    img: activity.item.img, origin, system: { changes }, duration: { value: 1, units: "rounds", expiry },
+    flags: { [MODULE_ID]: flags } }, [target]);
+  const note = text => ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor: attacker }),
+    content: `<p><strong>${label}</strong>: ${text}</p>` });
+  const mod = Number(activity.getRollData?.()?.mod ?? 0);
+  if ( hit ) switch ( mastery ) {
+    case "vex":
+      await give("Vexed", { attackedWith: { mode: "advantage", once: true, by: attacker.uuid } }, [], "sourceEnd");
+      return note(`${attacker.name}'s next attack against ${target.name} has Advantage.`);
+    case "sap":
+      await give("Sapped", { attacksWith: { mode: "disadvantage", once: true } });
+      return note(`${target.name}'s next attack has Disadvantage.`);
+    case "slow":
+      await give("Slowed", {}, [{ key: "system.attributes.movement.walk", type: "add", value: "-10", phase: "initial" }]);
+      return note(`${target.name}'s Speed is reduced by 10 feet.`);
+    case "topple": {
+      const dc = 8 + mod + Number(attacker.system.attributes?.prof ?? 0);
+      const { success } = await Workflow.rollSaveOutcome(target, { ability: "con", dc }, label);
+      if ( !success ) await Creatures.giveEffect({ name: "Prone", img: CONFIG.statusEffects.find(s => s.id === "prone")?.img, statuses: ["prone"], origin }, [target]);
+      return note(`${target.name} ${success ? "keeps its footing" : "is knocked <strong>Prone</strong>"} (Con save DC ${dc}).`);
+    }
+  }
+  if ( !hit && (mastery === "graze") && (mod > 0) ) {
+    const type = activity.damage?.parts?.[0]?.types?.first?.() ?? [...(activity.damage?.parts?.[0]?.types ?? [])][0] ?? "";
+    await applyDamageAs(target, [{ value: mod, type, properties: [] }], activity, { pipeline: true });
+    return note(`the miss still deals ${mod} damage to ${target.name}.`);
+  }
+}
+
+/** Delete an effect here, or through the lead GM if this user can't. */
+function deleteEffectAs(effect) {
+  if ( effect.isOwner ) return effect.delete();
+  game.socket.emit(SOCKET, { type: "deleteEffect", uuid: effect.uuid });
+}
+
 /** An effect with "applied" triggers was just put on a creature (in the window that created it). */
 Hooks.on("preCreateActiveEffect", effect => {
   const triggers = effect.getFlag(MODULE_ID, "triggers");
@@ -470,7 +585,13 @@ for ( const hook of ["dnd5e.rollAbilityCheck", "dnd5e.rollSkill", "dnd5e.rollToo
     const roll = rolls?.[0];
     fire("check", subject, { rolls, data: { ability, skill, tool, total: roll?.total } });
     const dc = roll?.options?.target;
-    if ( !setting("reactions") || !roll || !Number.isFinite(dc) || (roll.total < dc) ) return;
+    if ( !setting("reactions") || !roll || !Number.isFinite(dc) ) return;
+    if ( roll.total < dc ) {
+      const proficient = skill ? ((subject.system.skills?.[skill]?.value ?? 0) >= 1) : tool ? ((subject.system.tools?.[tool]?.value ?? 0) >= 1) : false;
+      const what = skill ? `${CONFIG.DND5E.skills[skill]?.label ?? skill} check` : tool ? "tool check" : "check";
+      Reactions.checkFailed({ actor: subject, roll, dc, label: `${/^[aeiou]/i.test(what) ? "an" : "a"} ${what}`, data: { skill, tool, proficient } });
+      return;
+    }
     const what = skill ? `${CONFIG.DND5E.skills[skill]?.label ?? skill} check`
       : tool ? "tool check" : `${CONFIG.DND5E.abilities[ability]?.label ?? ""} check`;
     Reactions.saveSucceeded({ actor: subject, roll, dc, kind: "check", label: `${/^[aeiou]/i.test(what) ? "an" : "a"} ${what}` });
@@ -789,7 +910,7 @@ async function beforeDamage(actor, damages, options) {
     });
   }
   if ( setting("reactions") && Array.isArray(damages) && !options[MODULE_ID]?.reacted ) {
-    damages = await Reactions.damageIncoming(actor, damages);
+    damages = await Reactions.damageIncoming(actor, damages, { fromAttack: activity?.type === "attack" });
   }
   return { damages, options: { ...options, [MODULE_ID]: { ...(options[MODULE_ID] ?? {}), reacted: true } } };
 }
@@ -1072,16 +1193,31 @@ async function fire(event, bearer, context) {
  * @param {Function} [options.onRemove]  What "remove" does (default: delete the effect).
  * @returns {Promise<boolean>} whether the owner was removed
  */
+/** Yes/no on a creature's controller's client. */
+async function confirmFor(actor, title, question) {
+  const user = Creatures.controllerOf(actor);
+  if ( !user ) return false;
+  const payload = { title: `${title} — ${actor.name}`, prompt: `<p>${question}</p>`,
+    options: [{ value: "yes", label: "Yes" }, { value: "no", label: "No" }] };
+  const answer = user.id === game.user.id ? await Creatures.HANDLERS.pickOption(payload) : await Creatures.runAs(user, "pickOption", payload);
+  return answer === "yes";
+}
+
 async function runTriggerList(triggers, effect, bearer, event, context={}, { key, onRemove }={}) {
   key ??= effect.uuid;
   for ( const trigger of triggers ) {
     const events = Array.isArray(trigger.event) ? trigger.event : [trigger.event];
     if ( !events.includes(event) ) continue;
     if ( !passesFilter(trigger, event, context, bearer, effect) ) continue;
+    // needsUses: the effect's item must have a use left (Uncanny Metabolism, once per Long Rest).
+    const item = effect.parent?.documentName === "Item" ? effect.parent : null;
+    if ( trigger.needsUses && item?.system.uses?.max && !(item.system.uses.value > 0) ) continue;
     if ( inFlight.has(key) ) continue;
     inFlight.add(key);
     let removed = false;
     try {
+      // ask: the bearer's controller confirms first ("Use Uncanny Metabolism?").
+      if ( trigger.ask && !(await confirmFor(bearer, trigger.label ?? effect.name, trigger.ask)) ) continue;
       const result = await runAction(trigger, effect, bearer, event, context) ?? {};
       if ( resolveThen(trigger.then, result) === "remove" ) {
         await (onRemove ? onRemove() : effect.delete());
@@ -1285,6 +1421,14 @@ function damageOptions(activityUuid, messageId, pipeline=false) {
 
 Hooks.once("ready", () => {
   game.socket.on(SOCKET, async data => {
+    if ( (data?.type === "updateItem") && Creatures.isLeadGM() ) {
+      await fromUuidSync(data.uuid)?.update(data.update);
+      return;
+    }
+    if ( (data?.type === "deleteEffect") && Creatures.isLeadGM() ) {
+      await fromUuidSync(data.uuid)?.delete();
+      return;
+    }
     if ( (data?.type === "applyDamage") && Creatures.isLeadGM() ) {
       const actor = fromUuidSync(data.actorUuid);
       if ( actor ) await actor.applyDamage(data.damages.map(d => ({ ...d, properties: new Set(d.properties) })),
@@ -1408,7 +1552,7 @@ async function dealDamage(effect, bearer, spec, { flavor, half=false }={}) {
   });
   if ( setting("triggerDamage") !== "auto" ) return;
   const value = Math.max(0, half ? Math.floor(roll.total / 2) : roll.total);
-  const sign = type in CONFIG.DND5E.healingTypes ? -1 : 1;
+  const sign = 1;   // dnd5e treats healing types as healing itself (positive values)
   await applyDamageAs(bearer, [{ value: value * sign, type, properties: [] }], null, { pipeline: true });
 }
 
@@ -1680,7 +1824,7 @@ const ACTIONS = {
     } });
     if ( !rolls?.length || (setting("triggerDamage") !== "auto") ) return {};
     const damages = dnd5e.dice.aggregateDamageRolls(rolls, { respectProperties: true }).map(roll => ({
-      value: Math.floor(Math.max(0, roll.total) * multiplier) * ((roll.options.type in CONFIG.DND5E.healingTypes) ? -1 : 1),
+      value: Math.floor(Math.max(0, roll.total) * multiplier),
       type: roll.options.type, properties: Array.from(roll.options.properties ?? [])
     }));
     for ( const actor of recipients ) await applyDamageAs(actor, damages, activity);
@@ -1780,8 +1924,13 @@ const ACTIONS = {
     const ref = trigger.action.activity;
     // An activity's own area passes the (upcast) activity and its usage card; otherwise find it on the item.
     const activity = (!ref && context.fromArea && context.activity) ? context.activity
-      : (item?.system.activities?.get?.(ref) ?? item?.system.activities?.getName?.(ref) ?? item?.system.activities?.find?.(a => a.type === "save"));
+      : (item?.system.activities?.get?.(ref) ?? item?.system.activities?.getName?.(ref) ?? item?.system.activities?.find?.(a => a.type === "save") ?? item?.system.activities?.contents?.[0]);
     if ( !activity ) throw new Error(`${effect.name}: no activity "${ref ?? "save"}" on ${item?.name ?? "its item"}`);
+    // consume: an ordinary use by the bearer (its costs, rolls and self effects as usual) — Uncanny Metabolism.
+    if ( trigger.action.consume ) {
+      await activity.use({}, { configure: false }, {});
+      return {};
+    }
     const recipients = trigger.action.to
       ? await Creatures.selectCreatures(bearer, trigger.action.to, selectorContext(effect, bearer, context, trigger))
       : (context.targets?.length ? context.targets : (context.subject ? [context.subject] : []));
@@ -1825,6 +1974,34 @@ const ACTIONS = {
   },
 
   /**
+   * Creatures (default: the event's targets) spend one of their Hit Point Dice (the largest left) and regain that many
+   * Hit Points — the die only, no Constitution (Blood and Bone). The healer's healingExtraDie counts.
+   */
+  async spendHitDie(trigger, effect, bearer, event, context={}) {
+    const recipients = trigger.action.to
+      ? await Creatures.selectCreatures(bearer, trigger.action.to, selectorContext(effect, bearer, context, trigger))
+      : (context.targets ?? []);
+    const healer = effect.getSourceActor?.() ?? bearer;
+    for ( const actor of recipients ) {
+      const cls = Object.values(actor.classes ?? {}).filter(c => (c.system.hd?.value ?? 0) > 0)
+        .sort((a, b) => Number(b.system.hd.denomination.slice(1)) - Number(a.system.hd.denomination.slice(1)))[0];
+      if ( !cls ) {
+        await announce(trigger, effect, bearer, event, `${actor.name} has no Hit Point Dice left.`);
+        continue;
+      }
+      const die = cls.system.hd.denomination;
+      const formula = Workflow.healingDieFormula(healer, `1${die}`);
+      const roll = await new Roll(formula).evaluate();
+      await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor: healer }),
+        flavor: `${trigger.label ?? effect.name}: ${actor.name} spends a Hit Point Die (${die})` });
+      if ( cls.isOwner ) await cls.update({ "system.hd.spent": (cls.system.hd.spent ?? 0) + 1 });
+      else game.socket.emit(SOCKET, { type: "updateItem", uuid: cls.uuid, update: { "system.hd.spent": (cls.system.hd.spent ?? 0) + 1 } });
+      await applyDamageAs(actor, [{ value: roll.total, type: "healing", properties: [] }], null, { pipeline: true });
+    }
+    return {};
+  },
+
+  /**
    * Announce only. Pair with `then: "remove"` for effects that end when something happens.
    */
   async note(trigger, effect, bearer, event) {
@@ -1852,7 +2029,7 @@ const ACTIONS = {
     const rolls = await activity.rollDamage({}, { configure: false }, { data: { system: { targets: bearerTargets(bearer) } } });
     if ( !rolls?.length || !auto ) return {};
     const damages = dnd5e.dice.aggregateDamageRolls(rolls, { respectProperties: true }).map(roll => ({
-      value: Math.max(0, roll.total) * ((roll.options.type in CONFIG.DND5E.healingTypes) ? -1 : 1),
+      value: Math.max(0, roll.total),
       type: roll.options.type,
       properties: new Set(roll.options.properties ?? [])
     }));
@@ -1879,7 +2056,8 @@ const ACTIONS = {
     let outcome = {};
     for ( const actor of recipients ) {
       const mods = resolveSaveModifiers(a.modifiers, effect, actor, event, context);
-      const spec = { ability: a.ability, dc: dc + mods.dc, advantage: mods.advantage, disadvantage: mods.disadvantage, bonus: mods.bonus };
+      const spec = { ability: a.ability, dc: dc + mods.dc, disadvantage: mods.disadvantage, bonus: mods.bonus,
+        advantage: mods.advantage || Workflow.hasSaveAdvantage(actor, a.failStatus ? [a.failStatus] : []) };
       const { total, success } = await Workflow.rollSaveOutcome(actor, spec, label);
       if ( total === null ) continue;
       const ends = !a.to && (resolveThen(trigger.then, { success }) === "remove");
@@ -1902,6 +2080,12 @@ const ACTIONS = {
 async function resolveDC(dc, effect) {
   if ( dc === "source" ) return (await originActivity(effect))?.save?.dc?.value;
   if ( dc === "sourceSpell" ) return effect.getSourceActor?.()?.system.attributes?.spell?.dc;
+  // A formula on the source's data, e.g. "8 + @prof + @abilities.cha.mod".
+  if ( (typeof dc === "string") && /[@+\-]/.test(dc) ) {
+    const data = (effect.getSourceActor?.() ?? effect.parent?.actor)?.getRollData?.() ?? {};
+    try { return Math.floor(new Roll(CONFIG.Dice.BasicRoll.replaceFormulaData(dc, data, { missing: 0 })).evaluateSync({ strict: false }).total); }
+    catch(err) { return NaN; }
+  }
   return dc;
 }
 
@@ -1911,7 +2095,8 @@ async function giveStatus(actor, statusId, until, effect, label) {
   if ( !status ) return;
   await Creatures.giveEffect({
     name: `${game.i18n.localize(status.name)} (${label})`, img: status.img, statuses: [statusId], origin: effect.origin ?? null,
-    duration: { value: 1, units: "rounds", expiry: until === "turnEnd" ? "turnEnd" : "turnStart" }
+    // until: the start or end of its next turn, or of the source's (sourceStart / sourceEnd).
+    duration: { value: 1, units: "rounds", expiry: ["turnEnd", "sourceStart", "sourceEnd"].includes(until) ? until : "turnStart" }
   }, [actor]);
 }
 
@@ -2060,6 +2245,16 @@ Hooks.once("init", () => {
     hint: "When an NPC attacks with targets selected.",
     scope: "world", config: true, type: String, default: "full", choices: attackModes
   });
+  game.settings.register(MODULE_ID, "wfMastery", {
+    name: "Weapon masteries — applied automatically",
+    hint: "Vex, Sap, Slow, Topple and Graze take effect on their own when a creature attacks with a weapon whose mastery it has (dnd5e's weapon mastery choices).",
+    scope: "world", config: true, type: Boolean, default: true
+  });
+  game.settings.register(MODULE_ID, "wfHeal", {
+    name: "Healing — applied automatically",
+    hint: "When a creature uses a healing feature or spell (Cure Wounds, Hand of Healing, Second Wind…), roll it and apply it to its targets, or to the user if no one is targeted.",
+    scope: "world", config: true, type: Boolean, default: true
+  });
   game.settings.register(MODULE_ID, "wfTargetPC", {
     name: "Player characters' saves",
     hint: "When a player character has to save against something automated: its player gets a popup (Roll / Advantage "
@@ -2073,6 +2268,7 @@ Hooks.once("init", () => {
     hint: "After an automated save spell resolves, remove its area (Fireball's sphere). Areas of spells with a duration stay.",
     scope: "world", config: true, type: Boolean, default: true
   });
+  registerSettingsMenu();
 });
 
 Hooks.once("ready", () => {

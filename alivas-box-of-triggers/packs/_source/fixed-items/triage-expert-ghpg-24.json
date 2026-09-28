@@ -1,0 +1,165 @@
+{
+  "_id": "pePB8ZRPXdVYFTzR",
+  "name": "Triage Expert",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "GH:PG'24",
+      "page": "115",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Triage Expert (GH:PG'24 p. 115). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "feat",
+      "subtype": "origin"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "bloodAndBone0000": {
+        "_id": "bloodAndBone0000",
+        "type": "utility",
+        "name": "Blood and Bone",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "creature",
+            "count": "1",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "pay": {
+              "cost": 1,
+              "from": [
+                "healers-kit"
+              ]
+            },
+            "onUse": [
+              {
+                "type": "spendHitDie",
+                "to": {
+                  "who": "targets"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "identifier": "triage-expert",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "systems/dnd5e/icons/svg/items/feature.svg",
+  "flags": {
+    "plutonium": {
+      "page": "feats.html",
+      "source": "GrimHollowPG24",
+      "hash": "triage%20expert_grimhollowpg24"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Triage Expert",
+          "type": "feat",
+          "book": "GH:PG'24"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "triageBedside000",
+      "name": "Bedside Manner",
+      "img": "systems/dnd5e/icons/svg/items/feature.svg",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "healingExtraDie": true
+        }
+      },
+      "_key": "!items.effects!pePB8ZRPXdVYFTzR.triageBedside000"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404207368,
+    "modifiedTime": 1790404207368,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!pePB8ZRPXdVYFTzR"
+}

@@ -1,0 +1,342 @@
+{
+  "_id": "OmK8GjlnL4xQ4zR2",
+  "name": "Patient Defense",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "101",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Patient Defense (PHB 2024 p. 101). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Monk 2",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Patient Defense (Focus Point)",
+        "type": "utility",
+        "img": "systems/dnd5e/icons/svg/trait-damage-resistances.svg",
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "value": "1",
+              "scaling": {},
+              "target": "wrH2HyyEh61HXqqr"
+            }
+          ],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "target": {
+          "affects": {
+            "type": "self",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "patientDefensexx",
+            "level": {},
+            "uuid": null
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "sort": 0,
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "behaviors": []
+      },
+      "dnd5eactivity001": {
+        "name": "Patient Defense",
+        "type": "utility",
+        "img": "systems/dnd5e/icons/svg/trait-damage-resistances.svg",
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "target": {
+          "affects": {
+            "type": "self",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "patientDefense1x",
+            "level": {},
+            "uuid": null
+          }
+        ],
+        "_id": "dnd5eactivity001",
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "patient-defense",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/defensive/illusion-evasion-echo-purple.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "patient%20defense_monk_xphb_2_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "patient-defense",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "patientDefensexx",
+      "name": "Patient Defense (Focus Point)",
+      "img": "icons/magic/defensive/illusion-evasion-echo-purple.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.abilities.dex.save.roll.mode",
+            "type": "add",
+            "value": "1",
+            "phase": "initial"
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": "Actor.aqCKxHGVf8aXqUC5.Item.OmK8GjlnL4xQ4zR2",
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [
+        "dodging"
+      ],
+      "disabled": false,
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "origin": null,
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "patient-defense-focus-point"
+        },
+        "core": {},
+        "alivas-engine-of-triggers": {
+          "attackedWith": {
+            "mode": "disadvantage"
+          },
+          "disengaged": true
+        }
+      },
+      "type": "base",
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.367",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790404207347,
+        "modifiedTime": 1790404207347,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!OmK8GjlnL4xQ4zR2.patientDefensexx"
+    },
+    {
+      "_id": "patientDefense1x",
+      "name": "Disengaged",
+      "img": "icons/magic/defensive/illusion-evasion-echo-purple.webp",
+      "description": "Your movement doesn't provoke Opportunity Attacks for the rest of the current turn.",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": "Actor.aqCKxHGVf8aXqUC5.Item.OmK8GjlnL4xQ4zR2",
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "origin": null,
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "disengaged"
+        },
+        "core": {}
+      },
+      "type": "base",
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.367",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790404207347,
+        "modifiedTime": 1790404207347,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!OmK8GjlnL4xQ4zR2.patientDefense1x"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404207346,
+    "modifiedTime": 1790404207346,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!OmK8GjlnL4xQ4zR2"
+}

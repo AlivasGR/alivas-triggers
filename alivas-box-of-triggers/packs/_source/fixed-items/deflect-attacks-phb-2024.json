@@ -1,0 +1,298 @@
+{
+  "_id": "ltFNRG7IKFpEWS5G",
+  "name": "Deflect Attacks",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "102",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Deflect Attacks (PHB 2024 p. 102). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Monk 3",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Reduce",
+        "type": "heal",
+        "activation": {
+          "type": "reaction",
+          "condition": "",
+          "override": false
+        },
+        "target": {
+          "affects": {
+            "type": "self",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "healing": {
+          "number": 1,
+          "denomination": 10,
+          "types": [
+            "healing"
+          ],
+          "scaling": {
+            "number": 1
+          },
+          "bonus": "@abilities.dex.mod + @classes.monk.levels",
+          "custom": {
+            "enabled": false
+          },
+          "modifiers": []
+        },
+        "_id": "dnd5eactivity000",
+        "img": null,
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "effects": [],
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      },
+      "dnd5eactivity001": {
+        "name": "Redirect",
+        "type": "save",
+        "activation": {
+          "type": "",
+          "condition": "",
+          "override": false
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "value": "1",
+              "scaling": {},
+              "target": "wrH2HyyEh61HXqqr"
+            }
+          ],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "special": "Isn't behind Total Cover",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "range": {
+          "special": "5 feet for melee attacks or 60 feet for ranged attacks",
+          "units": "self",
+          "override": false
+        },
+        "damage": {
+          "parts": [
+            {
+              "custom": {
+                "enabled": true,
+                "formula": "2@scale.monk.die + @abilities.dex.mod"
+              },
+              "types": [
+                "bludgeoning",
+                "piercing",
+                "slashing"
+              ],
+              "scaling": {
+                "number": 1
+              },
+              "modifiers": []
+            }
+          ],
+          "onSave": "none"
+        },
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "wis"
+          },
+          "visible": true
+        },
+        "_id": "dnd5eactivity001",
+        "img": null,
+        "sort": 0,
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "effects": [],
+        "flags": {},
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "deflect-attacks",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "modules/plutonium/media/icon/class/phb-monk.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "deflect%20attacks_monk_xphb_3_xphb"
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "damageIncoming",
+          "who": "self",
+          "label": "Deflect Attacks",
+          "activity": "dnd5eactivity000",
+          "filter": [
+            {
+              "o": "OR",
+              "v": [
+                {
+                  "k": "types",
+                  "o": "has",
+                  "v": "bludgeoning"
+                },
+                {
+                  "k": "types",
+                  "o": "has",
+                  "v": "piercing"
+                },
+                {
+                  "k": "types",
+                  "o": "has",
+                  "v": "slashing"
+                }
+              ]
+            }
+          ],
+          "outcome": {
+            "type": "damage",
+            "mode": "reduce",
+            "amount": "1d10 + @abilities.dex.mod + @classes.monk.levels"
+          },
+          "after": {
+            "type": "useActivity",
+            "activity": "dnd5eactivity001",
+            "when": "zeroed",
+            "to": {
+              "who": "choose",
+              "side": "enemy",
+              "range": 60,
+              "sight": true
+            }
+          }
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "deflect-attacks",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "feat",
+          "identifier": "deflect-attacks",
+          "compendiumSource": "Compendium.dnd5e.classes24.Item.phbmnkDeflectAtt"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404207351,
+    "modifiedTime": 1790404207351,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!ltFNRG7IKFpEWS5G"
+}

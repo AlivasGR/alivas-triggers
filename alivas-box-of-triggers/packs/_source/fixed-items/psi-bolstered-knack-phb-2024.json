@@ -1,0 +1,180 @@
+{
+  "_id": "KZG4K6p2DDjJv431",
+  "name": "Psi-Bolstered Knack",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "135",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Psi-Bolstered Knack (PHB 2024 p. 135). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Rogue 3 (Soulknife)",
+    "uses": {
+      "max": "@scale.soulknife.die.number",
+      "recovery": [
+        {
+          "period": "lr",
+          "type": "recoverAll"
+        },
+        {
+          "period": "sr",
+          "type": "formula",
+          "formula": "1"
+        }
+      ],
+      "spent": 0
+    },
+    "type": {
+      "value": "class",
+      "subtype": "psionicPower"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Psi-Bolstered Knack",
+        "type": "utility",
+        "activation": {
+          "type": "",
+          "condition": "",
+          "override": false
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "value": "1",
+              "scaling": {},
+              "target": "2dRmPlDL6bYIUwPW"
+            }
+          ],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "roll": {
+          "name": "Bonus",
+          "formula": "@scale.soulknife.die.die",
+          "prompt": false,
+          "visible": false
+        },
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "effects": [],
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "psi-bolstered-knack",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "https://cdn.5e.tools/2024/img/classes/XPHB/Soulknife%20Rogue.webp",
+  "flags": {
+    "plutonium": {
+      "page": "subclassFeature",
+      "source": "XPHB",
+      "hash": "psi-bolstered%20knack_rogue_xphb_soulknife_xphb_3_xphb"
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "d20Failed",
+          "who": "self",
+          "label": "Psi-Bolstered Knack",
+          "activity": "dnd5eactivity000",
+          "reaction": false,
+          "filter": [
+            {
+              "k": "proficient",
+              "v": true
+            }
+          ],
+          "outcome": {
+            "type": "modifyRoll",
+            "bonus": "1d@scale.soulknife.die.faces"
+          },
+          "refundUnlessSuccess": {
+            "item": "psionic-energy-die",
+            "uses": 1
+          }
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "psi-bolstered-knack",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1788007101800,
+    "modifiedTime": 1788007101800,
+    "lastModifiedBy": "RhhCKSf9MaRpV4se",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!KZG4K6p2DDjJv431"
+}

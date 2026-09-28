@@ -1,0 +1,156 @@
+{
+  "_id": "fnNDazN2RYmeDfhd",
+  "name": "Uncanny Dodge",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "129",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Uncanny Dodge (PHB 2024 p. 129). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Rogue 5",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Uncanny Dodge",
+        "type": "utility",
+        "activation": {
+          "type": "reaction",
+          "condition": "",
+          "override": false
+        },
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "effects": [],
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "uncanny-dodge",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/movement/feet-winged-boots-brown.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "uncanny%20dodge_rogue_xphb_5_xphb"
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "damageIncoming",
+          "who": "self",
+          "label": "Uncanny Dodge",
+          "activity": "dnd5eactivity000",
+          "filter": [
+            {
+              "k": "fromAttack",
+              "v": true
+            }
+          ],
+          "outcome": {
+            "type": "damage",
+            "mode": "half"
+          }
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "uncanny-dodge",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.365",
+    "systemId": "dnd5e",
+    "createdTime": 1788007101802,
+    "modifiedTime": 1788007101802,
+    "lastModifiedBy": "RhhCKSf9MaRpV4se",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!fnNDazN2RYmeDfhd"
+}

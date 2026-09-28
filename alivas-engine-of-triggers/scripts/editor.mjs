@@ -110,6 +110,7 @@ const TRIGGER_ACTIONS = [
   ["save", "fa-dice-d20", "Saving throw", "The bearer rolls a save"],
   ["damage", "fa-burst", "Damage", "Roll damage against the bearer"],
   ["useActivity", "fa-hand-sparkles", "Use its own ability", "Use an activity of this item on the creature (an aura's save, a triggered feature)"],
+  ["spendHitDie", "fa-dice-d6", "Spend a Hit Die", "Creatures spend a Hit Point Die and heal that much (Blood and Bone)"],
   ["drainMaxHp", "fa-heart-crack", "Reduce max HP", "Lower Hit Point maximum by the damage dealt, until a Long Rest (Life Drain)"],
   ["repeatActivity", "fa-share", "Attack a new target", "Make the same attack against another creature (Chromatic Orb's leap)"],
   ["activityDamage", "fa-burst", "Its own damage again", "Roll the triggering attack or spell's damage × a multiplier (Potent Cantrip)"],
@@ -141,6 +142,7 @@ const DEFAULT_ACTIONS = {
   activityDamage: { type: "activityDamage", multiplier: 0.5 },
   useActivity: { type: "useActivity", activity: "" },
   drainMaxHp: { type: "drainMaxHp", amount: "@amount" },
+  spendHitDie: { type: "spendHitDie", to: { who: "targets" } },
   repeatActivity: { type: "repeatActivity", max: "1", to: { who: "choose", side: "enemy", range: 30, from: "subject", notSubject: true } },
   storeSpell: { type: "storeSpell", schools: ["specialist"], attack: 9, dc: 17 },
   giveEffect: { type: "giveEffect", effect: "", to: { who: "all", range: 10, side: "ally" } },
@@ -197,7 +199,8 @@ const WINDOWS = [
   ["damageIncoming", "fa-heart-crack", "About to take damage", "self"],
   ["spellCast", "fa-hat-wizard", "Casts a spell", "other"],
   ["d20Rolling", "fa-scale-balanced", "Rolls with adv./disadv.", "any"],
-  ["hitting", "fa-hand-fist", "You hit with an attack", "self"]
+  ["hitting", "fa-hand-fist", "You hit with an attack", "self"],
+  ["d20Failed", "fa-dice-d20", "Fails a check (known DC)", "any"]
 ];
 const WINDOW_VERB = {
   hitBy: ["are hit by an attack", "is hit by an attack"],
@@ -205,19 +208,20 @@ const WINDOW_VERB = {
   damageIncoming: ["are about to take damage", "is about to take damage"],
   spellCast: ["cast a spell", "casts a spell"],
   d20Rolling: ["are about to roll a d20 with advantage or disadvantage", "is about to roll a d20 with advantage or disadvantage"],
-  hitting: ["hit with an attack", "hits with an attack"]
+  hitting: ["hit with an attack", "hits with an attack"],
+  d20Failed: ["fail an ability check", "fails an ability check"]
 };
 const WHO = [["self", "You"], ["other", "Another creature"], ["any", "Any creature"]];
 
 const OUTCOMES = {
   acBonus: ["fa-shield", "Raise AC against it", ["hitBy"]],
-  reroll: ["fa-rotate-left", "Force a reroll", ["hitBy", "d20Succeeded"]],
-  modifyRoll: ["fa-plus-minus", "Change the roll", ["hitBy", "d20Succeeded"]],
+  reroll: ["fa-rotate-left", "Force a reroll", ["hitBy", "d20Succeeded", "d20Failed"]],
+  modifyRoll: ["fa-plus-minus", "Change the roll", ["hitBy", "d20Succeeded", "d20Failed"]],
   damage: ["fa-shield-heart", "Reduce the damage", ["damageIncoming"]],
   counter: ["fa-ban", "Counter the spell", ["spellCast"]],
   straight: ["fa-scale-balanced", "Cancel adv./disadv.", ["d20Rolling"]],
   damageNext: ["fa-bolt", "Change its damage", ["hitBy", "hitting"]],
-  none: ["fa-hand-pointer", "Just use the item", ["hitBy", "d20Succeeded", "damageIncoming", "spellCast", "d20Rolling", "hitting"]]
+  none: ["fa-hand-pointer", "Just use the item", ["hitBy", "d20Succeeded", "damageIncoming", "spellCast", "d20Rolling", "hitting", "d20Failed"]]
 };
 const DEFAULT_OUTCOMES = {
   acBonus: { type: "acBonus", value: 5 },
@@ -343,6 +347,12 @@ const REACTION_FIELDS = [
   { id: "hitKind", label: "Your attack kind is", kind: "select", key: "classification", on: ["hitting"],
     entries: () => [["weapon", "Weapon attack"], ["spell", "Spell attack"], ["unarmed", "Unarmed strike"]] },
   { id: "hitCrit", label: "It's a critical hit", kind: "bool", key: "critical", on: ["hitting"] },
+  { id: "hitAdvantage", label: "It had Advantage", kind: "bool", key: "advantage", on: ["hitting"] },
+  { id: "reactorStatus", label: "You have a condition", kind: "status", key: s => `reactor.statuses.${s}`, match: /^reactor\.statuses\.([\w-]+)$/ },
+  { id: "hitDisadvantage", label: "It had Disadvantage", kind: "bool", key: "disadvantage", on: ["hitting"] },
+  { id: "hitAllyNear", label: "An ally is within 5 ft of the target", kind: "bool", key: "allyNearTarget", on: ["hitting"] },
+  { id: "dmgFromAttack", label: "It comes from an attack", kind: "bool", key: "fromAttack", on: ["damageIncoming"] },
+  { id: "checkProficient", label: "The check uses a proficient skill or tool", kind: "bool", key: "proficient", on: ["d20Failed"] },
   { id: "targetType", label: "The target's creature type", kind: "select", key: "targetType", on: ["hitting"], entries: creatureTypeEntries },
   { id: "spellLevel", label: "The spell's level", kind: "number", key: "level", on: ["spellCast"] },
   { id: "hasComponents", label: "The spell has components (not Subtle)", kind: "bool", key: "hasComponents", on: ["spellCast"] },
@@ -466,7 +476,7 @@ function rowsToFilter(rows, catalogue) {
 }
 
 function describeRow(row, catalogue) {
-  if ( row.field === "raw" ) return "a custom condition";
+  if ( row.field === "raw" ) return describeRawFilter(row.raw, catalogue);
   const field = catalogue.find(f => f.id === row.field);
   const opLabel = (OPS[field?.kind ?? "custom"].find(([id]) => id === row.op) ?? [, row.op])[1];
   if ( !field ) return `“${row.key}” ${opLabel} ${row.value}`;
@@ -476,7 +486,8 @@ function describeRow(row, catalogue) {
   if ( unit ) lower = lower.replace(/ \((ft|%)\)$/, "");
   const shown = unit ? `${valueLabel}${unit === "ft" ? " ft" : "%"}` : valueLabel;
   switch ( field.kind ) {
-    case "status": return `${lower.replace(/ has a condition$/, "")} ${row.op === "not" ? "doesn't have" : "has"} ${valueLabel}`;
+    case "status": if ( /^you have/.test(lower) ) return `you ${row.op === "not" ? "don't have" : "have"} ${valueLabel}`;
+      return `${lower.replace(/ has a condition$/, "")} ${row.op === "not" ? "doesn't have" : "has"} ${valueLabel}`;
     case "bool": case "yes1": {
       if ( row.value === "true" ) return lower;
       if ( / is /.test(lower) ) return lower.replace(/ is /, " isn't ");
@@ -489,6 +500,24 @@ function describeRow(row, catalogue) {
       return `${base} ${opLabel} ${shown}`;
     }
   }
+}
+
+/** A filter entry the rows can't show directly (OR / AND / NOT groups) in words, as far as possible. */
+function describeRawFilter(entry, catalogue) {
+  if ( Array.isArray(entry) ) return entry.map(e => describeRawFilter(e, catalogue)).join(" and ");
+  if ( (entry?.o === "OR") || (entry?.o === "AND") ) {
+    const parts = (Array.isArray(entry.v) ? entry.v : [entry.v]).map(e => describeRawFilter(e, catalogue));
+    return `(${parts.join(entry.o === "OR" ? " or " : " and ")})`;
+  }
+  if ( entry?.o === "NOT" ) return `not ${describeRawFilter(entry.v, catalogue)}`;
+  if ( (entry?.k === "weaponProperties") && (entry.o === "has") ) {
+    return `the weapon is ${(CONFIG.DND5E.itemProperties?.[entry.v]?.label ?? entry.v).toLowerCase()}`;
+  }
+  if ( entry && ("k" in entry) ) {
+    const row = filterToRow(entry, catalogue);
+    if ( row.field !== "raw" ) return describeRow(row, catalogue);
+  }
+  return "a custom condition";
 }
 
 /* -------------------------------------------- */
@@ -578,7 +607,7 @@ function validateTrigger(model) {
       if ( !formulaOk(a.budget) ) errors.push("Slot recovery needs a budget, e.g. ceil(@classes.wizard.levels / 2).");
       if ( (a.maxSlots !== undefined) && (a.maxSlots !== null) && (a.maxSlots !== "") && !(Number(a.maxSlots) >= 1) ) errors.push("Slot recovery: the slot count must be 1 or more, or blank.");
       break;
-    case "useActivity": break;
+    case "useActivity": case "spendHitDie": break;
     case "drainMaxHp":
       if ( !formulaOk(a.amount) ) errors.push("Reduce max HP: an amount, e.g. @amount (the damage dealt).");
       break;
@@ -646,7 +675,7 @@ function describeTriggerModel(model) {
         ? "with disadvantage" : m.kind === "bonus" ? `${String(m.value).startsWith("-") ? "" : "+"}${m.value} to the roll`
           : `DC ${String(m.value).startsWith("-") ? "" : "+"}${m.value}`);
       what = `${a.to ? `${describeSelector(a.to, { you: "the bearer" })}: ` : ""}${abilityAbbr(a.ability)} save against ${dc}${mods.length ? ` (${mods.join(", ")})` : ""}`;
-      if ( a.failStatus ) what += `; on a failure ${statusLabel(a.failStatus)} until the ${a.failUntil === "turnEnd" ? "end" : "start"} of its next turn`;
+      if ( a.failStatus ) what += `; on a failure ${statusLabel(a.failStatus)} until the ${/End$/.test(a.failUntil ?? "") ? "end" : "start"} of ${/^source/.test(a.failUntil ?? "") ? "the source's" : "its"} next turn`;
       if ( a.damage?.formula ) what += `; on a failure ${a.damage.formula} ${damageLabel(a.damage.type).toLowerCase()} damage`
         + (a.damage.onSuccess === "half" ? " (half on a success)" : "");
       break;
@@ -660,7 +689,9 @@ function describeTriggerModel(model) {
     case "recoverSlots": what = Number(a.maxSlots) === 1
       ? `recover one expended spell slot of level ${Math.min(Number(a.maxLevel ?? 5), Number(a.budget) || 9)} or lower`
       : `recover spell slots worth up to ${a.budget} levels (none above level ${a.maxLevel ?? 5}${a.maxSlots ? `, at most ${a.maxSlots} slots` : ""})`; break;
-    case "useActivity": what = `${a.activity ? `“${a.activity}”` : "its own save"} is used on ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the creatures it concerns"}`; break;
+    case "spendHitDie": what = `${describeSelector(a.to ?? { who: "targets" }, { you: "the bearer" })} spend a Hit Point Die and heal that much`; break;
+    case "useActivity": if ( a.consume ) { what = `the bearer uses ${a.activity ? `“${a.activity}”` : "it"} (paying its cost)`; break; }
+      what = `${a.activity ? `“${a.activity}”` : "its own save"} is used on ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the creatures it concerns"}`; break;
     case "drainMaxHp": what = `${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the damaged creature"} loses ${String(a.amount ?? "@amount") === "@amount" ? "that much" : a.amount} Hit Point maximum${a.until === "never" ? "" : " until a Long Rest"}`; break;
     case "repeatActivity": what = `the same attack against ${describeSelector(a.to ?? {}, { you: "the bearer" })}, up to ${a.max ?? 1} time(s) per use`; break;
     case "storeSpell": what = `store one of the bearer's ${(a.schools ?? []).map(s => s === "specialist" ? "specialty-school" : (CONFIG.DND5E.spellSchools[s]?.label ?? s)).join(" / ") || "any"} spells (a slot is spent)${a.attack !== undefined && a.attack !== "" ? `; cast later at +${a.attack}` : ""}${a.dc !== undefined && a.dc !== "" ? ` / DC ${a.dc}` : ""}`; break;
@@ -717,8 +748,9 @@ function validateReaction(model) {
   if ( (o.type === "counter") && (o.dc !== "source") && !Number.isFinite(Number(o.dc)) ) errors.push("The counter DC must be a number.");
   if ( (o.type === "damageNext") && !formulaOk(o.formula) ) errors.push("The damage change needs a formula, e.g. (@castLevel + 1)d6.");
   if ( model.extra?.after ) {
-    if ( !model.extra.after.effect ) errors.push("Choose which effect to give afterwards.");
-    errors.push(...selectorErrors(model.extra.after.to));
+    const after = model.extra.after;
+    if ( (after.type !== "useActivity") && !after.effect ) errors.push("Choose which effect to give afterwards.");
+    if ( !["hit", "self"].includes(after.to?.who) ) errors.push(...selectorErrors(after.to));
   }
   errors.push(...rowErrors(model.rows));
   return errors;
@@ -755,7 +787,12 @@ function describeReactionModel(model, item) {
   const act = model.activity ? item?.system?.activities?.get(model.activity)?.name ?? model.activity : "";
   const g = model.extra?.after;
   const gName = g ? (item?.effects?.get(g.effect)?.name ?? g.effect) : "";
-  const grant = g ? `; then “${gName}” goes to ${describeSelector(g.to)}` : "";
+  const whom = to => to?.who === "hit" ? "the creature hit" : to?.who === "self" ? "you" : describeSelector(to);
+  let grant = "";
+  if ( g?.type === "useActivity" ) {
+    const src = g.item ? `“${g.item}”` : `“${item?.system?.activities?.get(g.activity)?.name || "another activity"}”`;
+    grant = `; then ${src} is used on ${whom(g.to)}${g.when === "zeroed" ? " if the damage was reduced to 0" : ""}`;
+  } else if ( g ) grant = `; then “${gName}” goes to ${whom(g.to)}`;
   return `When ${subject}${cond}: ${what}${grant}${act ? ` (uses “${act}”)` : ""}.`;
 }
 
@@ -764,7 +801,7 @@ function describeReactionModel(model, item) {
 /* -------------------------------------------- */
 
 /** Actions offered in an activity's "right after it's used" steps. */
-const ACTIVITY_ACTIONS = ["giveEffect", "removeStatus", "inspire", "tempHp", "damage", "recoverSlots", "storeSpell", "toggleLight", "note"];
+const ACTIVITY_ACTIONS = ["giveEffect", "removeStatus", "inspire", "tempHp", "damage", "spendHitDie", "recoverSlots", "storeSpell", "toggleLight", "note"];
 
 /** Activity setting "use it automatically when the only target is…" ↔ targetFilter. */
 const TARGET_PICKS = {
@@ -795,6 +832,9 @@ function readRules(effect) {
     saveDamageOnSave: f.saveDamage?.onSave ?? "", saveDamageLevel: f.saveDamage?.spellLevel ?? "",
     areaRadius: f.area?.radius ?? "", areaColor: f.area?.color ?? "#ff7a1a", stopOnCollision: !!f.stopOnCollision,
     evasion: [...(f.evasion ?? [])], ownRollsOnly: !!f.ownRollsOnly,
+    attackedMode: f.attackedWith?.mode ?? "", attackedOnce: !!f.attackedWith?.once,
+    attacksMode: f.attacksWith?.mode ?? "", attacksOnce: !!f.attacksWith?.once, disengaged: !!f.disengaged,
+    extraAttack: f.extraAttack?.count ?? "", saveAdvStatuses: [...(f.saveAdvantageAgainst ?? [])], healingExtraDie: !!f.healingExtraDie,
     noHealing: !!f.noHealing, onlyIfStatus: onlyIfStatusOf(f.onlyIf), onlyIfRaw: f.onlyIf ?? null,
     dropSave: !!f.dropSave, dropAbility: f.dropSave?.ability ?? "con", dropDc: f.dropSave?.dc ?? "5 + @damage",
     dropRadiant: (f.dropSave?.unlessTypes ?? ["radiant"]).includes("radiant"), dropCrit: f.dropSave?.unlessCritical ?? true
@@ -819,6 +859,12 @@ function rulesUpdate(r) {
   set("area", { radius: Number(r.areaRadius), color: r.areaColor || "#ff7a1a" }, Number(r.areaRadius) > 0);
   set("evasion", r.evasion, r.evasion?.length);
   set("ownRollsOnly", true, r.ownRollsOnly);
+  set("attackedWith", { mode: r.attackedMode, ...(r.attackedOnce ? { once: true } : {}) }, r.attackedMode);
+  set("attacksWith", { mode: r.attacksMode, ...(r.attacksOnce ? { once: true } : {}) }, r.attacksMode);
+  set("disengaged", true, r.disengaged);
+  set("extraAttack", { count: Number(r.extraAttack) }, Number(r.extraAttack) > 0);
+  set("saveAdvantageAgainst", r.saveAdvStatuses, r.saveAdvStatuses?.length);
+  set("healingExtraDie", true, r.healingExtraDie);
   set("stopOnCollision", true, r.stopOnCollision);
   set("noHealing", true, r.noHealing);
   const only = r.onlyIfStatus === "custom" ? r.onlyIfRaw : (r.onlyIfStatus ? [{ k: `statuses.${r.onlyIfStatus}`, o: "gt", v: 0 }] : null);
@@ -912,7 +958,8 @@ export class TriggerEditor extends ApplicationV2 {
       const f = this.activity.flags?.[MODULE_ID] ?? {};
       this.models = (Array.isArray(f.onUse) ? f.onUse : []).map(action => triggerToModel({ event: ["activity"], action }));
       this.settings = { pay: f.pay ? clone(f.pay) : null, chooseEffects: f.chooseEffects ? clone(f.chooseEffects) : null,
-        targetFilter: f.targetFilter ? clone(f.targetFilter) : null, summonEffects: Array.isArray(f.summonEffects) ? [...f.summonEffects] : [] };
+        targetFilter: f.targetFilter ? clone(f.targetFilter) : null, summonEffects: Array.isArray(f.summonEffects) ? [...f.summonEffects] : [],
+        repeat: f.repeat ? clone(f.repeat) : null, mastery: f.mastery ?? "", properties: [...(f.properties ?? [])] };
     } else if ( this.mode === "area" ) {
       const list = this.activity.flags?.[MODULE_ID]?.area?.triggers;
       this.models = (Array.isArray(list) ? list : []).map(x => triggerToModel(x));
@@ -1093,6 +1140,9 @@ export class TriggerEditor extends ApplicationV2 {
       <input type="text" data-path="label" value="${esc(m.label)}" placeholder="${esc(this.document.name)}"></label>`;
     const areaEvents = m.events.some(e => AREA_EVENT_IDS.includes(e));
     const extras = [];
+    extras.push(`<details class="aet-rule-group"${(m.extra.ask || m.extra.needsUses) ? " open" : ""}><summary>More options</summary><div class="aet-fields">
+      <label class="aet-inline"><span>Ask first</span><input type="text" class="aet-wide" data-path="extra.ask" value="${esc(m.extra.ask ?? "")}" placeholder="a yes/no question to the bearer's player (optional)"></label>
+      <label class="aet-check"><input type="checkbox" data-path="extra.needsUses" data-type="boolean"${m.extra.needsUses ? " checked" : ""}><span>Only while its item has a use left</span></label></div></details>`);
     if ( m.events.includes("interval") ) extras.push(`<label class="aet-inline"><span>Every</span>
       <input type="number" class="aet-num" data-special="everyHours" min="0" step="any" value="${esc(m.extra.every ? m.extra.every / 3600 : "")}" placeholder="24"><span class="aet-muted">hours of game time, from when the effect began</span></label>`);
     if ( m.events.some(e => ["areaEnter", "areaTurnStart", "areaTurnEnd"].includes(e)) ) extras.push(`<label class="aet-check">
@@ -1120,9 +1170,9 @@ export class TriggerEditor extends ApplicationV2 {
       <input type="checkbox" data-rule-list="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
     const groups = {
       spells: [r.noReactions, r.noComponents, r.askFirst, r.minLevel, r.saveDamageOnSave, r.ownRollsOnly],
-      damage: [r.ignoreDamageFrom, r.evasion?.length, r.noHealing, r.dropSave, r.onlyIfStatus],
-      area: [Number(r.areaRadius) > 0, r.stopOnCollision],
-      weapons: [r.attackAdd?.length, r.attackOnly?.length]
+      damage: [r.ignoreDamageFrom, r.evasion?.length, r.noHealing, r.dropSave, r.onlyIfStatus, r.saveAdvStatuses?.length, r.healingExtraDie],
+      area: [Number(r.areaRadius) > 0, r.stopOnCollision, r.disengaged],
+      weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0]
     };
     const n = list => list.filter(Boolean).length;
     const count = Object.values(groups).reduce((s, g) => s + n(g), 0);
@@ -1139,6 +1189,9 @@ export class TriggerEditor extends ApplicationV2 {
           <span>of level</span><input type="number" class="aet-num" data-rule="saveDamageLevel" value="${esc(r.saveDamageLevel)}" placeholder="any"><span class="aet-muted">only upgrades “no damage” (Potent Cantrip)</span></label>
         <label class="aet-check"><input type="checkbox" data-rule="ownRollsOnly"${r.ownRollsOnly ? " checked" : ""}><span>Its roll bonuses are the bearer's own — summons matching the bearer's spell attack don't get them</span></label>`)}
       ${group("damage", "Saves, damage and healing", `
+        <div class="aet-subtitle">Advantage on saves against becoming</div><div class="aet-pills">${statusEntries().map(([id, label]) => `<label class="aet-check aet-small-check">
+          <input type="checkbox" data-rule-list="saveAdvStatuses" value="${id}"${(r.saveAdvStatuses ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("")}</div>
+        <label class="aet-check"><input type="checkbox" data-rule="healingExtraDie"${r.healingExtraDie ? " checked" : ""}><span>The bearer's healing rolls one extra die and drops the lowest</span></label>
         <div class="aet-subtitle">Evasion on saves of</div><div class="aet-pills">${abilityBoxes(r.evasion, "evasion")}</div>
         <p class="aet-muted">None on a success, half on a failure, against effects that halve damage — not while Incapacitated.</p>
         <label class="aet-inline"><span>Ignore damage from</span><input type="text" class="aet-wide" data-rule="ignoreDamageFrom" value="${esc(r.ignoreDamageFrom)}" placeholder="item names or identifiers, comma-separated (e.g. Magic Missile)"></label>
@@ -1153,8 +1206,14 @@ export class TriggerEditor extends ApplicationV2 {
         <label class="aet-inline"><span>Area around the bearer</span><input type="number" class="aet-num" data-rule="areaRadius" data-rerender value="${esc(r.areaRadius)}" placeholder="—"><span class="aet-muted">ft, moving with it</span>
           <input type="color" data-rule="areaColor" value="${esc(r.areaColor)}"></label>
         <p class="aet-muted">Use the “Its area…” moments in a trigger: appears, a creature enters / leaves / starts or ends its turn in it.</p>
+        <label class="aet-check"><input type="checkbox" data-rule="disengaged"${r.disengaged ? " checked" : ""}><span>Disengaged: moving doesn't offer Opportunity Attacks</span></label>
         <label class="aet-check"><input type="checkbox" data-rule="stopOnCollision"${r.stopOnCollision ? " checked" : ""}><span>Stops when it moves into a creature (use with “Moves into a creature”); can't move again that turn</span></label>`)}
       ${group("weapons", "Weapon attacks", `
+        <label class="aet-inline"><span>Attacks against the bearer have</span><select data-rule="attackedMode" data-rerender>${options([["", "— (normal)"], ["advantage", "Advantage"], ["disadvantage", "Disadvantage"]], r.attackedMode)}</select>
+          ${r.attackedMode ? `<label class="aet-check aet-small-check"><input type="checkbox" data-rule="attackedOnce"${r.attackedOnce ? " checked" : ""}><span>only the next one (then it ends)</span></label>` : ""}</label>
+        <label class="aet-inline"><span>The bearer's attacks have</span><select data-rule="attacksMode" data-rerender>${options([["", "— (normal)"], ["advantage", "Advantage"], ["disadvantage", "Disadvantage"]], r.attacksMode)}</select>
+          ${r.attacksMode ? `<label class="aet-check aet-small-check"><input type="checkbox" data-rule="attacksOnce"${r.attacksOnce ? " checked" : ""}><span>only the next one (then it ends)</span></label>` : ""}</label>
+        <label class="aet-inline"><span>Extra attacks with the Attack action</span><input type="number" class="aet-num" data-rule="extraAttack" value="${esc(r.extraAttack)}" placeholder="0"><span class="aet-muted">offered after the first (Extra Attack = 1)</span></label>
         <div class="aet-subtitle">May also use</div><div class="aet-pills">${abilityBoxes(r.attackAdd, "attackAdd")}</div>
         <label class="aet-check"><input type="checkbox" data-rule="attackProficient"${r.attackProficient ? " checked" : ""}><span>…only with weapons the bearer is proficient with</span></label>
         <div class="aet-subtitle">Must use one of</div><div class="aet-pills">${abilityBoxes(r.attackOnly, "attackOnly")}</div>
@@ -1183,6 +1242,12 @@ export class TriggerEditor extends ApplicationV2 {
         <button type="button" class="aet-btn aet-edit" data-action="openArea"><i class="fa-solid fa-burst"></i>
           Area triggers (${this.activity.flags?.[MODULE_ID]?.area?.triggers?.length ?? 0})</button>
         <p class="aet-muted">What happens in the ${esc(this.activity.target.template.type)} it places: when it appears, as creatures enter, leave, or start/end their turns in it.</p>` : ""}
+      ${this.activity.type === "attack" ? `<label class="aet-inline"><span>Strikes per use</span><input type="number" class="aet-num" min="1" data-setting="repeat.count" value="${esc(s.repeat?.count ?? 1)}">
+        <span>one may instead be</span><input type="text" class="aet-formula" data-setting="repeat.swap" value="${esc(s.repeat?.swap ?? "")}" placeholder="item identifier (optional)"></label>
+        <p class="aet-muted">After the first strike, each next one asks for its target (Flurry of Blows: 2, swap “hand-of-healing”, free).</p>
+        <label class="aet-inline"><span>Weapon mastery it always has</span><select data-setting="mastery">${options([["", "— (the weapon's, if chosen)"],
+          ...Object.entries(CONFIG.DND5E.weaponMasteries ?? {}).map(([k, v]) => [k, v.label ?? k])], s.mastery)}</select></label>
+        <label class="aet-inline"><span>Counts as having</span><input type="text" class="aet-wide" data-setting="propertiesText" value="${esc((s.properties ?? []).join(", "))}" placeholder="weapon properties, e.g. fin, thr (for Sneak Attack and the like)"></label>` : ""}
       <label class="aet-inline"><span>Use it automatically when the only target is</span><select data-setting="targetPick">${options([["", "— (always ask)"],
         ["damaged", "Missing hit points"], ["healthy", "At full hit points"], ["bloodied", "Bloodied (half HP or less)"], ["unbloodied", "Not bloodied"],
         ...(targetPickOf(s.targetFilter) === "custom" ? [["custom", "Custom filter (kept)"]] : [])], targetPickOf(s.targetFilter))}</select></label>
@@ -1226,7 +1291,8 @@ export class TriggerEditor extends ApplicationV2 {
             <label class="aet-inline"><span>On a success</span><select data-path="action.damage.onSuccess">${options([["none", "No damage"], ["half", "Half damage"]], dmg.onSuccess ?? "none")}</select></label>
           </div>` : ""}
           <label class="aet-inline"><span>On a failure, also</span><select data-path="action.failStatus">${options([["", "Nothing"], ...statusEntries()], a.failStatus ?? "")}</select>
-            <select data-path="action.failUntil">${options([["turnStart", "until the start of its next turn"], ["turnEnd", "until the end of its next turn"]], a.failUntil ?? "turnStart")}</select></label>
+            <select data-path="action.failUntil">${options([["turnStart", "until the start of its next turn"], ["turnEnd", "until the end of its next turn"],
+              ["sourceStart", "until the start of the source's next turn"], ["sourceEnd", "until the end of the source's next turn"]], a.failUntil ?? "turnStart")}</select></label>
           <div class="aet-subtitle">Save modifiers <span class="aet-muted">(optional)</span></div>
           ${mods}
           <button type="button" class="aet-add-small aet-edit" data-action="addMod"><i class="fa-solid fa-plus"></i> Add a modifier</button>
@@ -1242,9 +1308,13 @@ export class TriggerEditor extends ApplicationV2 {
           <label class="aet-inline"><span>Highest slot level</span><input type="number" class="aet-num" data-path="action.maxLevel" data-type="number" value="${esc(a.maxLevel ?? 5)}"></label>
           <label class="aet-inline"><span>At most</span><input type="number" class="aet-num" data-path="action.maxSlots" data-type="number" value="${esc(a.maxSlots ?? "")}" placeholder="any"><span class="aet-muted">slots (1 = Pearl of Power)</span></label>
           <p class="aet-muted">The bearer's player picks the slots. As a trigger, spends one use of the item this effect is on; on an activity, the activity's own cost pays.</p></div>`;
+      case "spendHitDie":
+        return `<div class="aet-fields">${this.#selectorFields("action.to", a.to ?? { who: "targets" }, "trigger")}
+          <p class="aet-muted">Each spends its largest Hit Point Die left and regains the roll. A healer with the extra-die rule rolls one more and keeps the best.</p></div>`;
       case "useActivity":
         return `<div class="aet-fields"><label class="aet-inline"><span>Activity</span>
           <input type="text" class="aet-wide" data-path="action.activity" value="${esc(a.activity ?? "")}" placeholder="name or id — blank = its save"></label>
+          <label class="aet-check"><input type="checkbox" data-path="action.consume" data-type="boolean"${a.consume ? " checked" : ""}><span>The bearer uses it normally, paying its cost (e.g. Uncanny Metabolism)</span></label>
           <p class="aet-muted">Runs on the triggering creature (or its targets): saves are rolled and damage/effects applied like any automated save.</p></div>`;
       case "drainMaxHp":
         return `<div class="aet-fields"><label class="aet-inline"><span>Amount</span>
@@ -1351,6 +1421,12 @@ export class TriggerEditor extends ApplicationV2 {
         <span>Show the usage dialog (e.g. to pick a spell slot)</span></label>
       <label class="aet-inline"><span>Button text</span><input type="text" data-path="label" value="${esc(m.label)}" placeholder="${esc(this.document.name)}"></label>
       <label class="aet-inline"><span>Popup note</span><input type="text" class="aet-wide" data-path="extra.detail" value="${esc(m.extra.detail)}" placeholder="optional, shown next to the button"></label>
+      <label class="aet-check"><input type="checkbox" data-path="extra.oncePerTurn" data-type="boolean" data-rerender${m.extra.oncePerTurn ? " checked" : ""}><span>At most once per turn</span></label>
+      ${m.extra.oncePerTurn ? `<label class="aet-inline"><span>Shared with</span><input type="text" class="aet-formula" data-path="extra.onceKey" value="${esc(m.extra.onceKey ?? "")}" placeholder="a key (optional)"><span class="aet-muted">popups with the same key count as one (Sneak Attack and its variants)</span></label>` : ""}
+      <label class="aet-check"><input type="checkbox" data-path="extra.free" data-type="boolean"${m.extra.free ? " checked" : ""}><span>Free — nothing to use or pay (an ability that's simply active)</span></label>
+      <label class="aet-inline"><span>Only if they have</span><input type="text" class="aet-formula" data-path="extra.requiresItem" value="${esc(m.extra.requiresItem ?? "")}" placeholder="an item identifier (optional)"></label>
+      ${m.window === "hitting" ? `<label class="aet-check"><input type="checkbox" data-path="extra.atTarget" data-type="boolean"${m.extra.atTarget ? " checked" : ""}>
+        <span>Use it on the creature that was hit (e.g. its save — Stunning Strike)</span></label>` : ""}
       ${this.#grantFields(m)}
     </div>`;
     return this.#step(1, "When", `<div class="aet-tiles aet-tiles-4">${windows}</div>${who}`)
@@ -1362,10 +1438,22 @@ export class TriggerEditor extends ApplicationV2 {
   #grantFields(m) {
     const g = m.extra.after;
     const effects = this.document.effects?.contents ?? [];
-    const toggle = `<label class="aet-check"><input type="checkbox" data-special="after" data-rerender${g ? " checked" : ""}${effects.length ? "" : " disabled"}>
-      <span>Afterwards, give one of this item's effects to creatures${effects.length ? "" : " (the item has no effects)"}</span></label>`;
-    if ( !g ) return toggle;
-    return `${toggle}<div class="aet-sub">
+    const activities = this.document.system?.activities?.contents ?? [];
+    const kind = g?.type ?? "";
+    const pick = `<label class="aet-inline"><span>Afterwards</span><select data-special="after" data-rerender>${options([["", "Nothing more"],
+      ...(effects.length ? [["giveEffect", "Give one of its effects to creatures"]] : []),
+      ...(activities.length > 1 ? [["useActivity", "Use another of its activities on creatures"]] : [])], kind)}</select></label>`;
+    if ( !g ) return pick;
+    if ( kind === "useActivity" ) return `${pick}<div class="aet-sub">
+      <label class="aet-inline"><span>From item</span><input type="text" class="aet-formula" data-path="extra.after.item" value="${esc(g.item ?? "")}" placeholder="this item (or an identifier)" data-rerender></label>
+      ${g.item ? "" : `<label class="aet-inline"><span>Activity</span><select data-path="extra.after.activity">${options(activities.map(a => [a.id, a.name || a.type]), g.activity)}</select></label>`}
+      ${m.window === "hitting" ? `<label class="aet-check"><input type="checkbox" data-special="afterHit" data-rerender${g.to?.who === "hit" ? " checked" : ""}>
+        <span>On the creature that was hit</span></label>` : ""}
+      ${m.window === "damageIncoming" ? `<label class="aet-check"><input type="checkbox" data-special="afterZeroed"${g.when === "zeroed" ? " checked" : ""}>
+        <span>Only if the damage was reduced to 0 (Deflect Attacks' redirect)</span></label>` : ""}
+      ${g.to?.who === "hit" ? "" : this.#selectorFields("extra.after.to", g.to, "reaction")}
+      <p class="aet-muted">The activity's own cost and save apply. When creatures are picked, no one skips it.</p></div>`;
+    return `${pick}<div class="aet-sub">
       <label class="aet-inline"><span>Effect</span><select data-path="extra.after.effect">${options(effects.map(e => [e.id, e.name]), g.effect)}</select></label>
       ${this.#selectorFields("extra.after.to", g.to, "reaction")}
       <p class="aet-muted">An earlier copy of the same effect on a creature is replaced.</p>
@@ -1507,10 +1595,21 @@ export class TriggerEditor extends ApplicationV2 {
     }
     if ( el.dataset.special === "counterDc" ) model.outcome.dc = el.value === "source" ? "source" : 15;
     if ( el.dataset.special === "after" ) {
-      if ( el.checked ) {
+      if ( el.value === "giveEffect" ) {
         const first = this.document.effects?.contents[0];
         model.extra.after = { type: "giveEffect", effect: first?.id ?? "", to: { who: "choose", range: 60, sight: true, notSubject: true } };
+      } else if ( el.value === "useActivity" ) {
+        const other = this.document.system?.activities?.contents.find(a => a.id !== model.activity) ?? this.document.system?.activities?.contents[0];
+        model.extra.after = { type: "useActivity", activity: other?.id ?? "", to: { who: "choose", side: "enemy", range: 60, sight: true } };
       } else delete model.extra.after;
+    }
+    if ( el.dataset.special === "afterHit" ) {
+      model.extra.after.to = el.checked ? { who: "hit" } : { who: "choose", side: "enemy", range: 60, sight: true };
+      return true;
+    }
+    if ( el.dataset.special === "afterZeroed" ) {
+      if ( el.checked ) model.extra.after.when = "zeroed"; else delete model.extra.after.when;
+      return false;
     }
     if ( el.dataset.special === "payCharges" ) {
       if ( el.checked ) model.extra.cost = { uses: 1, level: 1 };
@@ -1585,6 +1684,10 @@ export class TriggerEditor extends ApplicationV2 {
     }
     const key = el.dataset.setting;
     if ( key === "payOn" ) { this.settings.pay = el.checked ? { cost: 1, from: [] } : null; return true; }
+    if ( key === "propertiesText" ) {
+      this.settings.properties = el.value.split(",").map(s => s.trim()).filter(Boolean);
+      return false;
+    }
     if ( key === "targetPick" ) {
       this.settings.targetFilter = TARGET_PICKS[el.value] ?? (el.value === "custom" ? this.settings.targetFilter : null);
       return false;
@@ -1838,7 +1941,9 @@ export class TriggerEditor extends ApplicationV2 {
       await this.activity.update({ [`flags.${MODULE_ID}`]: {
         ...(this.activity.flags?.[MODULE_ID] ?? {}),
         onUse: list.length ? list : null, pay: s.pay?.from?.length ? s.pay : null, chooseEffects: s.chooseEffects ?? null,
-        targetFilter: s.targetFilter?.length ? s.targetFilter : null, summonEffects: s.summonEffects?.length ? s.summonEffects : null
+        targetFilter: s.targetFilter?.length ? s.targetFilter : null, summonEffects: s.summonEffects?.length ? s.summonEffects : null,
+        repeat: (Number(s.repeat?.count) > 1) ? { count: Number(s.repeat.count), ...(s.repeat.swap ? { swap: s.repeat.swap } : {}) } : null,
+        mastery: s.mastery || null, properties: s.properties?.length ? s.properties : null
       } });
     } else if ( this.mode === "area" ) {
       await this.activity.update({ [`flags.${MODULE_ID}`]: {
@@ -1895,6 +2000,56 @@ function summaryBlock(title, sentences, buttonLabel, emptyText) {
     <button type="button" class="aet-summary-edit"><i class="fa-solid fa-pen-to-square"></i> ${buttonLabel}</button></fieldset>`;
 }
 
+/** An effect's rules (flags besides triggers) as sentences. */
+function describeRules(effect) {
+  const r = readRules(effect);
+  const f = effect.flags?.[MODULE_ID] ?? {};
+  const list = [];
+  const abl = ids => ids.map(id => CONFIG.DND5E.abilities[id]?.label ?? id).join(", ");
+  if ( r.noReactions ) list.push("The bearer can't take reactions.");
+  if ( r.noComponents ) list.push("The bearer's spells have no components.");
+  if ( r.askFirst ) list.push(`Asks before applying: “${r.askFirst}”`);
+  if ( r.ignoreDamageFrom ) list.push(`Ignores damage from ${r.ignoreDamageFrom}.`);
+  if ( r.minLevel ) list.push(`Needs a level ${r.minLevel}+ slot.`);
+  if ( r.saveDamageOnSave ) list.push(`The bearer's save spells${r.saveDamageLevel !== "" ? ` of level ${r.saveDamageLevel}` : ""} deal ${r.saveDamageOnSave} damage on a success.`);
+  if ( r.ownRollsOnly ) list.push("Its roll bonuses don't carry over to the bearer's summons.");
+  if ( r.evasion?.length ) list.push(`Evasion on ${abl(r.evasion)} saves.`);
+  if ( r.saveAdvStatuses?.length ) list.push(`Advantage on saves against becoming ${r.saveAdvStatuses.map(statusLabel).join(" / ")}.`);
+  if ( r.healingExtraDie ) list.push("The bearer's healing rolls an extra die and drops the lowest.");
+  if ( r.noHealing ) list.push("The bearer can't regain hit points.");
+  if ( r.dropSave ) list.push(`At 0 HP from damage: ${abl([r.dropAbility])} save (DC ${r.dropDc}) to stay at 1${r.dropRadiant ? ", not vs Radiant" : ""}${r.dropCrit ? ", not vs a critical hit" : ""}.`);
+  if ( r.onlyIfStatus ) list.push(r.onlyIfStatus === "custom" ? "Auto-applied only to targets matching a custom filter." : `Auto-applied only to targets that are ${statusLabel(r.onlyIfStatus)}.`);
+  if ( Number(r.areaRadius) > 0 ) list.push(`An area of ${r.areaRadius} ft around the bearer moves with it.`);
+  if ( r.stopOnCollision ) list.push("Stops when it moves into a creature.");
+  if ( r.disengaged ) list.push("Moving doesn't offer Opportunity Attacks.");
+  if ( r.attacksMode ) list.push(`The bearer's attacks have ${r.attacksMode}${r.attacksOnce ? " (the next one only)" : ""}.`);
+  if ( r.attackedMode ) list.push(`Attacks against the bearer have ${r.attackedMode}${r.attackedOnce ? " (the next one only)" : ""}.`);
+  if ( Number(r.extraAttack) > 0 ) list.push(`${r.extraAttack} extra attack${Number(r.extraAttack) > 1 ? "s" : ""} with the Attack action.`);
+  if ( r.attackAdd?.length ) list.push(`Weapon attacks may also use ${abl(r.attackAdd)}${r.attackProficient ? " (proficient weapons)" : ""}.`);
+  if ( r.attackOnly?.length ) list.push(`Weapon attacks must use ${abl(r.attackOnly)}.`);
+  return list;
+}
+
+/** An activity's automation (its engine flags) as sentences. */
+function describeActivityAutomation(activity) {
+  const f = activity.flags?.[MODULE_ID] ?? {};
+  const item = activity.item;
+  const list = [];
+  for ( const action of Array.isArray(f.onUse) ? f.onUse : [] ) {
+    try { list.push(describeTrigger({ event: ["activity"], action }).replace(/^[^:]*: /, "Right after it's used: ")); }
+    catch(err) { list.push("(a step the editor can't read)"); }
+  }
+  if ( f.pay?.from?.length ) list.push(`Paid from ${f.pay.from.join(", ")} (${f.pay.cost ?? 1} each).`);
+  if ( f.chooseEffects ) list.push(`The user picks ${f.chooseEffects.count ?? 1} of its effects.`);
+  if ( f.targetFilter?.length ) list.push("Used automatically when its single target matches.");
+  if ( f.summonEffects?.length ) list.push(`Puts ${f.summonEffects.map(id => item?.effects.get(id)?.name ?? id).join(", ")} on what it summons.`);
+  if ( f.repeat?.count > 1 ) list.push(`${f.repeat.count} strikes per use${f.repeat.swap ? ` (one may be ${f.repeat.swap})` : ""}.`);
+  for ( const tr of f.area?.triggers ?? [] ) {
+    try { list.push(`Its area: ${describeTrigger(tr)}`); } catch(err) { list.push("Its area: (a trigger the editor can't read)"); }
+  }
+  return list;
+}
+
 /** Effect sheet: triggers as sentences at the top of the Details tab. */
 Hooks.on("renderActiveEffectConfig", (app, html) => {
   const effect = app.document;
@@ -1904,8 +2059,9 @@ Hooks.on("renderActiveEffectConfig", (app, html) => {
   const sentences = (Array.isArray(triggers) ? triggers : []).map(t => {
     try { return describeTrigger(t); } catch(err) { return "(a trigger the editor can't read)"; }
   });
-  tab.insertAdjacentHTML("afterbegin", summaryBlock("Triggers", sentences,
-    sentences.length ? "Edit triggers" : "Add triggers", "No triggers."));
+  const rules = describeRules(effect);
+  tab.insertAdjacentHTML("afterbegin", summaryBlock("Triggers", [...sentences, ...rules.map(s => `Rule: ${s}`)],
+    (sentences.length || rules.length) ? "Edit triggers and rules" : "Add triggers or rules", "No triggers or rules."));
   tab.querySelector(".aet-summary-edit").addEventListener("click", () => TriggerEditor.open(effect));
 });
 
@@ -1915,7 +2071,19 @@ Hooks.on("renderItemSheet5e", (app, html) => {
   const tab = html.querySelector('.tab[data-tab="activities"]');
   const reactions = item.getFlag(MODULE_ID, "reactions") ?? [];
   if ( !tab || tab.querySelector(".aet-summary") ) return;
-  if ( !(Array.isArray(reactions) && reactions.length) && !hasReactionActivity(item) ) return;
+  // Activity automation (per activity, with its own edit button), then reaction popups.
+  const automated = (item.system.activities?.contents ?? []).map(a => ({ activity: a, lines: describeActivityAutomation(a) })).filter(x => x.lines.length);
+  const hasReactions = (Array.isArray(reactions) && reactions.length) || hasReactionActivity(item);
+  if ( !automated.length && !hasReactions ) return;
+  if ( automated.length ) {
+    const rows = automated.map(({ activity, lines }) => `<div class="aet-summary-activity"><div><div class="aet-summary-sub">${esc(activity.name || activity.type)}</div>
+      <ol class="aet-summary-list">${lines.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>
+      <button type="button" data-aet-activity="${activity.id}"><i class="fa-solid fa-pen-to-square"></i> Edit</button></div>`).join("");
+    tab.insertAdjacentHTML("afterbegin", `<fieldset class="aet-summary aet-summary-activities"><legend><i class="fa-solid fa-bolt"></i> Activity automation</legend>${rows}</fieldset>`);
+    tab.querySelectorAll("[data-aet-activity]").forEach(b => b.addEventListener("click", () =>
+      TriggerEditor.open(item, { activity: item.system.activities.get(b.dataset.aetActivity) })));
+  }
+  if ( !hasReactions ) return;
   const sentences = reactions.map(r => {
     try { return describeReaction(r, item); } catch(err) { return "(a reaction the editor can't read)"; }
   });

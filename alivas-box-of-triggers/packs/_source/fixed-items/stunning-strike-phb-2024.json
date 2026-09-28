@@ -1,0 +1,317 @@
+{
+  "_id": "pan4C03omj6MnDWO",
+  "name": "Stunning Strike",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "103",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Stunning Strike (PHB 2024 p. 103). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Monk 5",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "save",
+        "activation": {
+          "type": "",
+          "condition": "",
+          "override": false
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "value": "1",
+              "scaling": {},
+              "target": "wrH2HyyEh61HXqqr"
+            }
+          ],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "damage": {
+          "onSave": "half",
+          "parts": []
+        },
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "wis"
+          },
+          "visible": true
+        },
+        "effects": [
+          {
+            "_id": "stunningStrikexx",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          },
+          {
+            "_id": "stunningStrike1x",
+            "level": {},
+            "onSave": true,
+            "uuid": null
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "img": null,
+        "sort": 0,
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "stunning-strike",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/melee/unarmed-punch-fist.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "stunning%20strike_monk_xphb_5_xphb"
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitting",
+          "who": "self",
+          "label": "Stunning Strike",
+          "activity": "dnd5eactivity000",
+          "reaction": false,
+          "oncePerTurn": true,
+          "atTarget": true,
+          "filter": [
+            {
+              "k": "attackType",
+              "v": "melee"
+            }
+          ],
+          "detail": "1 Focus Point — Con save: Stunned; on a success Slowed and the next attack against it has Advantage"
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "stunning-strike",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "feat",
+          "identifier": "stunning-strike",
+          "compendiumSource": "Compendium.dnd5e.classes24.Item.phbmnkStunningSt"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "stunningStrikexx",
+      "name": "Stunned",
+      "img": "icons/skills/melee/unarmed-punch-fist.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": "Actor.aqCKxHGVf8aXqUC5.Item.pan4C03omj6MnDWO",
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [
+        "stunned"
+      ],
+      "disabled": false,
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "origin": null,
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "stunned"
+        },
+        "core": {}
+      },
+      "type": "base",
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.367",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790404207355,
+        "modifiedTime": 1790404207355,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!pan4C03omj6MnDWO.stunningStrikexx"
+    },
+    {
+      "_id": "stunningStrike1x",
+      "name": "Slowed",
+      "img": "icons/skills/melee/unarmed-punch-fist.webp",
+      "description": "The target's Speed is halved until the start of your next turn, and the next attack roll made against the target before then has Advantage",
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.movement.walk",
+            "type": "multiply",
+            "value": "0.5",
+            "phase": "initial"
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": "Actor.aqCKxHGVf8aXqUC5.Item.pan4C03omj6MnDWO",
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "origin": null,
+      "transfer": false,
+      "flags": {
+        "plutonium": {
+          "dedupeId": "slowed"
+        },
+        "core": {},
+        "alivas-engine-of-triggers": {
+          "attackedWith": {
+            "mode": "advantage",
+            "once": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.367",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790404207355,
+        "modifiedTime": 1790404207355,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!pan4C03omj6MnDWO.stunningStrike1x"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404207354,
+    "modifiedTime": 1790404207354,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!pan4C03omj6MnDWO"
+}

@@ -1,0 +1,207 @@
+{
+  "_id": "9bhD8tip6sWY0v02",
+  "name": "Uncanny Metabolism",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "102",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Uncanny Metabolism (PHB 2024 p. 102). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Monk 2",
+    "uses": {
+      "max": "1",
+      "recovery": [
+        {
+          "period": "lr",
+          "type": "recoverAll"
+        }
+      ],
+      "spent": 0
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Uncanny Metabolism",
+        "type": "heal",
+        "activation": {
+          "type": "",
+          "condition": "",
+          "override": false
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "value": "-@classes.monk.levels",
+              "scaling": {},
+              "target": "wrH2HyyEh61HXqqr"
+            },
+            {
+              "type": "itemUses",
+              "value": "1",
+              "scaling": {}
+            }
+          ],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "target": {
+          "affects": {
+            "type": "self",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "healing": {
+          "types": [
+            "healing"
+          ],
+          "custom": {
+            "enabled": true,
+            "formula": "@scale.monk.die + @classes.monk.levels"
+          },
+          "scaling": {
+            "number": 1
+          },
+          "modifiers": []
+        },
+        "_id": "dnd5eactivity000",
+        "img": null,
+        "sort": 0,
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "effects": [],
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "uncanny-metabolism",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "modules/plutonium/media/icon/class/phb-monk.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "uncanny%20metabolism_monk_xphb_2_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "uncanny-metabolism",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "feat",
+          "identifier": "uncanny-metabolism",
+          "compendiumSource": "Compendium.dnd5e.classes24.Item.phbmnkUncannyMet"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "uncannyMetabolis",
+      "name": "Uncanny Metabolism",
+      "img": "modules/plutonium/media/icon/class/phb-monk.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Uncanny Metabolism",
+              "event": "initiative",
+              "needsUses": true,
+              "ask": "Use Uncanny Metabolism — regain all Focus Points and heal?",
+              "action": {
+                "type": "useActivity",
+                "consume": true
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!9bhD8tip6sWY0v02.uncannyMetabolis"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404207350,
+    "modifiedTime": 1790404207350,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!9bhD8tip6sWY0v02"
+}

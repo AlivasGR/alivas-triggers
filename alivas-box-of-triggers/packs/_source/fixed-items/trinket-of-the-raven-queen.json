@@ -1,0 +1,325 @@
+{
+  "name": "Trinket of the Raven Queen",
+  "type": "equipment",
+  "_id": "MlStPtH1ZVYhw41p",
+  "img": "https://assets.forge-vtt.com/6337e6cb61ab80af3642e052/worlds/rage-of-demons/Magic%20Items/Circlet_of_Barbed_Vision_-_Jessica_Nguyen.png",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Trinket of the Raven Queen. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "revision": 1,
+      "rules": "2014"
+    },
+    "identified": true,
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "quantity": 1,
+    "weight": {
+      "value": 0,
+      "units": "lb"
+    },
+    "price": {
+      "value": 0,
+      "denomination": "gp"
+    },
+    "attunement": "required",
+    "cover": null,
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "armor": {
+      "value": null,
+      "dex": null
+    },
+    "hp": {
+      "value": null,
+      "max": null,
+      "dt": null,
+      "conditions": ""
+    },
+    "type": {
+      "value": "trinket",
+      "baseItem": ""
+    },
+    "properties": [],
+    "speed": {
+      "value": null,
+      "conditions": "",
+      "units": "ft"
+    },
+    "strength": null,
+    "proficient": null,
+    "activities": {
+      "necroticShroudAc": {
+        "_id": "necroticShroudAc",
+        "type": "utility",
+        "name": "Necrotic Shroud",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "activityUses",
+              "target": "",
+              "value": "1",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "value": "1",
+          "units": "minute",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "1",
+          "recovery": [
+            {
+              "period": "lr",
+              "type": "recoverAll"
+            }
+          ]
+        },
+        "effects": [
+          {
+            "_id": "necroticShroudEf",
+            "level": {}
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "save",
+                "ability": "cha",
+                "dc": "8 + @prof + @abilities.cha.mod",
+                "to": {
+                  "who": "all",
+                  "range": 10,
+                  "sight": true,
+                  "self": false
+                },
+                "failStatus": "frightened",
+                "failUntil": "sourceEnd"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "identifier": "trinket-of-the-raven-queen",
+    "crew": {
+      "value": []
+    },
+    "attuned": false,
+    "equipped": false,
+    "rarities": [
+      "rare"
+    ]
+  },
+  "effects": [
+    {
+      "name": "Trinket of the Raven Queen",
+      "origin": null,
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "disabled": true,
+      "_id": "x26BmyhHtOhnMZqE",
+      "description": "",
+      "transfer": true,
+      "statuses": [],
+      "flags": {
+        "dae": {
+          "selfTarget": false,
+          "selfTargetAlways": false,
+          "dontApply": false,
+          "stackable": "noneName",
+          "showIcon": false,
+          "durationExpression": "",
+          "specialDuration": []
+        }
+      },
+      "tint": "#ffffff",
+      "_stats": {
+        "coreVersion": "14.367",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1788014019194,
+        "modifiedTime": 1790404261943,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "img": "https://assets.forge-vtt.com/6337e6cb61ab80af3642e052/worlds/rage-of-demons/Magic%20Items/Circlet_of_Barbed_Vision_-_Jessica_Nguyen.png",
+      "type": "base",
+      "system": {
+        "changes": [
+          {
+            "key": "system.abilities.cha.value",
+            "value": 2,
+            "priority": 20,
+            "type": "add",
+            "phase": "initial",
+            "_id": "KTRNshMUhkIBzsg6",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "system.attributes.senses.darkvision",
+            "value": 60,
+            "priority": 20,
+            "type": "add",
+            "phase": "initial",
+            "_id": "Ks3RnG5OPZK9WoPO",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "item": "Actor.NjdhNjYwOGZmNTYz.Item.fEgaDdGIiN1xzUVQ",
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "sort": 0,
+      "start": null,
+      "showIcon": 1,
+      "folder": null,
+      "_key": "!items.effects!MlStPtH1ZVYhw41p.x26BmyhHtOhnMZqE"
+    },
+    {
+      "_id": "necroticShroudEf",
+      "name": "Necrotic Shroud",
+      "img": "https://assets.forge-vtt.com/6337e6cb61ab80af3642e052/worlds/rage-of-demons/Magic%20Items/Circlet_of_Barbed_Vision_-_Jessica_Nguyen.png",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "necrotic-shroud"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!MlStPtH1ZVYhw41p.necroticShroudEf"
+    }
+  ],
+  "sort": 0,
+  "flags": {
+    "magicitems": {
+      "enabled": false,
+      "default": "",
+      "equipped": false,
+      "attuned": false,
+      "charges": "0",
+      "chargeType": "c1",
+      "destroy": false,
+      "destroyFlavorText": "reaches 0 charges: it crumbles into ashes and is destroyed.",
+      "rechargeable": false,
+      "recharge": "0",
+      "rechargeType": "t1",
+      "rechargeUnit": "r1",
+      "sorting": "l"
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitting",
+          "who": "self",
+          "label": "Necrotic Shroud",
+          "free": true,
+          "reaction": false,
+          "oncePerTurn": true,
+          "filter": [
+            {
+              "k": "reactor.statuses.necrotic-shroud",
+              "o": "gte",
+              "v": 1
+            }
+          ],
+          "detail": "+ your level in Necrotic damage",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "@details.level",
+            "damageType": "necrotic"
+          }
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Trinket of the Raven Queen",
+          "type": "equipment"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "systemId": "dnd5e",
+    "systemVersion": "5.3.3",
+    "coreVersion": "14.367",
+    "createdTime": 1788014019194,
+    "modifiedTime": 1790404261943,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!MlStPtH1ZVYhw41p"
+}

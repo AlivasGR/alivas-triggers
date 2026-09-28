@@ -1,0 +1,103 @@
+{
+  "_id": "8jLAMI4S5z80oAG8",
+  "name": "Extra Attack",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "103",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Extra Attack (PHB 2024 p. 103). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Monk 5",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": "multiattack"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {},
+    "identifier": "extra-attack",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/fire/dagger-rune-enchant-flame-orange.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "extra%20attack_monk_xphb_5_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "extra-attack"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "extraAttackRule1",
+      "name": "Extra Attack",
+      "img": "icons/magic/fire/dagger-rune-enchant-flame-orange.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "extraAttack": {
+            "count": 1
+          }
+        }
+      },
+      "_key": "!items.effects!8jLAMI4S5z80oAG8.extraAttackRule1"
+    }
+  ],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404207353,
+    "modifiedTime": 1790404207353,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!8jLAMI4S5z80oAG8"
+}

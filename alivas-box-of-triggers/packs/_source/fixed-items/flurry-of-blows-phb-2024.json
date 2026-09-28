@@ -1,0 +1,175 @@
+{
+  "_id": "PwwtoYx70uD6VB05",
+  "name": "Flurry of Blows",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "101",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Flurry of Blows (PHB 2024 p. 101). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Monk 2",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Flurry of Blows",
+        "type": "attack",
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "value": "1",
+              "scaling": {},
+              "target": "wrH2HyyEh61HXqqr"
+            }
+          ],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "attack": {
+          "type": {
+            "value": "melee",
+            "classification": "unarmed"
+          },
+          "ability": "dex",
+          "critical": {},
+          "flat": false
+        },
+        "damage": {
+          "includeBase": true,
+          "parts": [
+            {
+              "custom": {
+                "enabled": true,
+                "formula": "@scale.monk.die + @mod"
+              },
+              "types": [
+                "bludgeoning"
+              ],
+              "scaling": {
+                "number": 1
+              },
+              "modifiers": []
+            }
+          ],
+          "critical": {}
+        },
+        "_id": "dnd5eactivity000",
+        "img": null,
+        "sort": 0,
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "effects": [],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "repeat": {
+              "count": 2,
+              "swap": "hand-of-healing"
+            }
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      }
+    },
+    "identifier": "flurry-of-blows",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+  "flags": {
+    "plutonium": {
+      "page": "classFeature",
+      "source": "XPHB",
+      "hash": "flurry%20of%20blows_monk_xphb_2_xphb"
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "flurry-of-blows",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "systemVersion": "6.0.5",
+    "coreVersion": "14.367",
+    "systemId": "dnd5e",
+    "createdTime": 1790404207345,
+    "modifiedTime": 1790433281328,
+    "lastModifiedBy": "3BoJlBhEYwGDBi4q",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!PwwtoYx70uD6VB05"
+}
