@@ -17,7 +17,7 @@ const SECTIONS = [
   { title: "Areas", icon: "fa-burst", hint: "Spell templates and auras.",
     keys: ["wfRemoveTemplates"] },
   { title: "Combat", icon: "fa-hourglass-half", hint: "Turn options on the combat tracker.",
-    keys: ["delayTurn"] }
+    keys: ["delayTurn", "delayExpiry"] }
 ];
 export const GROUPED_SETTINGS = SECTIONS.flatMap(s => s.keys);
 

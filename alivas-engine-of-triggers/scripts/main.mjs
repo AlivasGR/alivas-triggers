@@ -2665,6 +2665,14 @@ Hooks.once("init", () => {
       + "turn you actually take. Delay a whole round and you lose that turn.",
     scope: "world", config: true, type: Boolean, default: true
   });
+  game.settings.register(MODULE_ID, "delayExpiry", {
+    name: "Delay turn — effects ending at the end of your turn",
+    hint: "When a creature delays, which of its effects that would end at the end of its turn end right away; the rest end at "
+      + "the end of the turn it actually takes. End-of-turn saves and damage always wait, and buffs kept up each turn (Rage) "
+      + "never end because of a delay.",
+    scope: "world", config: true, type: String, default: "friendly",
+    choices: { friendly: "Those from itself or its allies end now; enemies' wait", all: "All end now", none: "All wait for its real turn end" }
+  });
   game.settings.register(MODULE_ID, "wfRemoveTemplates", {
     name: "Remove areas of instantaneous spells",
     hint: "After an automated save spell resolves, remove its area (Fireball's sphere). Areas of spells with a duration stay.",
