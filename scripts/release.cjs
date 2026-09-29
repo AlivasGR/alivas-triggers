@@ -20,7 +20,7 @@ const DIST = path.join(ROOT, "dist");
 const MODULES = ["alivas-engine-of-triggers", "alivas-box-of-triggers"];
 
 const version = process.argv[2];
-if ( !/^d+.d+.d+$/.test(version ?? "") ) throw new Error("Usage: npm run release -- X.Y.Z");
+if ( !/^\d+\.\d+\.\d+$/.test(version ?? "") ) throw new Error("Usage: npm run release -- X.Y.Z");
 const run = (cmd, cwd=ROOT) => execSync(cmd, { cwd, stdio: "inherit" });
 const out = (cmd, cwd=ROOT) => execSync(cmd, { cwd, encoding: "utf8" });
 
