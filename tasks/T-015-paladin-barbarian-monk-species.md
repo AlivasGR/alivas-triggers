@@ -46,11 +46,16 @@ the Wind (Focus from the identifier pool), Arms of the Astral Self (save, Wis st
 - Live: Wild Surge 4 (enchant a weapon from the card), Guidance (pick one skill), Bite, Two-Weapon / Thrown Weapon
   Fighting (need an off-hand / thrown attack), Patient Defense and Deflect Attacks with the identifier pool on a real
   Plutonium-imported monk, Detect Evil and Good.
-- Known limits: Natural Armor shows dnd5e's "Draconic Resilience" label and doesn't apply over worse armor; Divine Sense
-  can't see consecrated places; Magic Awareness lists items carried by creatures and spells on them/areas, not loose
-  items; Wild Surge's infused weapon lasts 10 minutes, not "until the Rage ends"; Searing Smite's burn is 1d6 even
-  when upcast.
+- Divine Sense can't see consecrated places (nothing marks them on the map); Magic Awareness lists items carried by
+  creatures and spells on them / spell areas, not loose items lying around.
 - SRD copies (T-003) of these features are not matched yet.
+
+## Fixed after review
+- Natural Armor: new effect rule `armorClass` adds a real “Natural Armor” AC option; dnd5e keeps the best (verified: 15
+  unarmored, 15 in leather, 17 with a shield, plate 20).
+- Wild Surge: new effect rule `whileStatus: "rage"` — results and the infused weapon (an enchantment) end the moment Rage
+  ends (verified).
+- Searing Smite: effects given by a reaction carry the slot level (@spellLevel); the burn is (level)d6 (verified 2d6).
 
 ## Log
 - 2026-09-29 — maintainer/Claude: built and tested the above; found and fixed the pool-ID bug in older monk/rogue

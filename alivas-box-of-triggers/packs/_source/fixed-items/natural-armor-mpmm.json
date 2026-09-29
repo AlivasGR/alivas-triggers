@@ -71,16 +71,16 @@
         "expiry": null
       },
       "system": {
-        "changes": [
-          {
-            "key": "system.attributes.ac.calcs",
-            "type": "add",
-            "value": "draconic",
-            "phase": "initial"
-          }
-        ]
+        "changes": []
       },
-      "flags": {},
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "armorClass": {
+            "formula": "13 + @abilities.dex.mod",
+            "label": "Natural Armor"
+          }
+        }
+      },
       "_key": "!items.effects!tJ7rS1uk07sMyH0H.naturalArmorEff0"
     }
   ],

@@ -619,29 +619,9 @@
                 "range": 30,
                 "sight": true
               }
-            },
-            {
-              "label": "Ends with the Rage",
-              "event": [
-                "turnStart",
-                "turnEnd"
-              ],
-              "filter": [
-                {
-                  "o": "NOT",
-                  "v": {
-                    "k": "bearer.statuses.rage",
-                    "o": "gte",
-                    "v": 1
-                  }
-                }
-              ],
-              "action": {
-                "type": "note"
-              },
-              "then": "remove"
             }
-          ]
+          ],
+          "whileStatus": "rage"
         }
       },
       "_key": "!items.effects!vrEYek8khft19lx4.surge20000000000"
@@ -760,29 +740,9 @@
                   "who": "subject"
                 }
               }
-            },
-            {
-              "label": "Ends with the Rage",
-              "event": [
-                "turnStart",
-                "turnEnd"
-              ],
-              "filter": [
-                {
-                  "o": "NOT",
-                  "v": {
-                    "k": "bearer.statuses.rage",
-                    "o": "gte",
-                    "v": 1
-                  }
-                }
-              ],
-              "action": {
-                "type": "note"
-              },
-              "then": "remove"
             }
-          ]
+          ],
+          "whileStatus": "rage"
         }
       },
       "_key": "!items.effects!vrEYek8khft19lx4.surge50000000000"
@@ -848,29 +808,9 @@
                   "who": "targets"
                 }
               }
-            },
-            {
-              "label": "Ends with the Rage",
-              "event": [
-                "turnStart",
-                "turnEnd"
-              ],
-              "filter": [
-                {
-                  "o": "NOT",
-                  "v": {
-                    "k": "bearer.statuses.rage",
-                    "o": "gte",
-                    "v": 1
-                  }
-                }
-              ],
-              "action": {
-                "type": "note"
-              },
-              "then": "remove"
             }
-          ]
+          ],
+          "whileStatus": "rage"
         }
       },
       "_key": "!items.effects!vrEYek8khft19lx4.surge60000000000"
@@ -929,29 +869,9 @@
                   "who": "targets"
                 }
               }
-            },
-            {
-              "label": "Ends with the Rage",
-              "event": [
-                "turnStart",
-                "turnEnd"
-              ],
-              "filter": [
-                {
-                  "o": "NOT",
-                  "v": {
-                    "k": "bearer.statuses.rage",
-                    "o": "gte",
-                    "v": 1
-                  }
-                }
-              ],
-              "action": {
-                "type": "note"
-              },
-              "then": "remove"
             }
-          ]
+          ],
+          "whileStatus": "rage"
         }
       },
       "_key": "!items.effects!vrEYek8khft19lx4.surge70000000000"
@@ -1116,7 +1036,11 @@
           }
         ]
       },
-      "flags": {},
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "whileStatus": "rage"
+        }
+      },
       "_key": "!items.effects!vrEYek8khft19lx4.surgeInfused0000"
     },
     {

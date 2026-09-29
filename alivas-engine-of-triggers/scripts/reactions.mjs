@@ -356,16 +356,16 @@ async function showPrompt(actorUuid, situation, options) {
  * @param {string} [subjectUuid]  The triggering creature.
  */
 /** Run a picked reaction's afterwards step (after its outcome is resolved and announced). */
-function afterReaction(reactor, picked, { zeroed=false }={}) {
+function afterReaction(reactor, picked, { zeroed=false, castLevel=null }={}) {
   const after = picked?.option?.after;
   if ( !after ) return;
   if ( (after.when === "zeroed") && !zeroed ) return;
   // after.item: the follow-up belongs to another item of the reactor (identifier), e.g. a Cunning Strike option.
   const item = after.item ? reactor.items.find(i => i.system.identifier === after.item) : reactor.items.get(picked.option.itemId);
-  return item ? runAfter(reactor, item, after, picked.option.subjectUuid, picked.option.hitUuid) : undefined;
+  return item ? runAfter(reactor, item, after, picked.option.subjectUuid, picked.option.hitUuid, castLevel) : undefined;
 }
 
-async function runAfter(reactor, item, after, subjectUuid, hitUuid) {
+async function runAfter(reactor, item, after, subjectUuid, hitUuid, castLevel=null) {
   if ( after?.type === "useActivity" ) return afterUseActivity(reactor, item, after, subjectUuid, hitUuid);
   if ( after?.type !== "giveEffect" ) return;
   const effect = item.effects.get(after.effect) ?? item.effects.getName(after.effect);
@@ -381,6 +381,8 @@ async function runAfter(reactor, item, after, subjectUuid, hitUuid) {
   if ( !recipients.length ) return;
   const data = effect.toObject();
   data.origin = item.uuid;
+  // The slot level it was cast with: the effect's triggers read it as @spellLevel (Searing Smite's burn).
+  if ( castLevel ) foundry.utils.setProperty(data, "flags.dnd5e.spellLevel", castLevel);
   await giveEffect(data, recipients);
   await note(reactor, `<strong>${item.name}</strong>: ${recipients.map(a => a.name).join(", ")} ${recipients.length > 1 ? "get" : "gets"} <strong>${effect.name}</strong>.`);
 }
@@ -475,7 +477,7 @@ export async function attackHit(state) {
     if ( !picked ) continue;
     if ( picked.outcome.type === "damageNext" ) {
       await queueDamageMod(target, state.activity, picked, reactor, castLevel, cur.isCritical);
-      await afterReaction(reactor, picked);
+      await afterReaction(reactor, picked, { castLevel });
       continue;
     }
     if ( picked.outcome.type === "acBonus" ) ac += Number(picked.outcome.value) || 0;
@@ -505,7 +507,7 @@ export async function attackHit(state) {
       const picked = opts.find(o => o.option.id === choice);
       if ( !picked ) break;
       if ( picked.outcome.type === "damageNext" ) await queueDamageMod(target, state.activity, picked, attacker, castLevel, cur.isCritical);
-      await afterReaction(attacker, picked);
+      await afterReaction(attacker, picked, { castLevel });
       opts = eligible(attacker, "hitting", { scene, subject: attacker, data, target }).filter(o => o.option.id !== picked.option.id);
     }
   }

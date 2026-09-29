@@ -889,7 +889,8 @@ function readRules(effect) {
     attackedTypes: [...(f.attackedWith?.attacker?.find?.(x => x.k === "details.type.value")?.v ?? [])],
     attacksUnlessSource: f.attacksWith?.unlessTarget === "source",
     lightBright: f.light?.bright ?? "", lightDim: f.light?.dim ?? "", lightColor: f.light?.color ?? "#ffe9a8",
-    noSpells: !!f.noSpells,
+    noSpells: !!f.noSpells, whileStatus: f.whileStatus ?? "",
+    acFormula: f.armorClass?.formula ?? "", acLabel: f.armorClass?.label ?? "", acUnarmored: f.armorClass?.armored === false,
     sustainEvents: [...(f.sustain?.events ?? [])], sustainFilter: JSON.stringify(f.sustain?.filter ?? [])
   };
 }
@@ -938,6 +939,10 @@ function rulesUpdate(r) {
   set("light", { bright: Number(r.lightBright) || 0, dim: Number(r.lightDim) || 0, color: r.lightColor || null },
     (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0));
   set("noSpells", true, r.noSpells);
+  const whileStatus = String(r.whileStatus ?? "").trim();
+  set("whileStatus", whileStatus, whileStatus);
+  const acFormula = String(r.acFormula ?? "").trim();
+  set("armorClass", { formula: acFormula, ...(String(r.acLabel ?? "").trim() ? { label: r.acLabel.trim() } : {}), ...(r.acUnarmored ? { armored: false } : {}) }, acFormula);
   const sustainFilter = parseFilterText(r.sustainFilter);
   set("sustain", { events: [...(r.sustainEvents ?? [])], ...(sustainFilter ? { filter: sustainFilter } : {}) }, r.sustainEvents?.length);
   set("disengaged", true, r.disengaged);
@@ -1259,11 +1264,11 @@ export class TriggerEditor extends ApplicationV2 {
     const abilityBoxes = (list, key) => abilityEntries().map(([id, label]) => `<label class="aet-check aet-small-check">
       <input type="checkbox" data-rule-list="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
     const groups = {
-      spells: [r.noReactions, r.noComponents, r.askFirst, r.minLevel, r.saveDamageOnSave, r.ownRollsOnly, r.noSpells, r.sustainEvents?.length],
+      spells: [r.noReactions, r.noComponents, r.askFirst, r.minLevel, r.saveDamageOnSave, r.ownRollsOnly, r.noSpells, r.sustainEvents?.length, String(r.whileStatus ?? "").trim()],
       damage: [r.ignoreDamageFrom, r.evasion?.length, r.noHealing, r.dropSave, r.onlyIfStatus, r.saveAdvStatuses?.length, r.healingExtraDie,
         String(r.reduceFormula ?? "").trim(), Number(r.diceMin) > 1],
       area: [Number(r.areaRadius) > 0, r.stopOnCollision, r.disengaged, (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0)],
-      weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0]
+      weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0, String(r.acFormula ?? "").trim()]
     };
     const typePills = (list, key, entries) => entries.map(([id, label]) => `<label class="aet-check aet-small-check">
       <input type="checkbox" data-rule-list="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
@@ -1284,6 +1289,7 @@ export class TriggerEditor extends ApplicationV2 {
           <span>of level</span><input type="number" class="aet-num" data-rule="saveDamageLevel" value="${esc(r.saveDamageLevel)}" placeholder="any"><span class="aet-muted">only upgrades “no damage” (Potent Cantrip)</span></label>
         <label class="aet-check"><input type="checkbox" data-rule="ownRollsOnly"${r.ownRollsOnly ? " checked" : ""}><span>Its roll bonuses are the bearer's own — summons matching the bearer's spell attack don't get them</span></label>
         <label class="aet-check"><input type="checkbox" data-rule="noSpells"${r.noSpells ? " checked" : ""}><span>The bearer can't cast spells (concentration ends when it's applied)</span></label>
+        <label class="aet-inline"><span>Lasts only while the bearer has</span><input type="text" class="aet-formula" data-rule="whileStatus" value="${esc(r.whileStatus)}" placeholder="a status id, e.g. rage"><span class="aet-muted">ends the moment it's gone (also for an enchantment on its weapon)</span></label>
         <div class="aet-subtitle">Ends at the end of the bearer's turn unless during it the bearer…</div>
         <div class="aet-pills">${typePills(r.sustainEvents, "sustainEvents", sustainEventEntries)}</div>
         <label class="aet-inline"><span>…and it matches</span><input type="text" class="aet-wide" data-rule="sustainFilter" value="${esc(r.sustainFilter)}" placeholder='[] (always) — a filter, e.g. [{"k":"activityType","v":"save"}]'></label>
@@ -1327,6 +1333,10 @@ export class TriggerEditor extends ApplicationV2 {
         <label class="aet-inline"><span>The bearer's attacks have</span><select data-rule="attacksMode" data-rerender>${options([["", "— (normal)"], ["advantage", "Advantage"], ["disadvantage", "Disadvantage"]], r.attacksMode)}</select>
           ${r.attacksMode ? `<label class="aet-check aet-small-check"><input type="checkbox" data-rule="attacksOnce"${r.attacksOnce ? " checked" : ""}><span>only the next one (then it ends)</span></label>
           <label class="aet-check aet-small-check"><input type="checkbox" data-rule="attacksUnlessSource"${r.attacksUnlessSource ? " checked" : ""}><span>except against the source</span></label>` : ""}</label>
+        <label class="aet-inline"><span>Armor Class option</span><input type="text" class="aet-formula" data-rule="acFormula" value="${esc(r.acFormula)}" placeholder="e.g. 13 + @abilities.dex.mod">
+          <input type="text" data-rule="acLabel" value="${esc(r.acLabel)}" placeholder="label (default: the effect's name)">
+          <label class="aet-check aet-small-check"><input type="checkbox" data-rule="acUnarmored"${r.acUnarmored ? " checked" : ""}><span>only without armor</span></label></label>
+        <p class="aet-muted">dnd5e uses the best of its own calculations and this one; a shield adds as usual.</p>
         <label class="aet-inline"><span>Extra attacks with the Attack action</span><input type="number" class="aet-num" data-rule="extraAttack" value="${esc(r.extraAttack)}" placeholder="0"><span class="aet-muted">offered after the first (Extra Attack = 1)</span></label>
         <div class="aet-subtitle">May also use</div><div class="aet-pills">${abilityBoxes(r.attackAdd, "attackAdd")}</div>
         <label class="aet-check"><input type="checkbox" data-rule="attackProficient"${r.attackProficient ? " checked" : ""}><span>…only with weapons the bearer is proficient with</span></label>
@@ -2248,6 +2258,8 @@ function describeRules(effect) {
   if ( Number(r.diceMin) > 1 ) list.push(`The bearer's damage dice count at least ${r.diceMin}${(parseFilterText(r.diceFilter) ?? []).length ? " (on matching attacks)" : ""}.`);
   if ( (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0) ) list.push(`Sheds light (${r.lightBright || 0}/${r.lightDim || 0} ft) while it lasts.`);
   if ( r.noSpells ) list.push("The bearer can't cast spells or concentrate.");
+  if ( String(r.whileStatus ?? "").trim() ) list.push(`Lasts only while the bearer has ${r.whileStatus}.`);
+  if ( String(r.acFormula ?? "").trim() ) list.push(`Armor Class option: ${r.acFormula}${r.acUnarmored ? " (without armor)" : ""}${r.acLabel ? ` — “${r.acLabel}”` : ""}.`);
   if ( r.sustainEvents?.length ) list.push(`Ends at the end of the bearer's turn unless it ${r.sustainEvents.join(" / ")}${(parseFilterText(r.sustainFilter) ?? []).length ? " (matching a condition)" : ""} during it.`);
   return list;
 }

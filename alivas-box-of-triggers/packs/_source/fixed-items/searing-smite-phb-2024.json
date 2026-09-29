@@ -129,7 +129,7 @@
               "v": "melee"
             }
           ],
-          "detail": "extra Fire damage (slot level)d6; the target burns until it saves",
+          "detail": "extra Fire damage (slot level)d6; the target burns for (slot level)d6 each turn until it saves",
           "outcome": {
             "type": "damageNext",
             "mode": "add",
@@ -196,7 +196,7 @@
               "event": "turnStart",
               "action": {
                 "type": "damage",
-                "formula": "1d6",
+                "formula": "(@spellLevel)d6",
                 "damageType": "fire"
               }
             },

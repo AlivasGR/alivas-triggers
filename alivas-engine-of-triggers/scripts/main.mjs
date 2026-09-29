@@ -85,6 +85,8 @@
  *   attacksWith { mode, once, unlessTarget }       unlessTarget "source": not against the effect's source (Compelled Duel)
  *   light { bright, dim, color }                   the bearer's token sheds this light while the effect lasts
  *   noSpells                                       the bearer can't cast spells; concentration ends when it's applied
+ *   armorClass { formula, label, armored }         one more AC calculation (dnd5e keeps the best) — Natural Armor
+ *   whileStatus "rage"                             ends as soon as the creature lacks that status (effects, enchantments)
  *   sustain { events, filter }                     ends at the end of the bearer's turn unless it did one of the events
  *                                                  during it (Rage: attack, force a save, extend)
  *
@@ -524,6 +526,67 @@ Hooks.on("createActiveEffect", (effect, options, userId) => {
 });
 Hooks.on("deleteActiveEffect", (effect, options, userId) => {
   if ( (userId === game.userId) && (effect.parent instanceof Actor) && effect.getFlag(MODULE_ID, "light") ) refreshLight(effect.parent);
+});
+
+/**
+ * Effect rule `armorClass: { formula, label, armored, shielded }` (Lizardfolk Natural Armor, Tortle shell…): one more
+ * AC calculation for dnd5e to consider — it keeps the best. Without `armored` it counts with or without armor (so worn
+ * armor still wins only when it's better); `armored: false` = only while unarmored. Shields add as usual.
+ */
+function addArmorFormulas(system) {
+  const actor = system?.parent;
+  const ac = system?.attributes?.ac;
+  if ( !actor?.allApplicableEffects || !Array.isArray(ac?.formulas) ) return;
+  for ( const effect of actor.allApplicableEffects() ) {
+    const rule = effect.active ? effect.getFlag?.(MODULE_ID, "armorClass") : null;
+    if ( !rule?.formula ) continue;
+    const label = rule.label || effect.name;
+    if ( ac.formulas.some(f => (f.formula === rule.formula) && (f.label === label)) ) continue;
+    ac.formulas.push({ formula: rule.formula, label,
+      ...(typeof rule.armored === "boolean" ? { armored: rule.armored } : {}),
+      ...(typeof rule.shielded === "boolean" ? { shielded: rule.shielded } : {}) });
+  }
+}
+Hooks.once("init", () => {
+  const AF = dnd5e.dataModels?.actor?.AttributesFields;
+  if ( !AF?.prepareArmorClass ) return;
+  const prepare = AF.prepareArmorClass;
+  AF.prepareArmorClass = function(rollData) {
+    try { addArmorFormulas(this); } catch(err) { console.error(`${MODULE_ID} | armorClass rule`, err); }
+    return prepare.call(this, rollData);
+  };
+});
+
+/**
+ * Effect rule `whileStatus: "rage"` (Wild Surge results, its infused weapon): the effect ends as soon as its creature no
+ * longer has that status. Works for effects on the creature and for enchantments on its items.
+ */
+function whileStatusEffects(actor) {
+  const own = Array.from(actor.effects ?? []);
+  const onItems = actor.items?.contents.flatMap(i => i.effects.contents.filter(e => (e.type === "enchantment") && e.isAppliedEnchantment)) ?? [];
+  return [...own, ...onItems].filter(e => e.getFlag(MODULE_ID, "whileStatus"));
+}
+async function endWhileStatus(actor, only=null) {
+  if ( !actor?.isOwner ) return;
+  for ( const effect of whileStatusEffects(actor) ) {
+    if ( only && (effect !== only) ) continue;
+    const status = effect.getFlag(MODULE_ID, "whileStatus");
+    if ( actor.statuses?.has(status) ) continue;
+    await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }),
+      content: `<p><strong>${effect.name}</strong> ends: ${actor.name} no longer has “${status.replace(/-/g, " ")}”.</p>` });
+    await effect.delete();
+  }
+}
+const ownerActor = effect => (effect.parent instanceof Actor) ? effect.parent : (effect.parent?.actor ?? null);
+Hooks.on("deleteActiveEffect", (effect, options, userId) => {
+  if ( (userId === game.userId) && effect.statuses?.size ) endWhileStatus(ownerActor(effect));
+});
+Hooks.on("updateActiveEffect", (effect, changed, options, userId) => {
+  if ( (userId === game.userId) && ("disabled" in changed) && effect.statuses?.size ) endWhileStatus(ownerActor(effect));
+});
+Hooks.on("createActiveEffect", (effect, options, userId) => {
+  // Put on while the status is already gone (or never there): it ends straight away.
+  if ( (userId === game.userId) && effect.getFlag(MODULE_ID, "whileStatus") ) endWhileStatus(ownerActor(effect), effect);
 });
 
 /**
