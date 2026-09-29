@@ -94,7 +94,8 @@ async function onToken(system, name, event) {
   if ( !Creatures.isLeadGM() ) return;
   const token = event.data?.token;
   const region = system.region;
-  if ( !token?.actor || !region ) return;
+  // Hidden tokens are off-stage (Foundry still reports them entering and leaving).
+  if ( !token?.actor || !region || (token.hidden && (name !== "areaLeave")) ) return;
   // Creatures already inside when the area appeared were handled by areaCreated.
   const born = createdAt.get(region.id);
   if ( (name === "areaEnter") && born && (Date.now() - born.at < 3000) && born.tokens.has(token.id) ) return;
