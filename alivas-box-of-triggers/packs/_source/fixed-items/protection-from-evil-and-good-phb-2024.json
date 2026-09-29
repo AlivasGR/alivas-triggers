@@ -1,22 +1,22 @@
 {
-  "_id": "cSeZpqoDYXUfd6ZE",
-  "name": "Hold Person",
+  "_id": "ggYgO1QPdQftLSVm",
+  "name": "Protection from Evil and Good",
   "type": "spell",
   "system": {
     "source": {
       "custom": "",
       "book": "PHB 2024",
-      "page": "286",
+      "page": "309",
       "license": "",
       "rules": "2024",
       "revision": 1
     },
     "description": {
-      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Hold Person (PHB 2024 p. 286). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Protection from Evil and Good (PHB 2024 p. 309). Patched items keep their own description; this entry carries no rules text.</em></p>",
       "chat": ""
     },
-    "level": 2,
-    "school": "enc",
+    "level": 1,
+    "school": "abj",
     "properties": [
       "vocal",
       "somatic",
@@ -24,32 +24,28 @@
       "concentration"
     ],
     "materials": {
-      "value": "a straight piece of iron",
-      "consumed": false,
-      "cost": 0,
+      "value": "a flask of Holy Water worth 25+ GP, which the spell consumes",
+      "consumed": true,
+      "cost": 25,
       "supply": 0
     },
     "target": {
       "template": {
-        "count": "",
         "contiguous": false,
         "type": "",
-        "size": "",
-        "width": "",
-        "height": "",
         "units": "ft",
         "stationary": false
       },
       "affects": {
-        "count": "@item.level - 1",
-        "type": "",
+        "count": "1",
+        "type": "willing",
         "choice": false,
         "special": ""
       }
     },
     "range": {
-      "value": "60",
-      "units": "ft"
+      "value": "0",
+      "units": "touch"
     },
     "activation": {
       "type": "action",
@@ -57,7 +53,7 @@
       "condition": ""
     },
     "duration": {
-      "value": "1",
+      "value": "10",
       "units": "minute",
       "expiry": null
     },
@@ -68,33 +64,18 @@
     },
     "method": "spell",
     "prepared": 0,
-    "sourceItem": "class:wizard",
     "activities": {
       "dnd5eactivity000": {
-        "type": "save",
+        "type": "utility",
         "activation": {
           "type": "action",
           "override": false
         },
-        "damage": {
-          "onSave": "half",
-          "parts": []
-        },
-        "save": {
-          "ability": [
-            "wis"
-          ],
-          "dc": {
-            "calculation": "spellcasting"
-          },
-          "visible": true
-        },
         "effects": [
           {
-            "_id": "holdPersonxxxxxx",
-            "level": {},
-            "onSave": false,
-            "uuid": null
+            "_id": "protectionFromEv",
+            "uuid": null,
+            "level": {}
           }
         ],
         "_id": "dnd5eactivity000",
@@ -112,6 +93,7 @@
         },
         "img": null,
         "sort": 0,
+        "behaviors": [],
         "consumption": {
           "scaling": {
             "allowed": false
@@ -124,9 +106,9 @@
         },
         "duration": {
           "units": "inst",
+          "expiry": null,
           "concentration": false,
-          "override": false,
-          "expiry": null
+          "override": false
         },
         "flags": {},
         "range": {
@@ -143,56 +125,35 @@
           "requireIdentification": false,
           "requireMagic": false
         },
-        "behaviors": []
+        "roll": {
+          "prompt": false,
+          "visible": false
+        }
       }
     },
-    "identifier": "hold-person"
+    "identifier": "protection-from-evil-and-good"
   },
   "ownership": {
     "default": 0
   },
-  "img": "icons/magic/control/debuff-energy-hold-blue-yellow.webp",
+  "img": "icons/magic/defensive/shield-barrier-flaming-diamond-blue-yellow.webp",
   "flags": {
-    "plutonium": {
-      "page": "spells.html",
-      "source": "XPHB",
-      "hash": "hold%20person_xphb",
-      "propDroppable": "spell",
-      "spellClassNames": [
-        "Bard",
-        "Cleric",
-        "Druid",
-        "Sorcerer",
-        "Warlock",
-        "Wizard",
-        "Martyr",
-        "Necromancer",
-        "Witch"
-      ]
-    },
-    "dnd5e": {},
     "alivas-box-of-triggers": {
-      "version": 2,
+      "version": 1,
       "match": [
         {
-          "name": "Hold Person",
           "type": "spell",
-          "book": "PHB 2024",
-          "page": "286"
-        },
-        {
-          "name": "Hold Person",
-          "type": "spell",
-          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplHoldPerson"
+          "identifier": "protection-from-evil-and-good",
+          "book": "PHB 2024"
         }
       ]
     }
   },
   "effects": [
     {
-      "_id": "holdPersonxxxxxx",
-      "name": "Paralyzed",
-      "img": "icons/magic/control/debuff-energy-hold-blue-yellow.webp",
+      "_id": "protectionFromEv",
+      "name": "Protected",
+      "img": "icons/magic/defensive/shield-barrier-flaming-diamond-blue-yellow.webp",
       "description": "",
       "system": {
         "changes": [],
@@ -204,44 +165,44 @@
           "message": null
         },
         "conditions": "{}",
-        "magical": true,
+        "magical": false,
         "rider": {
           "statuses": []
         }
       },
-      "statuses": [
-        "paralyzed"
-      ],
+      "statuses": [],
       "disabled": false,
       "duration": {
-        "value": 1,
-        "units": "minutes",
-        "expiry": null,
+        "value": 600,
+        "units": "seconds",
+        "expiry": "turnStart",
         "expired": false
       },
-      "origin": null,
       "transfer": false,
       "flags": {
-        "plutonium": {
-          "dedupeId": "paralyzed"
-        },
         "alivas-engine-of-triggers": {
-          "triggers": [
-            {
-              "label": "Hold Person",
-              "event": "turnEnd",
-              "action": {
-                "type": "save",
-                "ability": "wis",
-                "dc": "source"
-              },
-              "then": "removeOnSuccess"
-            }
-          ]
+          "attackedWith": {
+            "mode": "disadvantage",
+            "attacker": [
+              {
+                "k": "details.type.value",
+                "o": "in",
+                "v": [
+                  "aberration",
+                  "celestial",
+                  "elemental",
+                  "fey",
+                  "fiend",
+                  "undead"
+                ]
+              }
+            ]
+          }
         }
       },
       "type": "base",
       "start": null,
+      "origin": null,
       "tint": "#ffffff",
       "showIcon": 1,
       "folder": null,
@@ -250,27 +211,27 @@
         "coreVersion": "14.368",
         "systemId": "dnd5e",
         "systemVersion": "6.0.5",
-        "createdTime": 1790404238829,
-        "modifiedTime": 1790460199760,
+        "createdTime": 1790662639442,
+        "modifiedTime": 1790662639442,
         "lastModifiedBy": "onrEdnELJB1wlSy1",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!items.effects!cSeZpqoDYXUfd6ZE.holdPersonxxxxxx"
+      "_key": "!items.effects!ggYgO1QPdQftLSVm.protectionFromEv"
     }
   ],
   "_stats": {
-    "systemVersion": "6.0.5",
-    "coreVersion": "14.367",
+    "coreVersion": "14.368",
     "systemId": "dnd5e",
-    "createdTime": 1790404238829,
-    "modifiedTime": 1790404238829,
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662639442,
+    "modifiedTime": 1790662639442,
     "lastModifiedBy": "onrEdnELJB1wlSy1",
     "compendiumSource": null,
     "duplicateSource": null,
     "exportSource": null
   },
   "sort": 0,
-  "_key": "!items!cSeZpqoDYXUfd6ZE"
+  "_key": "!items!ggYgO1QPdQftLSVm"
 }

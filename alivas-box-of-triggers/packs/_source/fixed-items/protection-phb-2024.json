@@ -1,0 +1,219 @@
+{
+  "_id": "tB3wb8adaHfaqrAG",
+  "name": "Protection",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "209",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Protection (PHB 2024 p. 209). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Fighting Style Feature",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "feat",
+      "subtype": "fightingStyle"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Protect",
+        "type": "utility",
+        "activation": {
+          "type": "reaction",
+          "condition": "",
+          "override": false
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "effects": [],
+        "_id": "dnd5eactivity000",
+        "img": null,
+        "sort": 0,
+        "behaviors": [],
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "expiry": null,
+          "concentration": false,
+          "override": false
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        }
+      }
+    },
+    "identifier": "protection",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/melee/strike-weapons-orange.webp",
+  "flags": {
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitBy",
+          "who": "other",
+          "range": 5,
+          "sight": true,
+          "label": "Protection",
+          "activity": "dnd5eactivity000",
+          "filter": [
+            {
+              "k": "subjectIsAlly",
+              "v": true
+            }
+          ],
+          "detail": "needs a Shield: Disadvantage on this and later attacks against them until your next turn",
+          "outcome": {
+            "type": "reroll",
+            "keep": "lower"
+          },
+          "after": {
+            "type": "giveEffect",
+            "effect": "protectionxxxxxx",
+            "to": {
+              "who": "subject"
+            }
+          }
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "protection",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "protectionxxxxxx",
+      "name": "Protected (Fighting Style)",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "sourceStart"
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "attackedWith": {
+            "mode": "disadvantage"
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662636728,
+        "modifiedTime": 1790662636728,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!tB3wb8adaHfaqrAG.protectionxxxxxx"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662636728,
+    "modifiedTime": 1790662636728,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!tB3wb8adaHfaqrAG"
+}

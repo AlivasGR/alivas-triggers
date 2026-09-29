@@ -47,7 +47,7 @@
               "type": "itemUses",
               "value": "-@classes.monk.levels",
               "scaling": {},
-              "target": "wrH2HyyEh61HXqqr"
+              "target": "identifier:focus-point|monks-focus"
             },
             {
               "type": "itemUses",
@@ -136,7 +136,7 @@
       "hash": "uncanny%20metabolism_monk_xphb_2_xphb"
     },
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "type": "feat",

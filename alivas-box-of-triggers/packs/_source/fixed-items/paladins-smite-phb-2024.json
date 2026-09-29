@@ -1,0 +1,145 @@
+{
+  "_id": "5vFxgGVjGVF68KJs",
+  "name": "Paladin's Smite",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "110",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Paladin's Smite (PHB 2024 p. 110). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Paladin 2",
+    "uses": {
+      "max": "1",
+      "recovery": [
+        {
+          "period": "lr",
+          "type": "recoverAll"
+        }
+      ],
+      "spent": 0
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {},
+    "identifier": "paladins-smite",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "modules/plutonium/media/icon/class/phb-paladin.webp",
+  "flags": {
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "label": "Divine Smite (Paladin's Smite)",
+          "cost": {
+            "uses": 1,
+            "level": 1
+          },
+          "filter": [
+            {
+              "k": "attackType",
+              "v": "melee"
+            },
+            {
+              "k": "targetType",
+              "o": "in",
+              "v": [
+                "fiend",
+                "undead"
+              ]
+            }
+          ],
+          "detail": "free (once per Long Rest): 3d8 Radiant against a Fiend or Undead; doubled on a critical hit",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "3d8",
+            "damageType": "radiant",
+            "critDouble": true
+          }
+        },
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "label": "Divine Smite (Paladin's Smite)",
+          "cost": {
+            "uses": 1,
+            "level": 1
+          },
+          "filter": [
+            {
+              "k": "attackType",
+              "v": "melee"
+            },
+            {
+              "o": "NOT",
+              "v": {
+                "k": "targetType",
+                "o": "in",
+                "v": [
+                  "fiend",
+                  "undead"
+                ]
+              }
+            }
+          ],
+          "detail": "free (once per Long Rest): 2d8 Radiant; doubled on a critical hit",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "2d8",
+            "damageType": "radiant",
+            "critDouble": true
+          }
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "paladins-smite",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662627635,
+    "modifiedTime": 1790662627635,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!5vFxgGVjGVF68KJs"
+}

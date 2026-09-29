@@ -1,0 +1,354 @@
+{
+  "_id": "3rcKG5riBt9Y9Iz0",
+  "name": "Rage",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "51",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Rage (PHB 2024 p. 51). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Barbarian 1",
+    "uses": {
+      "max": "@scale.barbarian.rages",
+      "recovery": [
+        {
+          "period": "sr",
+          "type": "formula",
+          "formula": "1"
+        },
+        {
+          "period": "lr",
+          "type": "recoverAll"
+        }
+      ],
+      "spent": 0
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "name": "Expend Rage",
+        "type": "utility",
+        "activation": {
+          "type": "bonus",
+          "value": 1,
+          "override": false
+        },
+        "duration": {
+          "value": "10",
+          "units": "minute",
+          "expiry": null,
+          "concentration": false,
+          "override": false
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "value": "1",
+              "scaling": {}
+            }
+          ],
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "effects": [
+          {
+            "_id": "ragexxxxxxxxxxxx",
+            "level": {}
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "img": null,
+        "sort": 0,
+        "behaviors": [],
+        "description": {
+          "value": ""
+        },
+        "flags": {},
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        }
+      },
+      "extendRage000000": {
+        "_id": "extendRage000000",
+        "type": "utility",
+        "name": "Extend Rage",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      }
+    },
+    "identifier": "rage",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/creatures/abilities/mouth-teeth-human.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "rage",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "ragexxxxxxxxxxxx",
+      "name": "Rage",
+      "img": "icons/creatures/abilities/mouth-teeth-human.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "damage",
+            "type": "dnd5e.bonus",
+            "value": "@scale.barbarian.rage-damage",
+            "phase": "initial",
+            "conditions": "[{\"k\":\"roll.ability\",\"v\":\"str\"},{\"k\":\"roll.attack.type\",\"v\":\"melee\"}]"
+          },
+          {
+            "key": "system.traits.dr.value",
+            "type": "add",
+            "value": "slashing",
+            "phase": "initial"
+          },
+          {
+            "key": "system.traits.dr.value",
+            "type": "add",
+            "value": "piercing",
+            "phase": "initial"
+          },
+          {
+            "key": "system.traits.dr.value",
+            "type": "add",
+            "value": "bludgeoning",
+            "phase": "initial"
+          },
+          {
+            "key": "system.abilities.str.check.roll.mode",
+            "type": "add",
+            "value": "1",
+            "phase": "initial"
+          },
+          {
+            "key": "system.abilities.str.save.roll.mode",
+            "type": "add",
+            "value": "1",
+            "phase": "initial"
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [
+        "rage"
+      ],
+      "disabled": false,
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "noSpells": true,
+          "sustain": {
+            "events": [
+              "attack",
+              "activity"
+            ],
+            "filter": [
+              {
+                "o": "OR",
+                "v": [
+                  {
+                    "k": "event",
+                    "v": "attack"
+                  },
+                  {
+                    "k": "activityType",
+                    "v": "save"
+                  },
+                  {
+                    "k": "activity.name",
+                    "v": "Extend Rage"
+                  }
+                ]
+              }
+            ]
+          },
+          "triggers": [
+            {
+              "label": "Rage",
+              "event": "statusGained",
+              "filter": [
+                {
+                  "o": "OR",
+                  "v": [
+                    {
+                      "k": "gainedStatuses",
+                      "o": "has",
+                      "v": "incapacitated"
+                    },
+                    {
+                      "k": "gainedStatuses",
+                      "o": "has",
+                      "v": "paralyzed"
+                    },
+                    {
+                      "k": "gainedStatuses",
+                      "o": "has",
+                      "v": "petrified"
+                    },
+                    {
+                      "k": "gainedStatuses",
+                      "o": "has",
+                      "v": "stunned"
+                    },
+                    {
+                      "k": "gainedStatuses",
+                      "o": "has",
+                      "v": "unconscious"
+                    }
+                  ]
+                }
+              ],
+              "action": {
+                "type": "note",
+                "text": "Incapacitated."
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662624685,
+        "modifiedTime": 1790662624685,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!3rcKG5riBt9Y9Iz0.ragexxxxxxxxxxxx"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662624685,
+    "modifiedTime": 1790662624686,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!3rcKG5riBt9Y9Iz0"
+}

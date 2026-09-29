@@ -52,7 +52,7 @@
               "type": "itemUses",
               "value": "1",
               "scaling": {},
-              "target": "2dRmPlDL6bYIUwPW"
+              "target": "identifier:psionic-energy-die"
             }
           ],
           "scaling": {
@@ -153,7 +153,7 @@
       ]
     },
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "type": "feat",

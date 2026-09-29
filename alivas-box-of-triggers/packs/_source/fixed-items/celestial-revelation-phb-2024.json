@@ -1,0 +1,471 @@
+{
+  "_id": "n0oZZPBc0t0YC5K7",
+  "name": "Celestial Revelation",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "186",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Celestial Revelation (PHB 2024 p. 186). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Aasimar",
+    "uses": {
+      "max": "1",
+      "recovery": [
+        {
+          "period": "lr",
+          "type": "recoverAll"
+        }
+      ],
+      "spent": 0
+    },
+    "type": {
+      "value": "race",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "revWingsAct00000": {
+        "_id": "revWingsAct00000",
+        "type": "utility",
+        "name": "Heavenly Wings",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "value": "1",
+          "units": "minute",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "revelationWings0",
+            "level": {}
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      },
+      "revRadianceAct00": {
+        "_id": "revRadianceAct00",
+        "type": "utility",
+        "name": "Inner Radiance",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "value": "1",
+          "units": "minute",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "revelationRadian",
+            "level": {}
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      },
+      "revShroudAct0000": {
+        "_id": "revShroudAct0000",
+        "type": "utility",
+        "name": "Necrotic Shroud",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "value": "1",
+          "units": "minute",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "revelationShroud",
+            "level": {}
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "save",
+                "ability": "cha",
+                "dc": "8 + @prof + @abilities.cha.mod",
+                "to": {
+                  "who": "all",
+                  "range": 10,
+                  "side": "notAlly",
+                  "self": false
+                },
+                "failStatus": "frightened",
+                "failUntil": "sourceEnd"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "identifier": "celestial-revelation",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/control/buff-flight-wings-runes-purple-orange.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "celestial-revelation",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "revelationWings0",
+      "name": "Heavenly Wings",
+      "img": "icons/magic/control/buff-flight-wings-runes-purple-orange.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.movement.speeds.fly",
+            "type": "upgrade",
+            "value": "@attributes.movement.speeds.walk",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Celestial Revelation",
+              "event": "dealt",
+              "oncePerTurn": true,
+              "ask": "Deal extra Radiant damage equal to your Proficiency Bonus (once per turn)?",
+              "filter": [
+                {
+                  "k": "bearerTurn",
+                  "v": true
+                },
+                {
+                  "o": "OR",
+                  "v": [
+                    {
+                      "k": "isSpell",
+                      "v": true
+                    },
+                    {
+                      "k": "activity.type",
+                      "v": "attack"
+                    }
+                  ]
+                }
+              ],
+              "action": {
+                "type": "damage",
+                "formula": "@prof",
+                "damageType": "radiant",
+                "to": {
+                  "who": "targets"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!n0oZZPBc0t0YC5K7.revelationWings0"
+    },
+    {
+      "_id": "revelationRadian",
+      "name": "Inner Radiance",
+      "img": "icons/magic/control/buff-flight-wings-runes-purple-orange.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "light": {
+            "bright": 10,
+            "dim": 20,
+            "color": "#fff2b3"
+          },
+          "triggers": [
+            {
+              "label": "Celestial Revelation",
+              "event": "dealt",
+              "oncePerTurn": true,
+              "ask": "Deal extra Radiant damage equal to your Proficiency Bonus (once per turn)?",
+              "filter": [
+                {
+                  "k": "bearerTurn",
+                  "v": true
+                },
+                {
+                  "o": "OR",
+                  "v": [
+                    {
+                      "k": "isSpell",
+                      "v": true
+                    },
+                    {
+                      "k": "activity.type",
+                      "v": "attack"
+                    }
+                  ]
+                }
+              ],
+              "action": {
+                "type": "damage",
+                "formula": "@prof",
+                "damageType": "radiant",
+                "to": {
+                  "who": "targets"
+                }
+              }
+            },
+            {
+              "label": "Inner Radiance",
+              "event": "turnEnd",
+              "action": {
+                "type": "damage",
+                "formula": "@prof",
+                "damageType": "radiant",
+                "to": {
+                  "who": "all",
+                  "range": 10,
+                  "self": false
+                }
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!n0oZZPBc0t0YC5K7.revelationRadian"
+    },
+    {
+      "_id": "revelationShroud",
+      "name": "Necrotic Shroud",
+      "img": "icons/magic/control/buff-flight-wings-runes-purple-orange.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Celestial Revelation",
+              "event": "dealt",
+              "oncePerTurn": true,
+              "ask": "Deal extra Necrotic damage equal to your Proficiency Bonus (once per turn)?",
+              "filter": [
+                {
+                  "k": "bearerTurn",
+                  "v": true
+                },
+                {
+                  "o": "OR",
+                  "v": [
+                    {
+                      "k": "isSpell",
+                      "v": true
+                    },
+                    {
+                      "k": "activity.type",
+                      "v": "attack"
+                    }
+                  ]
+                }
+              ],
+              "action": {
+                "type": "damage",
+                "formula": "@prof",
+                "damageType": "necrotic",
+                "to": {
+                  "who": "targets"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!n0oZZPBc0t0YC5K7.revelationShroud"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662613607,
+    "modifiedTime": 1790662613608,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!n0oZZPBc0t0YC5K7"
+}

@@ -16,8 +16,13 @@ const LIMIT = 450;   // longest text allowed in a published patch (our own effec
 
 /** Our own wording for texts copied from books. */
 const REWRITE = {
-  "Imperceptible Barrier": "+5 AC until the start of your next turn (including against the attack that triggered it); no damage from Magic Missile."
+  "Imperceptible Barrier": "+5 AC until the start of your next turn (including against the attack that triggered it); no damage from Magic Missile.",
+  "Enlarged": "One size larger; Advantage on Strength checks and saves; weapon attacks deal +1d4 damage.",
+  "Reduced": "One size smaller; Disadvantage on Strength checks and saves; weapon attacks deal −1d4 damage.",
+  "Cursed": "Mummy Rot: can't regain Hit Points; Hit Point maximum drops by 3d6 every 24 hours; ends with Remove Curse."
 };
+/** Markup that only appears in text copied from a book or importer (enrichers, references). */
+const COPIED = /\[\[\/|&amp;Reference|&Reference|@UUID|\{@/;
 
 const check = process.argv.includes("--check");
 const problems = [];
@@ -26,6 +31,7 @@ const text = v => String(v ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").
 function scan(o, where, file) {
   if ( typeof o === "string" ) {
     if ( text(o).length > LIMIT ) problems.push(`${file}: ${where} (${text(o).length} chars)`);
+    else if ( /\.description$/.test(where) && COPIED.test(o) ) problems.push(`${file}: ${where} (copied markup)`);
   } else if ( o && (typeof o === "object") ) {
     for ( const [k, v] of Object.entries(o) ) scan(v, `${where}.${k}`, file);
   }
@@ -51,7 +57,10 @@ for ( const dir of fs.readdirSync(ROOT) ) {
         if ( text(a.description?.value).length > 60 ) a.description.value = "";
         if ( text(a.description?.chatFlavor).length > 60 ) a.description.chatFlavor = "";
       }
-      for ( const e of d.effects ?? [] ) if ( REWRITE[e.name] ) e.description = `<p>${REWRITE[e.name]}</p>`;
+      for ( const e of d.effects ?? [] ) {
+        if ( REWRITE[e.name] ) e.description = `<p>${REWRITE[e.name]}</p>`;
+        else if ( COPIED.test(e.description ?? "") ) e.description = "";
+      }
       fs.writeFileSync(p, JSON.stringify(d, null, 2) + "\n");
     }
     if ( !ours ) scan(d, "", `${dir}/${file}`);

@@ -1,30 +1,27 @@
 {
-  "_id": "cSeZpqoDYXUfd6ZE",
-  "name": "Hold Person",
+  "_id": "2IwLFJ9cJ8mA6c7e",
+  "name": "Wrathful Smite",
   "type": "spell",
   "system": {
     "source": {
       "custom": "",
       "book": "PHB 2024",
-      "page": "286",
+      "page": "343",
       "license": "",
       "rules": "2024",
       "revision": 1
     },
     "description": {
-      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Hold Person (PHB 2024 p. 286). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Wrathful Smite (PHB 2024 p. 343). Patched items keep their own description; this entry carries no rules text.</em></p>",
       "chat": ""
     },
-    "level": 2,
-    "school": "enc",
+    "level": 1,
+    "school": "nec",
     "properties": [
-      "vocal",
-      "somatic",
-      "material",
-      "concentration"
+      "vocal"
     ],
     "materials": {
-      "value": "a straight piece of iron",
+      "value": "",
       "consumed": false,
       "cost": 0,
       "supply": 0
@@ -41,18 +38,18 @@
         "stationary": false
       },
       "affects": {
-        "count": "@item.level - 1",
+        "count": "",
         "type": "",
         "choice": false,
         "special": ""
       }
     },
     "range": {
-      "value": "60",
-      "units": "ft"
+      "value": "0",
+      "units": "self"
     },
     "activation": {
-      "type": "action",
+      "type": "bonus",
       "value": 1,
       "condition": ""
     },
@@ -68,16 +65,61 @@
     },
     "method": "spell",
     "prepared": 0,
-    "sourceItem": "class:wizard",
     "activities": {
+      "wrathSmiteAct000": {
+        "_id": "wrathSmiteAct000",
+        "type": "utility",
+        "name": "Wrathful Smite",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": true,
+            "max": ""
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "value": "1",
+          "units": "minute",
+          "concentration": true,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      },
       "dnd5eactivity000": {
         "type": "save",
         "activation": {
-          "type": "action",
+          "type": "special",
           "override": false
         },
         "damage": {
-          "onSave": "half",
+          "onSave": "none",
           "parts": []
         },
         "save": {
@@ -91,10 +133,10 @@
         },
         "effects": [
           {
-            "_id": "holdPersonxxxxxx",
+            "_id": "wrathfulSmitexxx",
+            "uuid": null,
             "level": {},
-            "onSave": false,
-            "uuid": null
+            "onSave": false
           }
         ],
         "_id": "dnd5eactivity000",
@@ -112,11 +154,12 @@
         },
         "img": null,
         "sort": 0,
+        "behaviors": [],
         "consumption": {
           "scaling": {
             "allowed": false
           },
-          "spellSlot": true,
+          "spellSlot": false,
           "targets": []
         },
         "description": {
@@ -124,9 +167,9 @@
         },
         "duration": {
           "units": "inst",
+          "expiry": null,
           "concentration": false,
-          "override": false,
-          "expiry": null
+          "override": false
         },
         "flags": {},
         "range": {
@@ -142,57 +185,65 @@
           "requireAttunement": false,
           "requireIdentification": false,
           "requireMagic": false
-        },
-        "behaviors": []
+        }
       }
     },
-    "identifier": "hold-person"
+    "identifier": "wrathful-smite"
   },
   "ownership": {
     "default": 0
   },
-  "img": "icons/magic/control/debuff-energy-hold-blue-yellow.webp",
+  "img": "icons/magic/fire/dagger-rune-enchant-flame-purple-orange.webp",
   "flags": {
-    "plutonium": {
-      "page": "spells.html",
-      "source": "XPHB",
-      "hash": "hold%20person_xphb",
-      "propDroppable": "spell",
-      "spellClassNames": [
-        "Bard",
-        "Cleric",
-        "Druid",
-        "Sorcerer",
-        "Warlock",
-        "Wizard",
-        "Martyr",
-        "Necromancer",
-        "Witch"
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "configure": true,
+          "label": "Wrathful Smite",
+          "filter": [
+            {
+              "k": "attackType",
+              "v": "melee"
+            }
+          ],
+          "detail": "extra Necrotic damage; Wis save or Frightened",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(@castLevel)d6",
+            "damageType": "necrotic",
+            "critDouble": true
+          },
+          "after": {
+            "type": "useActivity",
+            "activity": "dnd5eactivity000",
+            "to": {
+              "who": "hit"
+            }
+          },
+          "activity": "wrathSmiteAct000"
+        }
       ]
     },
-    "dnd5e": {},
     "alivas-box-of-triggers": {
-      "version": 2,
+      "version": 1,
       "match": [
         {
-          "name": "Hold Person",
           "type": "spell",
-          "book": "PHB 2024",
-          "page": "286"
-        },
-        {
-          "name": "Hold Person",
-          "type": "spell",
-          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplHoldPerson"
+          "identifier": "wrathful-smite",
+          "book": "PHB 2024"
         }
       ]
     }
   },
   "effects": [
     {
-      "_id": "holdPersonxxxxxx",
-      "name": "Paralyzed",
-      "img": "icons/magic/control/debuff-energy-hold-blue-yellow.webp",
+      "_id": "wrathfulSmitexxx",
+      "name": "Frightened",
+      "img": "icons/magic/fire/dagger-rune-enchant-flame-purple-orange.webp",
       "description": "",
       "system": {
         "changes": [],
@@ -204,31 +255,26 @@
           "message": null
         },
         "conditions": "{}",
-        "magical": true,
+        "magical": false,
         "rider": {
           "statuses": []
         }
       },
       "statuses": [
-        "paralyzed"
+        "frightened"
       ],
       "disabled": false,
       "duration": {
-        "value": 1,
-        "units": "minutes",
-        "expiry": null,
-        "expired": false
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
       },
-      "origin": null,
       "transfer": false,
       "flags": {
-        "plutonium": {
-          "dedupeId": "paralyzed"
-        },
         "alivas-engine-of-triggers": {
           "triggers": [
             {
-              "label": "Hold Person",
+              "label": "Wrathful Smite",
               "event": "turnEnd",
               "action": {
                 "type": "save",
@@ -242,6 +288,7 @@
       },
       "type": "base",
       "start": null,
+      "origin": null,
       "tint": "#ffffff",
       "showIcon": 1,
       "folder": null,
@@ -250,27 +297,27 @@
         "coreVersion": "14.368",
         "systemId": "dnd5e",
         "systemVersion": "6.0.5",
-        "createdTime": 1790404238829,
-        "modifiedTime": 1790460199760,
+        "createdTime": 1790662639549,
+        "modifiedTime": 1790662639549,
         "lastModifiedBy": "onrEdnELJB1wlSy1",
         "compendiumSource": null,
         "duplicateSource": null,
         "exportSource": null
       },
-      "_key": "!items.effects!cSeZpqoDYXUfd6ZE.holdPersonxxxxxx"
+      "_key": "!items.effects!2IwLFJ9cJ8mA6c7e.wrathfulSmitexxx"
     }
   ],
   "_stats": {
-    "systemVersion": "6.0.5",
-    "coreVersion": "14.367",
+    "coreVersion": "14.368",
     "systemId": "dnd5e",
-    "createdTime": 1790404238829,
-    "modifiedTime": 1790404238829,
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662639549,
+    "modifiedTime": 1790662639549,
     "lastModifiedBy": "onrEdnELJB1wlSy1",
     "compendiumSource": null,
     "duplicateSource": null,
     "exportSource": null
   },
   "sort": 0,
-  "_key": "!items!cSeZpqoDYXUfd6ZE"
+  "_key": "!items!2IwLFJ9cJ8mA6c7e"
 }

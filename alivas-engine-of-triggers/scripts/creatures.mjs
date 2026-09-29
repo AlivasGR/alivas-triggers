@@ -27,7 +27,9 @@
  *                   bearer / source / subject — that creature from the context
  *     range:      60,        feet from the chooser (empty = any distance)
  *     sight:      true,      only creatures the chooser can see
- *     side:       "any" | "ally" | "enemy",   relative to the chooser (allies include itself)
+ *     side:       "any" | "ally" | "enemy" | "notAlly",   relative to the chooser (allies include itself; notAlly =
+ *                 enemies and neutrals). Also filters who: "targets".
+ *     by:         "source",  (triggers) the effect's source chooses and measures range, not the bearer
  *     self:       true,      may include the chooser (default true)
  *     notSubject: true,      never the triggering creature
  *     count:      1,         choose up to this many (number or formula, e.g. "@prof", on the chooser's data)
@@ -48,8 +50,14 @@ const SOCKET = `module.${MODULE_ID}`;
 export function tokenFor(actor, scene) {
   if ( !actor ) return null;
   if ( actor.token ) return actor.token;
-  scene ??= canvas?.scene ?? game.scenes.active;
-  return scene?.tokens.find(t => t.actorId === actor.id) ?? null;
+  // The given scene, the one this window shows, the active one — then any scene (a GM window may be looking elsewhere).
+  const find = s => s?.tokens.find(t => t.actorId === actor.id) ?? null;
+  for ( const s of [scene, canvas?.scene, game.scenes.active] ) {
+    const t = find(s);
+    if ( t ) return t;
+  }
+  const combatScene = game.combats.find(c => c.started && c.scene && c.combatants.some(cb => cb.actorId === actor.id))?.scene;
+  return find(combatScene) ?? game.scenes.contents.map(find).find(Boolean) ?? null;
 }
 
 /**
@@ -152,8 +160,7 @@ export function findCreatures(from, spec={}, ctx={}) {
     if ( isSelf && (spec.self === false) ) continue;
     if ( spec.notSubject && ctx.subject && (actor.uuid === ctx.subject.uuid) ) continue;
     const rel = relation(from, actor, scene);
-    if ( (spec.side === "ally") && !["self", "ally"].includes(rel) ) continue;
-    if ( (spec.side === "enemy") && (rel !== "enemy") ) continue;
+    if ( !sideMatches(spec.side, rel) ) continue;
     const center = (spec.from === "subject") && ctx.subject ? (tokenFor(ctx.subject, scene) ?? origin) : origin;
     const distance = isSelf ? 0 : (center ? distanceFt(center, t) : 0);
     if ( !isSelf && spec.range && (distance > Number(spec.range)) ) continue;
@@ -162,6 +169,14 @@ export function findCreatures(from, spec={}, ctx={}) {
     found.push({ actor, distance: isSelf ? -1 : distance });
   }
   return found.sort((a, b) => a.distance - b.distance).map(f => f.actor);
+}
+
+/** Does a relation ("self" | "ally" | "enemy" | "neutral") fit a selector side ("any" | "ally" | "enemy" | "notAlly")? */
+function sideMatches(side, rel) {
+  if ( side === "ally" ) return ["self", "ally"].includes(rel);
+  if ( side === "enemy" ) return rel === "enemy";
+  if ( side === "notAlly" ) return !["self", "ally"].includes(rel);
+  return true;
 }
 
 /** Who answers for this creature: its connected player, otherwise the active GM. */
@@ -219,12 +234,14 @@ function selectorCount(selector, chooser) {
  * @returns {Promise<Actor5e[]>}
  */
 export async function selectCreatures(chooser, selector={}, ctx={}) {
+  // by "source": the effect's source chooses (and ranges are measured from it) — Vow of Enmity moving on.
+  if ( (selector.by === "source") && ctx.source ) chooser = ctx.source;
   switch ( selector.who ?? "choose" ) {
     case "self": return chooser ? [chooser] : [];
     case "bearer": return ctx.bearer ? [ctx.bearer] : [];
     case "source": return ctx.source ? [ctx.source] : [];
     case "subject": return ctx.subject ? [ctx.subject] : [];
-    case "targets": return (ctx.targets ?? []).filter(Boolean);
+    case "targets": return (ctx.targets ?? []).filter(a => a && (!selector.side || sideMatches(selector.side, relation(chooser, a))));
     case "all": return findCreatures(chooser, selector, ctx);
     default: return pickCreatures(chooser, findCreatures(chooser, selector, ctx), {
       title: ctx.title, prompt: ctx.prompt, count: selectorCount(selector, chooser)
@@ -234,7 +251,8 @@ export async function selectCreatures(chooser, selector={}, ctx={}) {
 
 /** Plain-language description of a SELECTOR, e.g. "a creature you choose within 60 ft that you can see". */
 export function describeSelector(selector={}, { you="you", bearerWord="the bearer" }={}) {
-  const side = { ally: "ally", enemy: "enemy" }[selector.side] ?? "creature";
+  if ( selector.by === "source" ) you = "the source";
+  const side = { ally: "ally", enemy: "enemy", notAlly: "non-ally" }[selector.side] ?? "creature";
   const within = selector.range ? ` within ${selector.range} ft${selector.from === "subject" ? " of the triggering creature" : ""}` : "";
   const seeing = selector.sight ? ` that ${you} can see` : "";
   const notSubject = selector.notSubject ? " (not the triggering creature)" : "";
@@ -244,7 +262,7 @@ export function describeSelector(selector={}, { you="you", bearerWord="the beare
     case "bearer": return bearerWord;
     case "source": return "the source";
     case "subject": return "the triggering creature";
-    case "targets": return "the targets";
+    case "targets": return selector.side && (selector.side !== "any") ? `the targets that are ${{ ally: "allies", enemy: "enemies", notAlly: "not allies" }[selector.side]}` : "the targets";
     case "all": return `every ${side}${pool}${within}${seeing}${notSubject}`;
     default: {
       const n = selector.count && (String(selector.count) !== "1") ? `up to ${selector.count === "@prof" ? "your proficiency bonus in" : selector.count} ${side === "ally" ? "allies" : side === "enemy" ? "enemies" : "creatures"}` : `${/^[aeiou]/.test(side) ? "an" : "a"} ${side}`;
@@ -306,15 +324,22 @@ export async function removeStatuses(chooser, actors, ids, { choose=false }={}) 
       present = pick ? [pick] : [];
     } else if ( choose ) present = present.slice(0, 1);
     for ( const id of present ) {
-      if ( actor.isOwner ) await actor.toggleStatusEffect(id, { active: false });
-      else game.socket.emit(SOCKET, { type: "toggleStatus", actorUuid: actor.uuid, id, active: false });
+      // A condition Foundry knows is toggled off; a custom one ("tangled", "protective-lights") ends with its effects.
+      if ( CONFIG.statusEffects.some(s => s.id === id) ) {
+        if ( actor.isOwner ) await actor.toggleStatusEffect(id, { active: false });
+        else game.socket.emit(SOCKET, { type: "toggleStatus", actorUuid: actor.uuid, id, active: false });
+      } else {
+        const ids = actor.effects.filter(e => e.statuses?.has(id)).map(e => e.id);
+        if ( actor.isOwner ) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
+        else game.socket.emit(SOCKET, { type: "deleteEffects", actorUuid: actor.uuid, ids });
+      }
       ended.push(`${actor.name}: ${statusName(id)}`);
     }
   }
   return ended;
 }
 
-const statusName = id => game.i18n.localize(CONFIG.statusEffects.find(s => s.id === id)?.name ?? id);
+const statusName = id => game.i18n.localize(CONFIG.statusEffects.find(s => s.id === id)?.name ?? id.replace(/-/g, " "));
 
 /** Give creatures Heroic Inspiration. */
 export async function setInspiration(actors) {
@@ -363,6 +388,88 @@ export async function toggleLight(actor, light) {
     }
   }
   return on;
+}
+
+/**
+ * Set an actor's token light (light) or put back the light it had before (null) — for effects whose light lasts exactly
+ * as long as they do (effect rule `light`).
+ * @param {Actor5e} actor
+ * @param {{bright: number, dim: number, color?: string, animation?: string}|null} light
+ */
+export async function setLight(actor, light) {
+  const tokens = actor.token ? [actor.token] : game.scenes.contents.flatMap(s => s.tokens.filter(t => t.actorLink && (t.actorId === actor.id)));
+  for ( const token of tokens ) {
+    const saved = token.getFlag(MODULE_ID, "savedLight");
+    if ( light ) {
+      const update = { light: { bright: Number(light.bright) || 0, dim: Number(light.dim) || 0, color: light.color ?? null, alpha: 0.4,
+        animation: { type: light.animation ?? "flame", speed: 3, intensity: 3 } } };
+      if ( !saved ) update[`flags.${MODULE_ID}.savedLight`] = token.toObject().light;
+      await moveOrUpdate(token, update);
+    } else if ( saved ) await moveOrUpdate(token, { light: saved, [`flags.${MODULE_ID}.-=savedLight`]: null });
+  }
+}
+
+/** Update a token here, or through the lead GM if this user can't. */
+async function moveOrUpdate(token, update) {
+  if ( token.isOwner ) return token.update(update);
+  game.socket.emit(SOCKET, { type: "updateToken", uuid: token.uuid, update });
+}
+
+/** Move a token straight to a point (forced movement / teleport: no movement cost), here or through the lead GM. */
+async function displaceToken(token, { x, y }) {
+  if ( !token.isOwner ) return game.socket.emit(SOCKET, { type: "displaceToken", uuid: token.uuid, x, y });
+  if ( typeof token.move === "function" ) return token.move([{ x, y, action: "displace" }], { autoRotate: false });
+  return token.update({ x, y }, { teleport: true });
+}
+
+/** Is a grid space free of other creatures' tokens? */
+function spaceFree(token, x, y) {
+  const size = token.parent.grid.size;
+  const w = token.width * size, h = token.height * size;
+  return !token.parent.tokens.some(t => (t.id !== token.id) && t.actor && !t.hidden
+    && (x < t._source.x + (t.width * size)) && (t._source.x < x + w) && (y < t._source.y + (t.height * size)) && (t._source.y < y + h));
+}
+
+/**
+ * Push (or pull, with negative feet) a creature in a straight line away from another, square by square, stopping before
+ * a wall or another creature. Returns the feet actually moved.
+ * @param {Actor5e} from
+ * @param {Actor5e} target
+ * @param {number} feet
+ */
+export async function pushCreature(from, target, feet) {
+  const a = tokenFor(from), b = tokenFor(target, a?.parent);
+  if ( !a || !b || (a.parent !== b.parent) || !feet ) return 0;
+  const scene = b.parent;
+  const size = scene.grid.size;
+  const centre = t => ({ x: t._source.x + (t.width * size / 2), y: t._source.y + (t.height * size / 2) });
+  const ca = centre(a), cb = centre(b);
+  let dx = cb.x - ca.x, dy = cb.y - ca.y;
+  if ( !dx && !dy ) return 0;
+  if ( feet < 0 ) { dx = -dx; dy = -dy; }
+  // Step one square at a time along the nearest of the 8 grid directions.
+  const angle = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) * (Math.PI / 4);
+  const sx = Math.round(Math.cos(angle)), sy = Math.round(Math.sin(angle));
+  const steps = Math.floor(Math.abs(feet) / scene.grid.distance);
+  let pos = { x: b._source.x, y: b._source.y };
+  let moved = 0;
+  const collides = (p, q) => {
+    const backend = CONFIG.Canvas.polygonBackends?.move;
+    if ( !backend || (canvas?.scene !== scene) ) return false;
+    const off = { x: b.width * size / 2, y: b.height * size / 2 };
+    return backend.testCollision({ x: p.x + off.x, y: p.y + off.y }, { x: q.x + off.x, y: q.y + off.y }, { type: "move", mode: "any" });
+  };
+  const rect = scene.dimensions?.sceneRect;
+  const inside = p => !rect || ((p.x >= rect.x) && (p.y >= rect.y) && (p.x + (b.width * size) <= rect.x + rect.width)
+    && (p.y + (b.height * size) <= rect.y + rect.height));
+  for ( let i = 0; i < steps; i++ ) {
+    const next = { x: pos.x + (sx * size), y: pos.y + (sy * size) };
+    if ( !inside(next) || collides(pos, next) || !spaceFree(b, next.x, next.y) ) break;
+    pos = next;
+    moved += scene.grid.distance;
+  }
+  if ( moved ) await displaceToken(b, pos);
+  return moved;
 }
 
 /** The lowest spell slot key ("spell3", "pact") that can cast this spell activity, if it needs one. */
@@ -565,6 +672,35 @@ HANDLERS.pickSpellSlot = async function({ title, spells, slots }) {
   return (result && typeof result === "object") ? result : null;
 };
 
+/**
+ * Teleport a creature's token: its controller picks an unoccupied spot within range (and, with sight, one it can see).
+ * payload: { tokenUuid, range, sight, label } → feet moved, or null if cancelled.
+ */
+HANDLERS.teleport = async function({ tokenUuid, range, sight, label }) {
+  const token = fromUuidSync(tokenUuid);
+  if ( !token?.isOwner || !canvas?.ready || (canvas.scene !== token.parent) ) return null;
+  const Placement = dnd5e.canvas?.TokenPlacement;
+  if ( !Placement ) return null;
+  const size = token.parent.grid.size;
+  for ( let attempt = 0; attempt < 3; attempt++ ) {
+    ui.notifications.info(`${label}: choose where ${token.name} appears (up to ${range} ft${sight ? ", a spot you can see" : ""}).`);
+    let placed;
+    try { placed = await Placement.place({ tokens: [token.toObject()] }); } catch(err) { return null; }
+    const spot = placed?.[0];
+    if ( !spot ) return null;
+    const x = spot.x, y = spot.y;
+    const feet = distanceFt(token, token, { x, y });
+    const centre = { x: x + (token.width * size / 2), y: y + (token.height * size / 2) };
+    const visible = !sight || canvas.visibility?.testVisibility?.(centre, { tolerance: 1, object: token.object }) !== false;
+    if ( (feet <= Number(range)) && spaceFree(token, x, y) && visible ) {
+      await displaceToken(token, { x, y });
+      return feet;
+    }
+    ui.notifications.warn(`${label}: that spot is ${feet > Number(range) ? `${feet} ft away` : (!visible ? "out of sight" : "occupied")} — try again.`);
+  }
+  return null;
+};
+
 /** Show a one-of-several choice; resolves to the chosen value or null. */
 HANDLERS.pickOption = async function({ title, prompt, options }) {
   const choice = await foundry.applications.api.DialogV2.wait({
@@ -647,5 +783,11 @@ Hooks.once("ready", () => {
     else if ( data?.type === "toggleStatus" ) await fromUuidSync(data.actorUuid)?.toggleStatusEffect(data.id, { active: data.active });
     else if ( data?.type === "updateActor" ) await fromUuidSync(data.actorUuid)?.update(data.update);
     else if ( data?.type === "updateCombatants" ) await game.combats.get(data.combatId)?.updateEmbeddedDocuments("Combatant", data.updates);
+    else if ( data?.type === "updateToken" ) await fromUuidSync(data.uuid)?.update(data.update);
+    else if ( data?.type === "deleteEffects" ) await fromUuidSync(data.actorUuid)?.deleteEmbeddedDocuments("ActiveEffect", data.ids ?? []);
+    else if ( data?.type === "displaceToken" ) {
+      const token = fromUuidSync(data.uuid);
+      if ( token ) await displaceToken(token, { x: data.x, y: data.y });
+    }
   });
 });

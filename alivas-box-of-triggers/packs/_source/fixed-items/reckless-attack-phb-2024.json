@@ -1,0 +1,170 @@
+{
+  "_id": "HS52oOPmsEXdM9GK",
+  "name": "Reckless Attack",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "52",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Reckless Attack (PHB 2024 p. 52). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Barbarian 2",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "recklessAct00000": {
+        "_id": "recklessAct00000",
+        "type": "utility",
+        "name": "Attack Recklessly",
+        "sort": 0,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "3rBotDDr4eOgKBSs",
+            "level": {}
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      }
+    },
+    "identifier": "reckless-attack",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/melee/strike-axe-blood-red.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "reckless-attack",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "3rBotDDr4eOgKBSs",
+      "name": "Reckless Attack",
+      "img": "icons/skills/melee/strike-axe-blood-red.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "attack",
+            "type": "dnd5e.advantage",
+            "value": "1",
+            "phase": "initial",
+            "conditions": "[{\"k\":\"roll.ability\",\"v\":\"str\"}]"
+          }
+        ]
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnStart"
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "attackedWith": {
+            "mode": "advantage"
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662625458,
+        "modifiedTime": 1790662625458,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!HS52oOPmsEXdM9GK.3rBotDDr4eOgKBSs"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662625458,
+    "modifiedTime": 1790662625458,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!HS52oOPmsEXdM9GK"
+}

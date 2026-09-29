@@ -1,0 +1,287 @@
+{
+  "_id": "MfPFPgMDgiD4rVyx",
+  "name": "Step of the Wind",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "101",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Step of the Wind (PHB 2024 p. 101). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Monk 2",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "stepDashAct00000": {
+        "_id": "stepDashAct00000",
+        "type": "utility",
+        "name": "Step of the Wind",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "stepDash00000000",
+            "level": {}
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      },
+      "stepFocusAct0000": {
+        "_id": "stepFocusAct0000",
+        "type": "utility",
+        "name": "Step of the Wind (Focus Point)",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "identifier:focus-point|monks-focus",
+              "value": "1",
+              "scaling": {}
+            }
+          ]
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "stepDash00000000",
+            "level": {}
+          },
+          {
+            "_id": "stepDisengage000",
+            "level": {}
+          },
+          {
+            "_id": "stepJump00000000",
+            "level": {}
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      }
+    },
+    "identifier": "step-of-the-wind",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/movement/feet-winged-sandals-tan.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "step-of-the-wind",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "stepDash00000000",
+      "name": "Dash",
+      "img": "icons/skills/movement/feet-winged-sandals-tan.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.movement.speeds.walk",
+            "type": "multiply",
+            "value": "2",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.fly",
+            "type": "multiply",
+            "value": "2",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.swim",
+            "type": "multiply",
+            "value": "2",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.climb",
+            "type": "multiply",
+            "value": "2",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!MfPFPgMDgiD4rVyx.stepDash00000000"
+    },
+    {
+      "_id": "stepDisengage000",
+      "name": "Disengaged",
+      "img": "icons/skills/movement/feet-winged-sandals-tan.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "disengaged": true
+        }
+      },
+      "_key": "!items.effects!MfPFPgMDgiD4rVyx.stepDisengage000"
+    },
+    {
+      "_id": "stepJump00000000",
+      "name": "Jump Doubled",
+      "img": "icons/skills/movement/feet-winged-sandals-tan.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.movement.speeds.jump",
+            "type": "multiply",
+            "value": "2",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!MfPFPgMDgiD4rVyx.stepJump00000000"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662626630,
+    "modifiedTime": 1790662626630,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!MfPFPgMDgiD4rVyx"
+}

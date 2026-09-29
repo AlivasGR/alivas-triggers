@@ -1,0 +1,1355 @@
+{
+  "_id": "AVZWeGQj0rYmEujn",
+  "name": "Guidance",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "282",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Guidance (PHB 2024 p. 282). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 0,
+    "school": "div",
+    "properties": [
+      "vocal",
+      "somatic",
+      "concentration"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "contiguous": false,
+        "type": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "1",
+        "type": "willing",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "touch"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 2,
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "utility",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "guidancexxxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance1xxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance2xxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance3xxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance4xxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance5xxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance6xxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance7xxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance8xxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance9xxxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance10xxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance11xxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance12xxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance13xxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance14xxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance15xxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance16xxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "guidance17xxxxxx",
+            "uuid": null,
+            "level": {}
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "behaviors": [],
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "expiry": null,
+          "concentration": false,
+          "override": false
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "chooseEffects": {
+              "count": "1"
+            }
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        }
+      }
+    },
+    "identifier": "guidance"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/control/buff-flight-wings-blue.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "spell",
+          "identifier": "guidance",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "guidancexxxxxxxx",
+      "name": "Acrobatic Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.acr.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "WZxtbS0hQuod7qqu",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidancexxxxxxxx"
+    },
+    {
+      "_id": "guidance1xxxxxxx",
+      "name": "Animal Handling Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.ani.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "sPw3Z5E5tiYWPUQY",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance1xxxxxxx"
+    },
+    {
+      "_id": "guidance2xxxxxxx",
+      "name": "Arcana Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.arc.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "NA8mkRZmnXJaOQAL",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance2xxxxxxx"
+    },
+    {
+      "_id": "guidance3xxxxxxx",
+      "name": "Athletic Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.ath.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "EB1ylvaGKJxmXArO",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance3xxxxxxx"
+    },
+    {
+      "_id": "guidance4xxxxxxx",
+      "name": "Deception Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.dec.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "mhL3M34qRdroC2Dd",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance4xxxxxxx"
+    },
+    {
+      "_id": "guidance5xxxxxxx",
+      "name": "History Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.his.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "h9O5tpNgbaXPxDTU",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance5xxxxxxx"
+    },
+    {
+      "_id": "guidance6xxxxxxx",
+      "name": "Insight Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.ins.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "gnbQMaldZFEjuost",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance6xxxxxxx"
+    },
+    {
+      "_id": "guidance7xxxxxxx",
+      "name": "Investigation Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.inv.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "x72hylnzFauBWFeW",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance7xxxxxxx"
+    },
+    {
+      "_id": "guidance8xxxxxxx",
+      "name": "Intimidation Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.itm.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "peFj4HB9aXY1qA4r",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance8xxxxxxx"
+    },
+    {
+      "_id": "guidance9xxxxxxx",
+      "name": "Medicine Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.med.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "dsClOIOBqrLQZYsn",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance9xxxxxxx"
+    },
+    {
+      "_id": "guidance10xxxxxx",
+      "name": "Nature Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.nat.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "Yf4EveepureFhAnV",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance10xxxxxx"
+    },
+    {
+      "_id": "guidance11xxxxxx",
+      "name": "Persuasion Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.per.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "LoEy6Eh04GlvyNCt",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance11xxxxxx"
+    },
+    {
+      "_id": "guidance12xxxxxx",
+      "name": "Perception Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.prc.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "xDJn2V2qU5FwsYo9",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance12xxxxxx"
+    },
+    {
+      "_id": "guidance13xxxxxx",
+      "name": "Performance Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.prf.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "iYvHlhZR6xNrm2RD",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance13xxxxxx"
+    },
+    {
+      "_id": "guidance14xxxxxx",
+      "name": "Religion Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.rel.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "LLtdBEnV7bLa9GDi",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance14xxxxxx"
+    },
+    {
+      "_id": "guidance15xxxxxx",
+      "name": "Sleight of Hand Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.slt.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "hljFbyb8zecokKha",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance15xxxxxx"
+    },
+    {
+      "_id": "guidance16xxxxxx",
+      "name": "Stealth Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.ste.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "eIxTZ7yRG9XGR2TI",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance16xxxxxx"
+    },
+    {
+      "_id": "guidance17xxxxxx",
+      "name": "Survival Guidance",
+      "img": "icons/magic/control/buff-flight-wings-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "system.skills.sur.bonuses.check",
+            "type": "add",
+            "value": "1d4",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "zCoSgHLSejgi5g2c",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639668,
+        "modifiedTime": 1790662639668,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!AVZWeGQj0rYmEujn.guidance17xxxxxx"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662639668,
+    "modifiedTime": 1790662639670,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!AVZWeGQj0rYmEujn"
+}

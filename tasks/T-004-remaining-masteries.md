@@ -25,5 +25,8 @@ masteries as generic handlers.
 - [ ] Handlers + editor option for the activity `mastery` flag (offline, `node --check`)
 - [ ] Each mastery tested with a weapon that has it (live)
 
+## Notes
+- 2026-09-29: the engine now has `Creatures.pushCreature` (straight line, stops at walls, creatures and the map edge) and a `push` action — use them for Push.
+
 ## Log
 - 2026-09-29 — maintainer: task written.

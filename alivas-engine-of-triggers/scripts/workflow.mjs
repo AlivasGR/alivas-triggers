@@ -98,11 +98,14 @@ export async function resolveSave(activity, targets, { usage=null, label, origin
     }
   }
 
-  // Effects: on a failure; on a success only those marked "also on a successful save".
+  // Effects: on a failure; on a success only those marked "also on a successful save". With chooseEffects the user
+  // picks which ones first (Command's order).
   if ( deps.setting("autoApplyEffects") && activity.effects?.length && usage ) {
+    const chosen = (activity.flags?.[MODULE_ID]?.chooseEffects && results.some(r => (r.total !== null) && !r.success))
+      ? await deps.chooseProfiles(activity) : activity.effects;
     for ( const r of results ) {
       if ( r.total === null ) continue;
-      const profiles = activity.effects.filter(p => !r.success || p.onSave);
+      const profiles = chosen.filter(p => !r.success || p.onSave);
       if ( profiles.length ) await deps.autoApply(activity, r.actor, profiles, usage);
     }
   }
@@ -344,7 +347,10 @@ export async function attackLanded(activity, hit, roll) {
 
 async function rollHitDamage(activity, hit, roll) {
   if ( !activity.damage?.parts?.length ) return;
-  const rolls = await activity.rollDamage({ isCritical: !!roll?.isCritical }, { configure: false }, { data: {
+  // The attack's mode (two-handed, off-hand, thrown…) carries over: versatile damage and mode-based rules depend on it.
+  const mode = { isCritical: !!roll?.isCritical };
+  if ( roll?.options?.attackMode ) mode.attackMode = roll.options.attackMode;
+  const rolls = await activity.rollDamage(mode, { configure: false }, { data: {
     system: { targets: hit.flatMap(descriptors) }
   } });
   if ( !rolls?.length || (deps.setting("triggerDamage") !== "auto") ) return;

@@ -1,0 +1,311 @@
+{
+  "_id": "Y99PwypSpYLRiI7M",
+  "name": "Command",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "251",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Command (PHB 2024 p. 251). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 1,
+    "school": "enc",
+    "properties": [
+      "vocal"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "contiguous": false,
+        "type": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "@item.level",
+        "type": "creature",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "60",
+      "units": "ft"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "0",
+      "units": "inst",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "save",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "damage": {
+          "onSave": "half",
+          "parts": []
+        },
+        "save": {
+          "ability": [
+            "wis"
+          ],
+          "dc": {
+            "calculation": "spellcasting"
+          },
+          "visible": true
+        },
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "behaviors": [],
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "expiry": null,
+          "concentration": false,
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "commandApproach0",
+            "onSave": false
+          },
+          {
+            "_id": "commandDrop00000",
+            "onSave": false
+          },
+          {
+            "_id": "commandFlee00000",
+            "onSave": false
+          },
+          {
+            "_id": "commandGrovel000",
+            "onSave": false
+          },
+          {
+            "_id": "commandHalt00000",
+            "onSave": false
+          }
+        ],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "chooseEffects": {
+              "count": "1"
+            }
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    },
+    "identifier": "command"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/social/wave-halt-stop.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "spell",
+          "identifier": "command",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "commandApproach0",
+      "name": "Command: Approach",
+      "img": "icons/skills/social/wave-halt-stop.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!Y99PwypSpYLRiI7M.commandApproach0"
+    },
+    {
+      "_id": "commandDrop00000",
+      "name": "Command: Drop",
+      "img": "icons/skills/social/wave-halt-stop.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!Y99PwypSpYLRiI7M.commandDrop00000"
+    },
+    {
+      "_id": "commandFlee00000",
+      "name": "Command: Flee",
+      "img": "icons/skills/social/wave-halt-stop.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!Y99PwypSpYLRiI7M.commandFlee00000"
+    },
+    {
+      "_id": "commandGrovel000",
+      "name": "Command: Grovel",
+      "img": "icons/skills/social/wave-halt-stop.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "prone"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!Y99PwypSpYLRiI7M.commandGrovel000"
+    },
+    {
+      "_id": "commandHalt00000",
+      "name": "Command: Halt",
+      "img": "icons/skills/social/wave-halt-stop.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!Y99PwypSpYLRiI7M.commandHalt00000"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662639273,
+    "modifiedTime": 1790662639274,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!Y99PwypSpYLRiI7M"
+}

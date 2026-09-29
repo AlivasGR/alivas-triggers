@@ -64,10 +64,34 @@
  *                                     any die >= threshold destroys one and that attack's damage is blocked.
  *                                     Remaining count lives on the effect (flag "remaining")
  *   restoreDuplicates { count }       duplicates reappear: remaining goes back to count (only if any were lost)
+ *   random { formula, results: [{ roll: "1" | "2-3", effect, label }], to }
+ *                                     roll on a table; the matching row's effect (from this item) goes to `to` (Wild Surge)
+ *   teleport { range, sight, to }     the creature's controller picks a spot within range (that it can see) and it moves there
+ *   push { distance, to, from }       move creatures straight away from the bearer (from "source": the effect's source);
+ *                                     negative pulls; stops at walls and creatures (Thunderous Smite)
+ *   sense { range, creatures, items } whisper what's within range: creatures passing the filter (pinged), and with
+ *                                     items "magic", magic items and spells on them (Divine Sense, Magic Awareness)
+ *
+ * Trigger options: ask (yes/no question first), needsUses (its item must have a use left), oncePerTurn (at most once
+ * per combat turn), every (interval seconds). Filter data also has bearerTurn, subjectIsAlly, subjectIsEnemy (the
+ * subject — attacker, area creature… — relative to the bearer). A giveEffect selector with by: "source" lets the
+ * effect's source choose.
+ *
+ * Effect rules (flags on the effect, besides triggers — see also the editor's Effect rules section):
+ *   reduceDamage { formula, types, oncePerTurn }   incoming damage of those types reduced by the roll (Resistance)
+ *   damageDice { min, filter }                     the bearer's damage dice count below `min` as `min` (Great Weapon
+ *                                                  Fighting); filter on the damage roll data (roll.attack.type…)
+ *   attackedWith { mode, once, by, attacker }      by: uuid or "source"; attacker: filter on the attacker's roll data
+ *   attacksWith { mode, once, unlessTarget }       unlessTarget "source": not against the effect's source (Compelled Duel)
+ *   light { bright, dim, color }                   the bearer's token sheds this light while the effect lasts
+ *   noSpells                                       the bearer can't cast spells; concentration ends when it's applied
+ *   sustain { events, filter }                     ends at the end of the bearer's turn unless it did one of the events
+ *                                                  during it (Rage: attack, force a save, extend)
  *
  * Activity flags (flags.alivas-engine-of-triggers on the activity):
  *   onUse: [action, …]   actions run right after the activity is used, by the user — the same action formats as
  *                        triggers (giveEffect, removeStatus, inspire…); "targets" means the user's targets.
+ *   onHit: [action, …]   (attacks) actions run after its hits are settled; "targets" = the creatures it hit (Hungry Jaws)
  *                        Example (Lesser Restoration): { type: "removeStatus", statuses: ["blinded", "deafened",
  *                        "paralyzed", "poisoned"], to: { who: "targets" }, choose: true }
  *   chooseEffects: { count }   the user picks which of the activity's effects to apply (count: formula, e.g.
@@ -136,6 +160,9 @@ Hooks.on("preCreateActiveEffect", effect => {
 /** Triggers currently resolving, keyed by effect uuid, so one action can't fire twice. */
 const inFlight = new Set();
 
+/** oncePerTurn triggers that ran: "effect uuid|index" → turn key. */
+const triggerTurns = new Map();
+
 /** Attacks absorbed by a duplicate: "actorUuid|activityUuid" → timestamp. Their damage is blocked once. */
 const absorbed = new Map();
 const ABSORB_WINDOW = 5 * 60 * 1000;
@@ -197,6 +224,7 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
     }
   }
   await Workflow.attackLanded(subject, landed, roll);
+  if ( landed.length ) await runOnUse(subject, landed, "onHit");
 });
 
 /**
@@ -275,8 +303,13 @@ Hooks.on("updateActiveEffect", (effect, changed) => {
   if ( effect.active ) syncEffectArea(effect);
   else removeEffectAreas(owner => owner === effect.uuid);
 });
-Hooks.on("deleteActiveEffect", effect => {
-  if ( Creatures.isLeadGM() && effect.getFlag(MODULE_ID, "area") ) removeEffectAreas(owner => owner === effect.uuid);
+Hooks.on("deleteActiveEffect", async effect => {
+  if ( !Creatures.isLeadGM() || !effect.getFlag(MODULE_ID, "area") ) return;
+  // The creatures inside count as leaving it (their "while inside" effects end with it).
+  for ( const scene of game.scenes ) {
+    for ( const region of scene.regions.filter(r => r.getFlag(MODULE_ID, "area") === effect.uuid) ) await Areas.releaseArea(region, effect);
+  }
+  removeEffectAreas(owner => owner === effect.uuid);
 });
 Hooks.on("createToken", token => {
   if ( !Creatures.isLeadGM() || !token.actor ) return;
@@ -418,33 +451,148 @@ Hooks.on("updateWorldTime", async (worldTime, delta) => {
 });
 
 /**
- * Effect rule `attackedWith: { mode: "advantage"|"disadvantage", once }` (Dodge; Stunning Strike's slowed target):
- * attack rolls against the bearer have that mode; with `once`, the effect ends after the next attack against it.
+ * Effect rule `attackedWith: { mode: "advantage"|"disadvantage", once, by, attacker }` (Dodge; Stunning Strike's slowed
+ * target; Vow of Enmity; Protection from Evil and Good): attack rolls against the bearer have that mode; with `once`, the
+ * effect ends after the next attack against it. `by`: only attacks by that creature — an actor uuid, or "source" (the
+ * creature that applied the effect). `attacker`: a filter on the attacker's roll data (e.g. its creature type).
  */
+function attackedRuleApplies(rule, effect, attacker) {
+  if ( !rule?.mode ) return false;
+  if ( rule.by === "source" ) { if ( effect.getSourceActor?.()?.uuid !== attacker?.uuid ) return false; }
+  else if ( rule.by && (rule.by !== attacker?.uuid) ) return false;
+  if ( rule.attacker?.length && !dnd5e.Filter.performCheck(attacker?.getRollData?.() ?? {}, rule.attacker) ) return false;
+  return true;
+}
+
+/**
+ * Effect rule `attacksWith: { mode, once, unlessTarget }` (Steady Aim, hidden, sapped; Compelled Duel): the bearer's own
+ * attack rolls have that mode. `unlessTarget: "source"`: not against the creature that applied the effect.
+ */
+function attacksRuleApplies(rule, effect, targets) {
+  if ( !rule?.mode ) return false;
+  if ( rule.unlessTarget === "source" ) {
+    const source = effect.getSourceActor?.();
+    if ( source && targets.length && targets.every(a => a.uuid === source.uuid) ) return false;
+  }
+  return true;
+}
+
 Hooks.on("dnd5e.preRollAttackV2", config => {
   const attacker = config.subject?.actor;
   const apply = rule => {
     if ( rule?.mode === "advantage" ) config.advantage = true;
     if ( rule?.mode === "disadvantage" ) config.disadvantage = true;
   };
-  for ( const token of game.user.targets ?? [] ) {
-    for ( const effect of token.actor?.appliedEffects ?? [] ) {
+  const targets = Array.from(game.user.targets ?? [], t => t.actor).filter(Boolean);
+  for ( const target of targets ) {
+    for ( const effect of target.appliedEffects ?? [] ) {
       const rule = effect.getFlag(MODULE_ID, "attackedWith");
-      if ( rule && (!rule.by || (rule.by === attacker?.uuid)) ) apply(rule);
+      if ( attackedRuleApplies(rule, effect, attacker) ) apply(rule);
     }
   }
-  // attacksWith: the bearer's own attacks (Steady Aim, hidden, sapped).
-  for ( const effect of attacker?.appliedEffects ?? [] ) apply(effect.getFlag(MODULE_ID, "attacksWith"));
+  for ( const effect of attacker?.appliedEffects ?? [] ) {
+    const rule = effect.getFlag(MODULE_ID, "attacksWith");
+    if ( attacksRuleApplies(rule, effect, targets) ) apply(rule);
+  }
 });
 Hooks.on("dnd5e.rollAttackV2", (rolls, { subject }={}) => {
   const attacker = subject?.actor;
-  for ( const token of game.user.targets ?? [] ) {
-    for ( const effect of token.actor?.appliedEffects ?? [] ) {
+  const targets = Array.from(game.user.targets ?? [], t => t.actor).filter(Boolean);
+  for ( const target of targets ) {
+    for ( const effect of target.appliedEffects ?? [] ) {
       const rule = effect.getFlag(MODULE_ID, "attackedWith");
-      if ( rule?.once && (!rule.by || (rule.by === attacker?.uuid)) ) deleteEffectAs(effect);
+      if ( rule?.once && attackedRuleApplies(rule, effect, attacker) ) deleteEffectAs(effect);
     }
   }
-  for ( const effect of attacker?.appliedEffects ?? [] ) if ( effect.getFlag(MODULE_ID, "attacksWith")?.once ) deleteEffectAs(effect);
+  for ( const effect of attacker?.appliedEffects ?? [] ) {
+    const rule = effect.getFlag(MODULE_ID, "attacksWith");
+    if ( rule?.once && attacksRuleApplies(rule, effect, targets) ) deleteEffectAs(effect);
+  }
+});
+
+/**
+ * Effect rule `light: { bright, dim, color, animation }` (Inner Radiance, Sacred Weapon): the bearer's token sheds that
+ * light while the effect is on it; its previous light comes back when the effect ends.
+ */
+const lightRule = effect => (effect.active && (effect.parent instanceof Actor)) ? effect.getFlag(MODULE_ID, "light") : null;
+async function refreshLight(actor) {
+  const current = (actor.appliedEffects ?? []).map(lightRule).find(Boolean) ?? null;
+  await Creatures.setLight(actor, current);
+}
+Hooks.on("createActiveEffect", (effect, options, userId) => {
+  if ( (userId === game.userId) && lightRule(effect) ) refreshLight(effect.parent);
+});
+Hooks.on("deleteActiveEffect", (effect, options, userId) => {
+  if ( (userId === game.userId) && (effect.parent instanceof Actor) && effect.getFlag(MODULE_ID, "light") ) refreshLight(effect.parent);
+});
+
+/**
+ * Effect rule `noSpells: true` (Rage): the bearer can't cast spells, and loses concentration when it gains the effect.
+ */
+Hooks.on("dnd5e.preUseActivity", activity => {
+  const actor = activity?.actor;
+  if ( !actor || !((activity.item?.type === "spell") || (activity.type === "cast")) ) return;
+  const blocker = actor.appliedEffects?.find(e => e.getFlag(MODULE_ID, "noSpells"));
+  if ( !blocker ) return;
+  ui.notifications.warn(`${actor.name} can't cast spells (${blocker.name}).`);
+  return false;
+});
+Hooks.on("createActiveEffect", async (effect, options, userId) => {
+  if ( (userId !== game.userId) || !effect.getFlag(MODULE_ID, "noSpells") || !(effect.parent instanceof Actor) ) return;
+  const actor = effect.parent;
+  if ( !actor.concentration?.effects?.size ) return;
+  const names = Array.from(actor.concentration.effects).map(e => e.name);
+  await actor.endConcentration();
+  await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }),
+    content: `<p><strong>${effect.name}</strong>: ${actor.name} can't concentrate — ${names.join(", ")} ends.</p>` });
+});
+
+/**
+ * Effect rule `sustain: { events, filter }` (Rage): once the bearer's turn has started with the effect on, it ends at
+ * the end of that turn unless during it the bearer did one of the events (and the filter passed) — e.g. attacked,
+ * forced a save, or used an "extend" activity. Put on during the bearer's own turn, it lasts to the end of the next.
+ */
+async function sustainTurnStart(actor) {
+  for ( const effect of actor?.appliedEffects ?? [] ) {
+    if ( effect.getFlag(MODULE_ID, "sustain") && effect.parent?.isOwner ) await effect.setFlag(MODULE_ID, "sustainPending", true);
+  }
+}
+async function sustainTurnEnd(actor) {
+  for ( const effect of [...(actor?.appliedEffects ?? [])] ) {
+    if ( !effect.getFlag(MODULE_ID, "sustain") || !effect.getFlag(MODULE_ID, "sustainPending") ) continue;
+    await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }),
+      content: `<p><strong>${effect.name}</strong> ends: ${actor.name} didn't keep it going this turn.</p>` });
+    await effect.delete();
+  }
+}
+async function sustainOnEvent(event, bearer, context) {
+  const combat = combatOf(bearer);
+  if ( !combat || (combat.combatant?.actor?.uuid !== bearer.uuid) ) return;
+  for ( const effect of bearer.appliedEffects ?? [] ) {
+    const rule = effect.getFlag(MODULE_ID, "sustain");
+    if ( !rule || !effect.getFlag(MODULE_ID, "sustainPending") || !(rule.events ?? []).includes(event) ) continue;
+    if ( !passesFilter({ filter: rule.filter }, event, context, bearer, effect) ) continue;
+    await effect.setFlag(MODULE_ID, "sustainPending", false);
+  }
+}
+
+/**
+ * Effect rule `damageDice: { min, filter }` (Great Weapon Fighting): the bearer's damage dice treat any roll below `min`
+ * as `min`, for damage rolls whose roll data passes the filter (e.g. a melee attack made two-handed).
+ */
+Hooks.on("dnd5e.preRollDamageV2", config => {
+  const actor = config.subject?.actor;
+  const rules = (actor?.appliedEffects ?? []).map(e => e.getFlag(MODULE_ID, "damageDice")).filter(r => Number(r?.min) > 1);
+  if ( !rules.length ) return;
+  for ( const roll of config.rolls ?? [] ) {
+    if ( roll.options?.type in CONFIG.DND5E.healingTypes ) continue;
+    const data = roll.data ?? config.subject?.getRollData?.() ?? actor.getRollData();
+    const rule = rules.find(r => !r.filter?.length || dnd5e.Filter.performCheck(data, r.filter));
+    if ( !rule ) continue;
+    // dnd5e re-adds its rules bonus unless the "@ruleBonus" part is still there as written.
+    roll.parts = (roll.parts ?? []).map(p => String(p).includes("@ruleBonus") ? p
+      : CONFIG.Dice.BasicRoll.replaceFormulaData(String(p), data, { missing: 0 }).replace(/(\d*d\d+)(?![\dd]|min)/g, `$1min${Number(rule.min)}`));
+  }
 });
 
 /**
@@ -458,7 +606,7 @@ Hooks.on("dnd5e.preRollDamageV2", config => {
     if ( !(roll.options?.type in CONFIG.DND5E.healingTypes) ) continue;
     // Resolve references first (@scale.monk.die → 1d8) so the die itself can be changed.
     const data = roll.data ?? config.subject?.getRollData?.() ?? actor.getRollData();
-    roll.parts = (roll.parts ?? []).map(p => Workflow.healingDieFormula(actor,
+    roll.parts = (roll.parts ?? []).map(p => String(p).includes("@ruleBonus") ? p : Workflow.healingDieFormula(actor,
       CONFIG.Dice.BasicRoll.replaceFormulaData(String(p), data, { missing: 0 })));
   }
 });
@@ -909,10 +1057,51 @@ async function beforeDamage(actor, damages, options) {
       content: `<p><strong>${held.labels.join(", ")}</strong>: ${actor.name} takes ${after} instead of ${before}.</p>`
     });
   }
+  damages = await reduceDamage(actor, damages);
   if ( setting("reactions") && Array.isArray(damages) && !options[MODULE_ID]?.reacted ) {
     damages = await Reactions.damageIncoming(actor, damages, { fromAttack: activity?.type === "attack" });
   }
   return { damages, options: { ...options, [MODULE_ID]: { ...(options[MODULE_ID] ?? {}), reacted: true } } };
+}
+
+/** "combat:round:turn" of the running combat this creature is in, or null out of combat. */
+function turnKeyFor(actor) {
+  const combat = combatOf(actor);
+  return combat ? `${combat.id}:${combat.round}:${combat.turn}` : null;
+}
+
+/** Effects whose once-per-turn reduction was used: effect uuid → turn key. */
+const reductionUsed = new Map();
+
+/**
+ * Effect rule `reduceDamage: { formula, types, oncePerTurn }` (Resistance, Heavy Armor Master): damage of those types
+ * (any type if none are listed) is reduced by the formula's roll (the bearer's roll data) before resistances apply.
+ */
+async function reduceDamage(actor, damages) {
+  if ( !Array.isArray(damages) ) return damages;
+  let out = damages.map(d => ({ ...d }));
+  for ( const effect of actor.appliedEffects ?? [] ) {
+    const rule = effect.getFlag(MODULE_ID, "reduceDamage");
+    if ( !rule?.formula ) continue;
+    const types = rule.types?.length ? rule.types : null;
+    const matching = out.filter(d => ((Number(d.value) || 0) > 0) && !(d.type in CONFIG.DND5E.healingTypes)
+      && (!types || types.includes(d.type)));
+    if ( !matching.length ) continue;
+    const turn = rule.oncePerTurn ? turnKeyFor(actor) : null;
+    if ( turn && (reductionUsed.get(effect.uuid) === turn) ) continue;
+    const roll = await new Roll(String(rule.formula), actor.getRollData()).evaluate();
+    let left = Math.max(0, roll.total);
+    const before = matching.reduce((s, d) => s + Number(d.value), 0);
+    for ( const d of matching ) {
+      const cut = Math.min(left, Number(d.value));
+      d.value = Number(d.value) - cut;
+      left -= cut;
+    }
+    if ( turn ) reductionUsed.set(effect.uuid, turn);
+    await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor }),
+      flavor: `${effect.name}: ${actor.name}'s damage is reduced by ${Math.min(roll.total, before)}` });
+  }
+  return out;
 }
 
 /**
@@ -981,7 +1170,7 @@ Hooks.once("setup", () => {
     if ( (lost > 0) && (this.system.attributes?.hp?.value === 0) ) await dropSave(this, damages, options, damageTaken(this, damages, options, lost));
     if ( (lost > 0) && activity?.actor && (activity.actor !== this) ) {
       const item = activity.item;
-      fire("dealt", activity.actor, { activity, targets: [this], data: {
+      fire("dealt", activity.actor, { activity, targets: [this], subject: this, data: {
         amount: lost, identifier: item?.system?.identifier ?? "", isSpell: item?.type === "spell",
         spellLevel: item?.type === "spell" ? item.system.level : null
       } });
@@ -1076,12 +1265,14 @@ Hooks.once("setup", () => {
     await onStart.call(this, combatant, context);
     if ( !mine(this) ) return;
     await Reactions.resetReaction(combatant);
+    await sustainTurnStart(combatant?.actor);
     await fire("turnStart", combatant?.actor, { combat: this, combatant });
     await fireForCombat(this, "sourceTurnStart", { combatant, sourceActor: combatant?.actor });
   };
   proto._onEndTurn = async function(combatant, context) {
     await onEnd.call(this, combatant, context);
     if ( !mine(this) ) return;
+    await sustainTurnEnd(combatant?.actor);
     await fire("turnEnd", combatant?.actor, { combat: this, combatant });
     await fireForCombat(this, "sourceTurnEnd", { combatant, sourceActor: combatant?.actor });
   };
@@ -1184,6 +1375,7 @@ async function fire(event, bearer, context) {
     if ( context?.sourceActor && (effect.getSourceActor?.()?.uuid !== context.sourceActor.uuid) ) continue;
     await runTriggerList(triggers, effect, bearer, event, context);
   }
+  await sustainOnEvent(event, bearer, context ?? {});
 }
 
 /**
@@ -1212,12 +1404,17 @@ async function runTriggerList(triggers, effect, bearer, event, context={}, { key
     // needsUses: the effect's item must have a use left (Uncanny Metabolism, once per Long Rest).
     const item = effect.parent?.documentName === "Item" ? effect.parent : null;
     if ( trigger.needsUses && item?.system.uses?.max && !(item.system.uses.value > 0) ) continue;
+    // oncePerTurn: at most once per combat turn (per effect and trigger). Area triggers count per creature (areas.mjs).
+    const onceKey = trigger.oncePerTurn && !context.fromArea ? `${key}|${triggers.indexOf(trigger)}` : null;
+    const turn = onceKey ? turnKeyFor(bearer) : null;
+    if ( turn && (triggerTurns.get(onceKey) === turn) ) continue;
     if ( inFlight.has(key) ) continue;
     inFlight.add(key);
     let removed = false;
     try {
       // ask: the bearer's controller confirms first ("Use Uncanny Metabolism?").
       if ( trigger.ask && !(await confirmFor(bearer, trigger.label ?? effect.name, trigger.ask)) ) continue;
+      if ( turn ) triggerTurns.set(onceKey, turn);
       const result = await runAction(trigger, effect, bearer, event, context) ?? {};
       if ( resolveThen(trigger.then, result) === "remove" ) {
         await (onRemove ? onRemove() : effect.delete());
@@ -1274,11 +1471,16 @@ function passesFilter(trigger, event, context, bearer, effect) {
   if ( !trigger.filter || foundry.utils.isEmpty(trigger.filter) ) return true;
   const source = effect?.getSourceActor?.() ?? null;
   const combat = combatOf(source ?? bearer);
+  const bearerCombat = combatOf(bearer);
+  const subject = context.subject ?? context.attacker ?? null;
+  const rel = subject && bearer ? Creatures.relation(bearer, subject) : null;
   const data = {
     ...(context.activity?.getRollData?.() ?? {}), ...(context.data ?? {}), event, bearer: bearer?.getRollData?.() ?? {},
     sourceTurn: !combat || (!!source && (combat.combatant?.actor?.uuid === source.uuid)),
-    subjectIsSource: !!context.subject && !!source && (context.subject.uuid === source.uuid),
-    subjectIsSummoner: !!context.subject && (summonerOf(bearer)?.uuid === context.subject.uuid)
+    bearerTurn: !bearerCombat || (bearerCombat.combatant?.actor?.uuid === bearer?.uuid),
+    subjectIsSource: !!subject && !!source && (subject.uuid === source.uuid),
+    subjectIsSummoner: !!subject && (summonerOf(bearer)?.uuid === subject.uuid),
+    subjectIsAlly: ["self", "ally"].includes(rel), subjectIsEnemy: rel === "enemy"
   };
   return dnd5e.Filter.performCheck(data, trigger.filter);
 }
@@ -1343,7 +1545,7 @@ async function chooseProfiles(activity, usageConfig={}) {
   } catch(err) { /* keep 1 */ }
   const picked = await Creatures.HANDLERS.pickMany({
     title: `${activity.item.name} — choose`, count,
-    prompt: `<p>Which benefit${count > 1 ? "s" : ""} of <strong>${activity.item.name}</strong> (level ${level})?</p>`,
+    prompt: `<p>Which effect${count > 1 ? "s" : ""} of <strong>${activity.item.name}</strong>${level ? ` (level ${level})` : ""}?</p>`,
     options: allowed.map(p => ({ value: p._id, label: p.effect?.name ?? p._id }))
   });
   return allowed.filter(p => picked.includes(p._id));
@@ -1483,7 +1685,7 @@ const EVENT_TEXT = {
   roundStart: "— a new round begins", roundEnd: "— the round ends",
   sourceTurnStart: "— its source starts its turn", sourceTurnEnd: "— its source ends its turn",
   hit: "is hit by an attack", save: "makes a saving throw", check: "makes an ability check",
-  rest: "finishes a rest", initiative: "rolls initiative", onUse: "uses it", collided: "moves into a creature's space", damageRolled: "rolls damage",
+  rest: "finishes a rest", initiative: "rolls initiative", onUse: "uses it", onHit: "hits", collided: "moves into a creature's space", damageRolled: "rolls damage",
   areaCreated: "— its area appears", areaEnter: "— a creature enters its area", areaLeave: "— a creature leaves its area",
   areaTurnStart: "— a creature starts its turn in its area", areaTurnEnd: "— a creature ends its turn in its area",
   interval: "— time passes", missed: "misses with an attack", dealt: "deals damage", applied: "gains it", moved: "moves", statusGained: "gains a condition"
@@ -1496,7 +1698,7 @@ function announce(trigger, effect, bearer, event, detail="") {
   const label = trigger.label ?? effect.name;
   return ChatMessage.implementation.create({
     speaker: ChatMessage.implementation.getSpeaker({ actor: bearer }),
-    content: event === "onUse" ? `<p><strong>${label}</strong>: ${detail}</p>`
+    content: ["onUse", "onHit"].includes(event) ? `<p><strong>${label}</strong>: ${detail}</p>`
       : `<p><strong>${label}</strong> triggers: ${bearer.name} ${EVENT_TEXT[event] ?? event}.${detail ? ` ${detail}` : ""}</p>`
   });
 }
@@ -1585,16 +1787,17 @@ function selectorContext(effect, bearer, context={}, trigger={}) {
 }
 
 /**
- * Run an activity's onUse actions (activity flag "onUse"), on the client that used it. The actions get a stand-in
- * "effect" so the shared action code (labels, item lookups) works: the activity's item.
+ * Run an activity's step list on the client that used it: `onUse` (right after it's used; "the targets" = the user's
+ * targets) or `onHit` (an attack activity, after its hits are settled; "the targets" = the creatures it hit). The
+ * actions get a stand-in "effect" so the shared action code (labels, item lookups) works: the activity's item.
  */
-async function runOnUse(activity, targets) {
-  const list = activity?.flags?.[MODULE_ID]?.onUse;
+async function runOnUse(activity, targets, key="onUse") {
+  const list = activity?.flags?.[MODULE_ID]?.[key];
   const actor = activity?.actor;
   if ( !Array.isArray(list) || !list.length || !actor?.isOwner ) return;
   const item = actor.items.get(activity.item.id) ?? activity.item;
   const standIn = {
-    name: item.name, parent: item, origin: item.uuid, uuid: `${activity.uuid}.onUse`,
+    name: item.name, img: item.img, parent: item, origin: item.uuid, uuid: `${activity.uuid}.${key}`,
     getSourceActor: () => actor, getFlag: () => undefined,
     flags: { dnd5e: { spellLevel: activity.item?.system?.level ?? 0 } }
   };
@@ -1602,9 +1805,9 @@ async function runOnUse(activity, targets) {
     const handler = ACTIONS[action?.type];
     if ( !handler ) continue;
     try {
-      await handler({ label: item.name, action }, standIn, actor, "onUse", { activity, targets });
+      await handler({ label: item.name, action }, standIn, actor, key, { activity, targets, subject: targets.length === 1 ? targets[0] : null });
     } catch(err) {
-      console.error(`${MODULE_ID} | onUse action "${action.type}" of ${item.name} failed`, err);
+      console.error(`${MODULE_ID} | ${key} action "${action.type}" of ${item.name} failed`, err);
     }
   }
 }
@@ -1727,7 +1930,7 @@ const ACTIONS = {
   /** Recover spell slots: { budget, maxLevel }. Spends one use of the item the effect is on. */
   async recoverSlots(trigger, effect, bearer, event) {
     // From a trigger, the item's own uses gate and pay for it; from an activity (onUse), the activity already paid.
-    const item = (effect.parent?.documentName === "Item") && (event !== "onUse") ? effect.parent : null;
+    const item = (effect.parent?.documentName === "Item") && !["onUse", "onHit"].includes(event) ? effect.parent : null;
     if ( item?.system.uses?.max && !(item.system.uses.value > 0) ) return {};
     const data = bearer.getRollData();
     const budget = Math.floor(new Roll(CONFIG.Dice.BasicRoll.replaceFormulaData(String(trigger.action.budget ?? 1), data, { missing: 0 }))
@@ -1920,7 +2123,12 @@ const ACTIONS = {
    * (saves rolled, damage and effects applied). `activity`: its id or name (default: the item's first save activity).
    */
   async useActivity(trigger, effect, bearer, event, context={}) {
-    const item = effect.parent?.documentName === "Item" ? effect.parent : null;
+    // The item the effect is on, or (an effect given to a creature) the item it came from.
+    let item = effect.parent?.documentName === "Item" ? effect.parent : null;
+    if ( !item && effect.origin ) {
+      const origin = await fromUuid(effect.origin).catch(() => null);
+      item = origin?.documentName === "Item" ? origin : (origin?.item ?? null);
+    }
     const ref = trigger.action.activity;
     // An activity's own area passes the (upcast) activity and its usage card; otherwise find it on the item.
     const activity = (!ref && context.fromArea && context.activity) ? context.activity
@@ -1998,6 +2206,114 @@ const ACTIONS = {
       else game.socket.emit(SOCKET, { type: "updateItem", uuid: cls.uuid, update: { "system.hd.spent": (cls.system.hd.spent ?? 0) + 1 } });
       await applyDamageAs(actor, [{ value: roll.total, type: "healing", properties: [] }], null, { pipeline: true });
     }
+    return {};
+  },
+
+  /**
+   * Roll on a table: { formula, results: [{ roll: "1" | "2-3", effect, label }], to } — the result whose range holds the
+   * total gives that effect (from this effect's item, like giveEffect) to `to` (default the bearer). Wild Surge.
+   */
+  async random(trigger, effect, bearer, event, context={}) {
+    const a = trigger.action;
+    const roll = await new Roll(String(a.formula || "1d8"), bearer.getRollData()).evaluate();
+    const inRange = (spec, n) => {
+      const [lo, hi] = String(spec ?? "").split("-").map(s => Number(s.trim()));
+      return Number.isFinite(lo) && (n >= lo) && (n <= (Number.isFinite(hi) ? hi : lo));
+    };
+    const result = (a.results ?? []).find(r => inRange(r.roll, roll.total));
+    const label = trigger.label ?? effect.name;
+    await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor: bearer }),
+      flavor: `${label}: ${result ? `<strong>${foundry.utils.escapeHTML(result.label || result.effect)}</strong>` : "no result"}` });
+    if ( !result?.effect ) return {};
+    return ACTIONS.giveEffect({ label, action: { type: "giveEffect", effect: result.effect, to: a.to ?? { who: "bearer" } } },
+      effect, bearer, event, context);
+  },
+
+  /** Teleport: { range, sight, to } — each creature `to` picks (default the bearer) is moved to a spot its controller picks. */
+  async teleport(trigger, effect, bearer, event, context={}) {
+    const a = trigger.action;
+    const movers = a.to ? await Creatures.selectCreatures(bearer, a.to, selectorContext(effect, bearer, context, trigger)) : [bearer];
+    for ( const actor of movers ) {
+      const token = Creatures.tokenFor(actor);
+      const user = token ? Creatures.controllerOf(actor) : null;
+      if ( !user ) continue;
+      const feet = await Creatures.runAs(user, "teleport", { tokenUuid: token.uuid, range: Number(a.range) || 30,
+        sight: a.sight !== false, label: trigger.label ?? effect.name });
+      if ( feet ) await announce(trigger, effect, bearer, event, `${actor.name} teleports ${feet} ft.`);
+    }
+    return {};
+  },
+
+  /** Push or pull: { distance, to, from } — creatures `to` picks (default the triggering creature) move `distance` ft
+   *  straight away from the bearer (from: "source" = from the effect's source); negative pulls. Stops at walls and
+   *  creatures. */
+  async push(trigger, effect, bearer, event, context={}) {
+    const a = trigger.action;
+    const recipients = a.to ? await Creatures.selectCreatures(bearer, a.to, selectorContext(effect, bearer, context, trigger))
+      : (context.targets?.length ? context.targets : (context.subject ? [context.subject] : [bearer]));
+    const from = a.from === "source" ? (effect.getSourceActor?.() ?? bearer) : bearer;
+    const moved = [];
+    for ( const actor of recipients ) {
+      if ( actor.uuid === from.uuid ) continue;
+      const feet = await Creatures.pushCreature(from, actor, Number(a.distance) || 10);
+      moved.push(`${actor.name} ${feet ? `${Number(a.distance) < 0 ? "is pulled" : "is pushed"} ${feet} ft` : "doesn't move (blocked)"}`);
+    }
+    if ( moved.length ) await announce(trigger, effect, bearer, event, `${moved.join("; ")}.`);
+    return {};
+  },
+
+  /**
+   * Sense: { range, creatures, items } — the bearer's player is told (privately) what is within range: creatures whose
+   * roll data passes the `creatures` filter (with their type; their tokens are pinged), and with items: "magic" the
+   * magic items those creatures carry and the spells affecting them (with their school). Divine Sense, Magic Awareness.
+   */
+  async sense(trigger, effect, bearer, event, context={}) {
+    const a = trigger.action;
+    const range = Number(a.range) || 60;
+    const nearby = Creatures.findCreatures(bearer, { who: "all", range, self: !!a.items }, {});
+    const label = trigger.label ?? effect.name;
+    const lines = [];
+    const typeLabel = actor => {
+      const t = actor.system.details?.type?.value ?? actor.system.details?.race ?? "";
+      return game.i18n.localize(CONFIG.DND5E.creatureTypes[t]?.label ?? t ?? "");
+    };
+    if ( a.creatures !== undefined ) {
+      const found = nearby.filter(actor => (actor.uuid !== bearer.uuid) && (!a.creatures?.length || dnd5e.Filter.performCheck(actor.getRollData(), a.creatures)));
+      for ( const actor of found ) {
+        lines.push(`${Creatures.tokenFor(actor)?.name ?? actor.name} — ${typeLabel(actor)}`);
+        const t = Creatures.tokenFor(actor)?.object;
+        if ( t && canvas?.ping ) canvas.ping(t.center, { style: "alert" });
+      }
+      if ( !found.length ) lines.push("No such creature nearby.");
+    }
+    if ( a.items === "magic" ) {
+      const school = s => CONFIG.DND5E.spellSchools[s]?.label ?? s;
+      for ( const actor of nearby ) {
+        const who = Creatures.tokenFor(actor)?.name ?? actor.name;
+        for ( const item of actor.items ) {
+          if ( ["spell", "feat", "class", "subclass", "background", "race"].includes(item.type) ) continue;
+          const magic = item.system.properties?.has?.("mgc") || (item.system.rarity && !["", "mundane"].includes(item.system.rarity));
+          if ( magic ) lines.push(`${who}: a magic item — ${item.name}`);
+        }
+        for ( const e of actor.appliedEffects ?? [] ) {
+          const origin = e.origin ? fromUuidSync(e.origin, { strict: false }) : null;
+          const spell = origin?.type === "spell" ? origin : (origin?.item?.type === "spell" ? origin.item : null);
+          if ( spell ) lines.push(`${who}: a spell — ${spell.name} (${school(spell.system.school)})`);
+        }
+      }
+      for ( const region of canvas?.scene?.regions ?? [] ) {
+        const spell = region.flags?.dnd5e?.origin ? fromUuidSync(region.flags.dnd5e.origin, { strict: false }) : null;
+        const item = spell?.item ?? spell;
+        if ( item?.type === "spell" ) lines.push(`An area — ${item.name} (${school(item.system.school)})`);
+      }
+      if ( lines.length === 0 ) lines.push("Nothing magical nearby.");
+    }
+    const user = Creatures.controllerOf(bearer);
+    await ChatMessage.implementation.create({
+      speaker: ChatMessage.implementation.getSpeaker({ actor: bearer }),
+      whisper: [...new Set([user?.id, ...game.users.filter(u => u.isGM).map(u => u.id)].filter(Boolean))],
+      content: `<p><strong>${foundry.utils.escapeHTML(label)}</strong> (${range} ft):</p><ul>${[...new Set(lines)].map(l => `<li>${foundry.utils.escapeHTML(l)}</li>`).join("")}</ul>`
+    });
     return {};
   },
 
@@ -2272,7 +2588,7 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("ready", () => {
-  Workflow.initWorkflow({ autoApply, rollSave, applyDamageAs, setting, findUsageMessage,
+  Workflow.initWorkflow({ autoApply, rollSave, applyDamageAs, setting, findUsageMessage, chooseProfiles,
     saveSucceeded: args => Reactions.saveSucceeded(args) });
   Areas.initAreas({ runTriggerList, findUsageMessage, setting, saveMode: actor => Workflow.modeFor("Save", actor) });
   game.modules.get(MODULE_ID).api = {

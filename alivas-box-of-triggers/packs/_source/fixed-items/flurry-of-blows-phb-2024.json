@@ -41,7 +41,7 @@
               "type": "itemUses",
               "value": "1",
               "scaling": {},
-              "target": "wrH2HyyEh61HXqqr"
+              "target": "identifier:focus-point|monks-focus"
             }
           ],
           "scaling": {
@@ -148,7 +148,7 @@
       "hash": "flurry%20of%20blows_monk_xphb_2_xphb"
     },
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "type": "feat",

@@ -1,0 +1,250 @@
+{
+  "_id": "2KCyB7XQseXoJyxe",
+  "name": "Searing Smite",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "314",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Searing Smite (PHB 2024 p. 314). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 1,
+    "school": "evo",
+    "properties": [
+      "vocal"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "contiguous": false,
+        "type": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "",
+        "choice": false
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "self"
+    },
+    "activation": {
+      "type": "bonus",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "searingSmiteAct0": {
+        "_id": "searingSmiteAct0",
+        "type": "utility",
+        "name": "Searing Smite",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": true,
+            "max": ""
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "value": "1",
+          "units": "minute",
+          "concentration": true,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {}
+      }
+    },
+    "identifier": "searing-smite"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/fire/dagger-rune-enchant-flame-orange.webp",
+  "flags": {
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "configure": true,
+          "label": "Searing Smite",
+          "filter": [
+            {
+              "k": "attackType",
+              "v": "melee"
+            }
+          ],
+          "detail": "extra Fire damage (slot level)d6; the target burns until it saves",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(@castLevel)d6",
+            "damageType": "fire",
+            "critDouble": true
+          },
+          "after": {
+            "type": "giveEffect",
+            "effect": "searingSmitexxxx",
+            "to": {
+              "who": "hit"
+            }
+          },
+          "activity": "searingSmiteAct0"
+        }
+      ]
+    },
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "spell",
+          "identifier": "searing-smite",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "searingSmitexxxx",
+      "name": "Seared",
+      "img": "icons/magic/fire/dagger-rune-enchant-flame-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Searing Smite",
+              "event": "turnStart",
+              "action": {
+                "type": "damage",
+                "formula": "1d6",
+                "damageType": "fire"
+              }
+            },
+            {
+              "label": "Searing Smite",
+              "event": "turnStart",
+              "action": {
+                "type": "save",
+                "ability": "con",
+                "dc": "sourceSpell"
+              },
+              "then": "removeOnSuccess"
+            }
+          ]
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639480,
+        "modifiedTime": 1790662639480,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!2KCyB7XQseXoJyxe.searingSmitexxxx"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662639480,
+    "modifiedTime": 1790662639481,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!2KCyB7XQseXoJyxe"
+}

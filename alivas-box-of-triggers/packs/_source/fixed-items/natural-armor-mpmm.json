@@ -1,0 +1,100 @@
+{
+  "_id": "tJ7rS1uk07sMyH0H",
+  "name": "Natural Armor",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "MPMM",
+      "page": "26",
+      "license": "",
+      "rules": "2014",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Natural Armor (MPMM p. 26). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Lizardfolk",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "race",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {},
+    "identifier": "natural-armor",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/commodities/biological/shell-ridged-green.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "natural-armor",
+          "book": "MPMM"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "naturalArmorEff0",
+      "name": "Natural Armor",
+      "img": "icons/commodities/biological/shell-ridged-green.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.ac.calcs",
+            "type": "add",
+            "value": "draconic",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!tJ7rS1uk07sMyH0H.naturalArmorEff0"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662614201,
+    "modifiedTime": 1790662614201,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!tJ7rS1uk07sMyH0H"
+}

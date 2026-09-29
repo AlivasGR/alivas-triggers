@@ -1,0 +1,231 @@
+{
+  "_id": "lERhypuD4Xl8iJp1",
+  "name": "Vow of Enmity",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "117",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Vow of Enmity (PHB 2024 p. 117). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Paladin 3 (Vengeance)",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": "channelDivinity"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "utility",
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "duration": {
+          "units": "minute",
+          "value": "1",
+          "expiry": null,
+          "concentration": false,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "override": false
+        },
+        "range": {
+          "units": "ft",
+          "value": "30",
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "vowOfEnmityxxxxx",
+            "uuid": null,
+            "level": {}
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "img": null,
+        "sort": 0,
+        "behaviors": [],
+        "description": {
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "pay": {
+              "cost": 1,
+              "from": [
+                "channel-divinity"
+              ]
+            }
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "roll": {
+          "prompt": false,
+          "visible": false
+        }
+      }
+    },
+    "identifier": "vow-of-enmity",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/targeting/crosshair-arrowhead-blue.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "vow-of-enmity",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "vowOfEnmityxxxxx",
+      "name": "Vow of Enmity",
+      "img": "icons/skills/targeting/crosshair-arrowhead-blue.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "attackedWith": {
+            "mode": "advantage",
+            "by": "source"
+          },
+          "triggers": [
+            {
+              "label": "Vow of Enmity",
+              "event": "damaged",
+              "filter": [
+                {
+                  "k": "bearer.attributes.hp.value",
+                  "o": "lte",
+                  "v": 0
+                }
+              ],
+              "action": {
+                "type": "giveEffect",
+                "effect": "Vow of Enmity",
+                "to": {
+                  "who": "choose",
+                  "by": "source",
+                  "range": 30,
+                  "sight": true,
+                  "self": false,
+                  "side": "enemy"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662628600,
+        "modifiedTime": 1790662628600,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!lERhypuD4Xl8iJp1.vowOfEnmityxxxxx"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662628600,
+    "modifiedTime": 1790662628601,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!lERhypuD4Xl8iJp1"
+}

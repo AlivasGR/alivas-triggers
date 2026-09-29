@@ -1,0 +1,128 @@
+{
+  "_id": "0Y9gqUVoa2F9F8Kv",
+  "name": "Dueling",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "209",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Dueling (PHB 2024 p. 209). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Fighting Style Feature",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "feat",
+      "subtype": "fightingStyle"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {},
+    "identifier": "dueling",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/skills/melee/strike-weapons-orange.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "dueling",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "WzwBW02yS2weFaBa",
+      "name": "Dueling",
+      "img": "icons/skills/melee/strike-weapons-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "damage",
+            "type": "dnd5e.bonus",
+            "value": "2",
+            "phase": "initial",
+            "conditions": "[{\"k\":\"roll.attack.mode\",\"v\":\"oneHanded\"},{\"k\":\"roll.attack.type\",\"v\":\"melee\"},{\"k\":\"roll.attack.classification\",\"v\":\"weapon\"}]"
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "transfer": true,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662636373,
+        "modifiedTime": 1790662636373,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!0Y9gqUVoa2F9F8Kv.WzwBW02yS2weFaBa"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662636373,
+    "modifiedTime": 1790662636373,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!0Y9gqUVoa2F9F8Kv"
+}

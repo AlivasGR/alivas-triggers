@@ -1,53 +1,40 @@
 {
-  "_id": "8PjvMeHJpqRpjzGM",
-  "name": "Hand of Harm",
+  "_id": "6OAmiwdev0gDecZT",
+  "name": "Interception",
   "type": "feat",
   "system": {
     "source": {
       "custom": "",
       "book": "PHB 2024",
-      "page": "104",
+      "page": "209",
       "license": "",
       "rules": "2024",
       "revision": 1
     },
     "description": {
-      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Hand of Harm (PHB 2024 p. 104). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Interception (PHB 2024 p. 209). Patched items keep their own description; this entry carries no rules text.</em></p>",
       "chat": ""
     },
-    "requirements": "Monk 3 (Mercy)",
+    "requirements": "Fighting Style Feature",
     "uses": {
       "max": "",
       "spent": 0,
       "recovery": []
     },
     "type": {
-      "value": "class",
-      "subtype": ""
+      "value": "feat",
+      "subtype": "fightingStyle"
     },
     "properties": [],
     "advancement": {},
     "activities": {
       "dnd5eactivity000": {
-        "type": "damage",
+        "name": "Intercept",
+        "type": "utility",
         "activation": {
-          "type": "",
+          "type": "reaction",
           "condition": "",
           "override": false
-        },
-        "consumption": {
-          "targets": [
-            {
-              "type": "itemUses",
-              "value": "1",
-              "scaling": {},
-              "target": "identifier:focus-point|monks-focus"
-            }
-          ],
-          "scaling": {
-            "allowed": false
-          },
-          "spellSlot": true
         },
         "target": {
           "affects": {
@@ -63,37 +50,25 @@
           },
           "override": false
         },
-        "damage": {
-          "parts": [
-            {
-              "custom": {
-                "enabled": true,
-                "formula": "@scale.monk.die + @abilities.wis.mod"
-              },
-              "types": [
-                "necrotic"
-              ],
-              "scaling": {
-                "number": 1
-              },
-              "modifiers": []
-            }
-          ],
-          "critical": {
-            "allow": false
-          }
-        },
         "_id": "dnd5eactivity000",
         "img": null,
         "sort": 0,
+        "behaviors": [],
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
         "description": {
           "value": ""
         },
         "duration": {
           "units": "inst",
+          "expiry": null,
           "concentration": false,
-          "override": false,
-          "expiry": null
+          "override": false
         },
         "effects": [],
         "flags": {},
@@ -110,11 +85,10 @@
           "requireAttunement": false,
           "requireIdentification": false,
           "requireMagic": false
-        },
-        "behaviors": []
+        }
       }
     },
-    "identifier": "hand-of-harm",
+    "identifier": "interception",
     "crewed": false,
     "enchant": {},
     "prerequisites": {
@@ -125,44 +99,38 @@
   "ownership": {
     "default": 0
   },
-  "img": "https://cdn.5e.tools/2024/img/classes/XPHB/Mercy%20Monk.webp",
+  "img": "icons/skills/melee/strike-weapons-orange.webp",
   "flags": {
-    "plutonium": {
-      "page": "subclassFeature",
-      "source": "XPHB",
-      "hash": "hand%20of%20harm_monk_xphb_mercy_xphb_3_xphb"
-    },
     "alivas-engine-of-triggers": {
       "reactions": [
         {
-          "window": "hitting",
-          "who": "self",
-          "label": "Hand of Harm",
+          "window": "hitBy",
+          "who": "other",
+          "range": 5,
+          "sight": true,
+          "label": "Interception",
           "activity": "dnd5eactivity000",
-          "reaction": false,
-          "oncePerTurn": true,
           "filter": [
             {
-              "k": "classification",
-              "v": "unarmed"
+              "k": "subjectIsAlly",
+              "v": true
             }
           ],
+          "detail": "needs a Shield or a Simple or Martial weapon",
           "outcome": {
             "type": "damageNext",
-            "mode": "add",
-            "formula": "@scale.monk.die + @abilities.wis.mod",
-            "damageType": "necrotic",
-            "critDouble": true
+            "mode": "reduce",
+            "formula": "1d10 + @prof"
           }
         }
       ]
     },
     "alivas-box-of-triggers": {
-      "version": 3,
+      "version": 1,
       "match": [
         {
           "type": "feat",
-          "identifier": "hand-of-harm",
+          "identifier": "interception",
           "book": "PHB 2024"
         }
       ]
@@ -170,16 +138,16 @@
   },
   "effects": [],
   "_stats": {
-    "systemVersion": "6.0.5",
-    "coreVersion": "14.367",
+    "coreVersion": "14.368",
     "systemId": "dnd5e",
-    "createdTime": 1790404207351,
-    "modifiedTime": 1790404207351,
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662636650,
+    "modifiedTime": 1790662636650,
     "lastModifiedBy": "onrEdnELJB1wlSy1",
     "compendiumSource": null,
     "duplicateSource": null,
     "exportSource": null
   },
   "sort": 0,
-  "_key": "!items!8PjvMeHJpqRpjzGM"
+  "_key": "!items!6OAmiwdev0gDecZT"
 }

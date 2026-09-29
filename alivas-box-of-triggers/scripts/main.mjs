@@ -106,12 +106,45 @@ function keepConsumption(newActivities, oldActivities) {
 }
 
 /**
+ * Consumption targets written as "identifier:monks-focus|focus-point" (a pool on the same actor, by identifier — the
+ * first that has uses) become that item's ID on this actor. Without a match the target is cleared.
+ * @param {object} data                 Patched item data (changed in place).
+ * @param {Iterable<object>} [items]    The actor's items (documents or source data).
+ */
+function resolveIdentifierTargets(data, items) {
+  const list = Array.from(items ?? []);
+  for ( const activity of Object.values(data.system?.activities ?? {}) ) {
+    for ( const t of activity.consumption?.targets ?? [] ) {
+      if ( (typeof t.target !== "string") || !t.target.startsWith("identifier:") ) continue;
+      const found = t.target.slice(11).split("|").map(id => list.find(i => (i.system?.identifier === id) && i.system?.uses?.max)).find(Boolean);
+      // Not there yet (the pool is imported after this item): left as is, resolved when the activity is used.
+      if ( found?._id ?? found?.id ) t.target = found._id ?? found.id;
+    }
+  }
+}
+
+/** An "identifier:" consumption target still unresolved when the activity is used: resolve it now and save it. */
+Hooks.on("dnd5e.preActivityConsumption", activity => {
+  const item = activity?.item;
+  const actor = activity?.actor;
+  if ( !item || !actor ) return;
+  const targets = activity.consumption?.targets ?? [];
+  if ( !targets.some(t => String(t.target ?? "").startsWith("identifier:")) ) return;
+  const source = item.toObject();
+  resolveIdentifierTargets(source, actor.items);
+  const fixed = source.system.activities?.[activity.id]?.consumption?.targets ?? [];
+  targets.forEach((t, i) => { if ( fixed[i]?.target && !fixed[i].target.startsWith("identifier:") ) t.target = fixed[i].target; });
+  if ( item.isOwner ) item.update({ [`system.activities.${activity.id}.consumption.targets`]: fixed });
+});
+
+/**
  * Produce the patched version of an item's data.
  * @param {object} patch  A PATCHES entry.
  * @param {object} old    The target item's current source data.
+ * @param {Iterable<object>} [items]  The owning actor's items, to resolve "identifier:" consumption targets.
  * @returns {object}      Full item data: the target's ID and preserved fields, the patch's mechanics.
  */
-function buildPatched(patch, old) {
+function buildPatched(patch, old, items) {
   const data = foundry.utils.deepClone(patch.data);
   data._id = old._id;
   const keep = old.type === "spell" ? [...PRESERVE, ...PRESERVE_SPELL] : PRESERVE;
@@ -120,6 +153,7 @@ function buildPatched(patch, old) {
     if ( value !== undefined ) foundry.utils.setProperty(data, path, foundry.utils.deepClone(value));
   }
   if ( old.type === "spell" ) keepConsumption(data.system.activities, old.system?.activities);
+  resolveIdentifierTargets(data, items);
   data.flags = foundry.utils.mergeObject(foundry.utils.deepClone(old.flags ?? {}), data.flags ?? {}, { inplace: false });
   data.flags[MODULE_ID] = { ...data.flags[MODULE_ID], version: patch.version };
   if ( old._stats ) data._stats = foundry.utils.deepClone(old._stats);
@@ -130,7 +164,7 @@ function buildPatched(patch, old) {
  * Patch an existing item document in place.
  */
 async function applyOne(patch, item) {
-  const data = buildPatched(patch, item.toObject());
+  const data = buildPatched(patch, item.toObject(), item.actor?.items);
   const options = { recursive: false, diff: false, [MODULE_ID]: { patching: true } };
   await item.update({ img: data.img, system: data.system, flags: data.flags }, options);
   const oldEffectIds = item.effects.map(e => e.id);
@@ -153,7 +187,7 @@ Hooks.on("preCreateItem", (item, data, options, userId) => {
   const source = item.toObject();
   const patch = findPatch(source, item.parent?.name);
   if ( !patch || (source.flags?.[MODULE_ID]?.version === patch.version) ) return;
-  const patched = buildPatched(patch, source);
+  const patched = buildPatched(patch, source, item.parent?.items);
   item.updateSource({ system: patched.system, flags: patched.flags, effects: patched.effects }, { recursive: false });
   syncSchoolEffectSource(item);
   console.log(`${MODULE_ID} | Patched "${patched.name}" on import (v${patch.version})`);
@@ -168,7 +202,7 @@ Hooks.on("preCreateActor", (actor, data, options, userId) => {
     const patch = findPatch(itemData, source.name);
     if ( !patch || (itemData.flags?.[MODULE_ID]?.version === patch.version) ) return itemData;
     count++;
-    return buildPatched(patch, itemData);
+    return buildPatched(patch, itemData, source.items);
   });
   if ( !count ) return;
   actor.updateSource({ items }, { recursive: false });

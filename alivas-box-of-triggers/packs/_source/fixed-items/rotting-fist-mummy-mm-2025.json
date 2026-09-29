@@ -274,7 +274,7 @@
         "expiry": null,
         "expired": false
       },
-      "description": "<p>If the target is a creature, it is cursed. While cursed, the target can’t regain Hit Points, its Hit Point maximum doesn’t return to normal when finishing a Long Rest, and its Hit Point maximum decreases by [[/r 3d6#HP Max Decrease]]{10 (3d6)} every 24 hours that elapse. A creature dies and turns to dust if reduced to 0 Hit Points by this attack.</p>",
+      "description": "<p>Mummy Rot: can't regain Hit Points; Hit Point maximum drops by 3d6 every 24 hours; ends with Remove Curse.</p>",
       "tint": "#ffffff",
       "transfer": false,
       "statuses": [

@@ -1,0 +1,280 @@
+{
+  "_id": "aowPqE0XAMHyxEm1",
+  "name": "Sacred Weapon",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "113",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Sacred Weapon (PHB 2024 p. 113). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Paladin 3 (Devotion)",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": "channelDivinity"
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "enchant",
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "duration": {
+          "units": "minute",
+          "value": "10",
+          "expiry": null,
+          "concentration": false,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "restrictions": {
+          "allowMagical": true,
+          "categories": [
+            "simpleM",
+            "martialM"
+          ],
+          "type": "weapon",
+          "properties": []
+        },
+        "effects": [
+          {
+            "_id": "sacredWeaponxxxx",
+            "uuid": null,
+            "level": {},
+            "riders": {
+              "activity": [],
+              "effect": [],
+              "item": []
+            }
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "behaviors": [],
+        "description": {
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "pay": {
+              "cost": 1,
+              "from": [
+                "channel-divinity"
+              ]
+            },
+            "onUse": [
+              {
+                "type": "giveEffect",
+                "effect": "Sacred Weapon (Light)",
+                "to": {
+                  "who": "self"
+                }
+              }
+            ]
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "enchant": {
+          "self": false
+        }
+      }
+    },
+    "identifier": "sacred-weapon",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/weapons/swords/sword-gold-holy.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "sacred-weapon",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "sacredWeaponxxxx",
+      "name": "Sacred Weapon",
+      "img": "icons/weapons/swords/sword-gold-holy.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "name",
+            "type": "add",
+            "value": ", Sacred Weapon",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "wLrqsHDILRLNsJWX",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "system.damage.base.types",
+            "type": "add",
+            "value": "radiant",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "b6gZdWoeGUXNbDlk",
+            "conditions": "{}",
+            "replacement": ""
+          },
+          {
+            "key": "activities[attack].attack.bonus",
+            "type": "add",
+            "value": "(max(1,@abilities.cha.mod))",
+            "priority": 7,
+            "phase": "initial",
+            "_id": "6A18WqCEYYV5zlhK",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "magical": false
+      },
+      "statuses": [],
+      "disabled": true,
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": true,
+      "flags": {
+        "dnd5e": {
+          "persistSourceMigration": true
+        }
+      },
+      "type": "enchantment",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662628342,
+        "modifiedTime": 1790662628342,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!aowPqE0XAMHyxEm1.sacredWeaponxxxx"
+    },
+    {
+      "_id": "sacredWeaponLigh",
+      "name": "Sacred Weapon (Light)",
+      "img": "icons/weapons/swords/sword-gold-holy.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "light": {
+            "bright": 20,
+            "dim": 40,
+            "color": "#fff5c0"
+          }
+        }
+      },
+      "_key": "!items.effects!aowPqE0XAMHyxEm1.sacredWeaponLigh"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662628342,
+    "modifiedTime": 1790662628343,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!aowPqE0XAMHyxEm1"
+}

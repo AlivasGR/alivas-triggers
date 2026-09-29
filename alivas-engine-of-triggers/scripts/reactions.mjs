@@ -135,7 +135,10 @@ function canAfford(activity) {
   if ( !item || !actor ) return false;
   for ( const t of activity.consumption?.targets ?? [] ) {
     if ( t.type !== "itemUses" ) continue;
-    const target = t.target ? actor.items.get(t.target) : item;
+    // "identifier:a|b" (a pool named by identifier, see the Box) — the first of those items with uses.
+    const byId = String(t.target ?? "").startsWith("identifier:")
+      ? t.target.slice(11).split("|").map(id => actor.items.find(i => (i.system.identifier === id) && i.system.uses?.max)).find(Boolean) : null;
+    const target = byId ?? (t.target ? actor.items.get(t.target) : item);
     if ( target?.system.uses?.max && ((target.system.uses.value ?? 0) < (Number(t.value) || 1)) ) return false;
   }
   if ( (item.type === "spell") && activity.consumption?.spellSlot && (item.system.level > 0)
@@ -369,7 +372,9 @@ async function runAfter(reactor, item, after, subjectUuid, hitUuid) {
   if ( !effect ) return;
   const subject = subjectUuid ? fromUuidSync(subjectUuid) : null;
   const text = (effect.description || "").replace(/<[^>]+>/g, " ").trim();
-  const recipients = await selectCreatures(reactor, after.to ?? {}, {
+  // who "hit": the creature the triggering attack hit (hitting window) — no picker.
+  const hit = (after.to?.who === "hit") && hitUuid ? fromUuidSync(hitUuid) : null;
+  const recipients = hit ? [hit] : await selectCreatures(reactor, after.to ?? {}, {
     subject, title: `${item.name} — choose a creature`,
     prompt: `<p>Who gets <strong>${effect.name}</strong>? (${describeSelector(after.to)})</p>${text ? `<p><em>${text}</em></p>` : ""}`
   });

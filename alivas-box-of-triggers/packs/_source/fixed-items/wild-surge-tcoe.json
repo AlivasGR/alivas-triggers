@@ -1,0 +1,1224 @@
+{
+  "_id": "vrEYek8khft19lx4",
+  "name": "Wild Surge",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "TCoE",
+      "page": "25",
+      "license": "",
+      "rules": "2014",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Wild Surge (TCoE p. 25). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Barbarian 3 (Wild Magic)",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "surgeTendrilsAct": {
+        "_id": "surgeTendrilsAct",
+        "type": "save",
+        "name": "Shadowy Tendrils",
+        "sort": 0,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "type": "creature",
+            "choice": true
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "con",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": [
+            {
+              "number": 1,
+              "denomination": 12,
+              "bonus": "",
+              "types": [
+                "necrotic"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      },
+      "surgeSpiritAct00": {
+        "_id": "surgeSpiritAct00",
+        "type": "save",
+        "name": "Spirit Explosion",
+        "sort": 0,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "type": "creature",
+            "choice": true
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "con",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": [
+            {
+              "number": 1,
+              "denomination": 6,
+              "bonus": "",
+              "types": [
+                "force"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      },
+      "surgeBoltAct0000": {
+        "_id": "surgeBoltAct0000",
+        "type": "save",
+        "name": "Bolt of Light",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "type": "creature",
+            "count": "1",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "surgeBlinded0000",
+            "onSave": false
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "con",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": [
+            {
+              "number": 1,
+              "denomination": 6,
+              "bonus": "",
+              "types": [
+                "radiant"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      },
+      "surgeTeleportAct": {
+        "_id": "surgeTeleportAct",
+        "type": "utility",
+        "name": "Teleport (Wild Surge)",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "teleport",
+                "range": 30,
+                "sight": true
+              }
+            ]
+          }
+        }
+      },
+      "surgeSummonAct00": {
+        "_id": "surgeSummonAct00",
+        "type": "utility",
+        "name": "Summon Spirit (Wild Surge)",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "giveEffect",
+                "effect": "Wild Surge: Intangible Spirit",
+                "to": {
+                  "who": "choose",
+                  "range": 30,
+                  "sight": true
+                }
+              }
+            ]
+          }
+        }
+      },
+      "surgeInfuseAct00": {
+        "_id": "surgeInfuseAct00",
+        "type": "enchant",
+        "name": "Infuse Weapon",
+        "sort": 0,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "value": "10",
+          "units": "minute",
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "type": "object",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "surgeInfused0000",
+            "level": {}
+          }
+        ],
+        "description": {
+          "chatFlavor": ""
+        },
+        "flags": {},
+        "enchant": {
+          "self": false
+        },
+        "restrictions": {
+          "allowMagical": true,
+          "type": "weapon"
+        }
+      }
+    },
+    "identifier": "wild-surge",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "wild-surge",
+          "book": "TCoE"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "wildSurgePassive",
+      "name": "Wild Surge",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Wild Surge",
+              "event": "statusGained",
+              "filter": [
+                {
+                  "k": "gainedStatuses",
+                  "o": "has",
+                  "v": "rage"
+                }
+              ],
+              "action": {
+                "type": "random",
+                "formula": "1d8",
+                "results": [
+                  {
+                    "roll": "1",
+                    "effect": "Wild Surge: Shadowy Tendrils",
+                    "label": "Shadowy Tendrils"
+                  },
+                  {
+                    "roll": "2",
+                    "effect": "Wild Surge: Teleport",
+                    "label": "Teleport"
+                  },
+                  {
+                    "roll": "3",
+                    "effect": "Wild Surge: Spirit",
+                    "label": "Spirit"
+                  },
+                  {
+                    "roll": "4",
+                    "effect": "Wild Surge: Weapon",
+                    "label": "Weapon"
+                  },
+                  {
+                    "roll": "5",
+                    "effect": "Wild Surge: Retribution",
+                    "label": "Retribution"
+                  },
+                  {
+                    "roll": "6",
+                    "effect": "Wild Surge: Protective Lights",
+                    "label": "Protective Lights"
+                  },
+                  {
+                    "roll": "7",
+                    "effect": "Wild Surge: Flowers and Vines",
+                    "label": "Flowers and Vines"
+                  },
+                  {
+                    "roll": "8",
+                    "effect": "Wild Surge: Bolt of Light",
+                    "label": "Bolt of Light"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.wildSurgePassive"
+    },
+    {
+      "_id": "surge10000000000",
+      "name": "Wild Surge: Shadowy Tendrils",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Shadowy Tendrils",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Shadowy Tendrils",
+                "to": {
+                  "who": "choose",
+                  "count": "20",
+                  "range": 30,
+                  "sight": true,
+                  "self": false
+                }
+              }
+            },
+            {
+              "label": "Shadowy Tendrils",
+              "event": "applied",
+              "action": {
+                "type": "tempHp",
+                "formula": "1d12"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.surge10000000000"
+    },
+    {
+      "_id": "surge20000000000",
+      "name": "Wild Surge: Teleport",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Wild Surge: Teleport",
+              "event": "applied",
+              "action": {
+                "type": "teleport",
+                "range": 30,
+                "sight": true
+              }
+            },
+            {
+              "label": "Ends with the Rage",
+              "event": [
+                "turnStart",
+                "turnEnd"
+              ],
+              "filter": [
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "bearer.statuses.rage",
+                    "o": "gte",
+                    "v": 1
+                  }
+                }
+              ],
+              "action": {
+                "type": "note"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.surge20000000000"
+    },
+    {
+      "_id": "surge30000000000",
+      "name": "Wild Surge: Spirit",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Intangible Spirit",
+              "event": "applied",
+              "action": {
+                "type": "giveEffect",
+                "effect": "Wild Surge: Intangible Spirit",
+                "to": {
+                  "who": "choose",
+                  "range": 30,
+                  "sight": true
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.surge30000000000"
+    },
+    {
+      "_id": "surge40000000000",
+      "name": "Wild Surge: Weapon",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Infused Weapon",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Infuse Weapon",
+                "consume": true
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.surge40000000000"
+    },
+    {
+      "_id": "surge50000000000",
+      "name": "Wild Surge: Retribution",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Retribution",
+              "event": "hit",
+              "action": {
+                "type": "damage",
+                "formula": "1d6",
+                "damageType": "force",
+                "to": {
+                  "who": "subject"
+                }
+              }
+            },
+            {
+              "label": "Ends with the Rage",
+              "event": [
+                "turnStart",
+                "turnEnd"
+              ],
+              "filter": [
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "bearer.statuses.rage",
+                    "o": "gte",
+                    "v": 1
+                  }
+                }
+              ],
+              "action": {
+                "type": "note"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.surge50000000000"
+    },
+    {
+      "_id": "surge60000000000",
+      "name": "Wild Surge: Protective Lights",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.ac.bonus",
+            "type": "add",
+            "value": "1",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "area": {
+            "radius": 10,
+            "color": "#b48cff"
+          },
+          "triggers": [
+            {
+              "label": "Protective Lights",
+              "event": [
+                "areaCreated",
+                "areaEnter"
+              ],
+              "action": {
+                "type": "giveEffect",
+                "effect": "Protective Lights",
+                "to": {
+                  "who": "targets",
+                  "side": "ally"
+                }
+              }
+            },
+            {
+              "label": "Protective Lights",
+              "event": "areaLeave",
+              "action": {
+                "type": "removeStatus",
+                "statuses": [
+                  "protective-lights"
+                ],
+                "to": {
+                  "who": "targets"
+                }
+              }
+            },
+            {
+              "label": "Ends with the Rage",
+              "event": [
+                "turnStart",
+                "turnEnd"
+              ],
+              "filter": [
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "bearer.statuses.rage",
+                    "o": "gte",
+                    "v": 1
+                  }
+                }
+              ],
+              "action": {
+                "type": "note"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.surge60000000000"
+    },
+    {
+      "_id": "surge70000000000",
+      "name": "Wild Surge: Flowers and Vines",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "area": {
+            "radius": 15,
+            "color": "#5fbf4a"
+          },
+          "triggers": [
+            {
+              "label": "Flowers and Vines",
+              "event": [
+                "areaCreated",
+                "areaEnter"
+              ],
+              "action": {
+                "type": "giveEffect",
+                "effect": "Tangled (Wild Surge)",
+                "to": {
+                  "who": "targets",
+                  "side": "notAlly"
+                }
+              }
+            },
+            {
+              "label": "Flowers and Vines",
+              "event": "areaLeave",
+              "action": {
+                "type": "removeStatus",
+                "statuses": [
+                  "tangled"
+                ],
+                "to": {
+                  "who": "targets"
+                }
+              }
+            },
+            {
+              "label": "Ends with the Rage",
+              "event": [
+                "turnStart",
+                "turnEnd"
+              ],
+              "filter": [
+                {
+                  "o": "NOT",
+                  "v": {
+                    "k": "bearer.statuses.rage",
+                    "o": "gte",
+                    "v": 1
+                  }
+                }
+              ],
+              "action": {
+                "type": "note"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.surge70000000000"
+    },
+    {
+      "_id": "surge80000000000",
+      "name": "Wild Surge: Bolt of Light",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Bolt of Light",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Bolt of Light",
+                "to": {
+                  "who": "choose",
+                  "range": 30,
+                  "sight": true,
+                  "self": false
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.surge80000000000"
+    },
+    {
+      "_id": "surgeBlinded0000",
+      "name": "Blinded (Wild Surge)",
+      "img": "icons/svg/blind.svg",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "blinded"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "sourceStart"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!vrEYek8khft19lx4.surgeBlinded0000"
+    },
+    {
+      "_id": "surgeSpirit00000",
+      "name": "Wild Surge: Intangible Spirit",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Intangible Spirit",
+              "event": "sourceTurnEnd",
+              "action": {
+                "type": "useActivity",
+                "activity": "Spirit Explosion",
+                "to": {
+                  "who": "all",
+                  "range": 5
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!vrEYek8khft19lx4.surgeSpirit00000"
+    },
+    {
+      "_id": "surgeInfused0000",
+      "name": "Wild Surge: Infused Weapon",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "enchantment",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 600,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.damage.base.types",
+            "type": "override",
+            "value": "[\"force\"]",
+            "phase": "initial"
+          },
+          {
+            "key": "system.properties",
+            "type": "add",
+            "value": "lgt",
+            "phase": "initial"
+          },
+          {
+            "key": "system.properties",
+            "type": "add",
+            "value": "thr",
+            "phase": "initial"
+          },
+          {
+            "key": "system.range.value",
+            "type": "upgrade",
+            "value": "20",
+            "phase": "initial"
+          },
+          {
+            "key": "system.range.long",
+            "type": "upgrade",
+            "value": "60",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!vrEYek8khft19lx4.surgeInfused0000"
+    },
+    {
+      "_id": "surgeLightsAlly0",
+      "name": "Protective Lights",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "protective-lights"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.ac.bonus",
+            "type": "add",
+            "value": "1",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!vrEYek8khft19lx4.surgeLightsAlly0"
+    },
+    {
+      "_id": "surgeTangled0000",
+      "name": "Tangled (Wild Surge)",
+      "img": "icons/magic/earth/explosion-lava-stone-green.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "tangled"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.movement.speeds.walk",
+            "type": "multiply",
+            "value": "0.5",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.fly",
+            "type": "multiply",
+            "value": "0.5",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.swim",
+            "type": "multiply",
+            "value": "0.5",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.climb",
+            "type": "multiply",
+            "value": "0.5",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.burrow",
+            "type": "multiply",
+            "value": "0.5",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!vrEYek8khft19lx4.surgeTangled0000"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662628758,
+    "modifiedTime": 1790662628758,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!vrEYek8khft19lx4"
+}

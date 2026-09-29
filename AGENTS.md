@@ -83,15 +83,25 @@ needsUses, oncePerTurn, every }]`, run while the effect is active on its **beare
 * events — bearer: attack, spell, activity, save, check, moved, rest, initiative, missed, dealt, damageRolled,
   collided, interval · to the bearer: hit, damaged, statusGained, applied · turns: turnStart/End, roundStart/End,
   sourceTurnStart/End · area: areaCreated, areaEnter, areaLeave, areaTurnStart, areaTurnEnd.
-* actions — save, damage, activityDamage, useActivity, giveEffect, removeStatus, tempHp, recoverSlots, storeSpell,
-  repeatActivity, drainMaxHp, spendHitDie, inspire, swapInitiative, toggleLight, rollActivity, note, duplicates.
-* selectors `to: { who: choose|all|self|bearer|source|subject|targets, range, from, side, sight, count… }`.
+* actions — save (dc: number, "source", "sourceSpell" or a formula), damage, activityDamage, useActivity, giveEffect,
+  removeStatus (standard or custom status ids), tempHp, recoverSlots, storeSpell, repeatActivity, drainMaxHp,
+  spendHitDie, inspire, swapInitiative, toggleLight, random (roll on a table → give that row's effect), teleport, push,
+  sense (whisper nearby creatures / magic), rollActivity, note, duplicates.
+* trigger options — ask, needsUses, oncePerTurn, every. Filter data includes bearerTurn, sourceTurn, subjectIsSource,
+  subjectIsAlly, subjectIsEnemy.
+* selectors `to: { who: choose|all|self|bearer|source|subject|targets, range, from, side (any|ally|enemy|notAlly), sight,
+  count, by: "source" … }`.
 
-**Effect rules** (flags): area, stopOnCollision, attackedWith / attacksWith (advantage/disadvantage, once, by),
-disengaged, extraAttack, evasion, saveAdvantageAgainst, healingExtraDie, noHealing, dropSave, onlyIf, saveDamage,
-ownRollsOnly, ignoreDamageFrom, noReactions, noComponents, askFirst, attackAbilities(Only), minLevel.
+**Effect rules** (flags): area, stopOnCollision, attackedWith (mode, once, by uuid|"source", attacker filter),
+attacksWith (mode, once, unlessTarget "source"), disengaged, extraAttack, evasion, saveAdvantageAgainst, healingExtraDie,
+noHealing, dropSave, onlyIf, saveDamage, ownRollsOnly, ignoreDamageFrom, noReactions, noComponents, askFirst,
+attackAbilities(Only), minLevel, reduceDamage, damageDice (minimum die), light, noSpells, sustain (Rage upkeep).
+Prefer dnd5e 6's own conditional Rules changes (`attack` / `damage` / `check` / `save` with `dnd5e.bonus` /
+`dnd5e.advantage` and `conditions` on the roll data, e.g. `roll.attack.mode`, `roll.ability`, `roll.skill`) before adding
+an engine rule — Dueling, Reckless Attack and Danger Sense need nothing else.
 
-**Activity flags**: onUse, pay, chooseEffects, targetFilter, summonEffects, repeat, mastery, properties, area.triggers.
+**Activity flags**: onUse, onHit (attacks: after hits settle; "targets" = creatures hit), pay, chooseEffects (also for
+save activities), targetFilter, summonEffects, repeat, mastery, properties, area.triggers.
 
 **Reactions** (on items): `reactions = [{ window, who, activity, outcome, filter, cost, free, oncePerTurn, onceKey,
 requiresItem, atTarget, after, refundUnlessSuccess… }]`. Windows: hitBy, d20Succeeded, d20Failed, damageIncoming,
@@ -103,7 +113,9 @@ damageNext, none. Headers of `reactions.mjs` / `main.mjs` document every field.
 `Workflow.rollSaveOutcome` — don't add another.
 
 **Multi-client**: once-only work runs on the lead GM (`Creatures.isLeadGM()`); players act on things they don't own
-through GM relays; UI for a specific user goes through `Creatures.runAs`.
+through GM relays; UI for a specific user goes through `Creatures.runAs`. The lead GM may be viewing another scene —
+never assume `canvas.scene`; find tokens with `Creatures.tokenFor`. When testing, every GM window must run the new
+code (reload or close the others), or the lead one does the work with the old code.
 
 **dnd5e 6 / v14 facts**: templates are Regions (test points with `region.testPoint`; a new region's token list fills
 late); `preMoveToken` can only reject; healing damage values are **positive** with a healing type; old effect keys are
@@ -122,6 +134,9 @@ A patch = a full item document in `packs/_source/fixed-items/<file>.json` with
   per creature → `owner`. Never match 2014 copies with a 2024 patch.
 * Applying replaces mechanics and **keeps** the user's description, image, uses spent, preparation, equipment and
   attunement. So a patch can be built from any copy of the item.
+* Consumption from another item (a Focus Point or Psionic pool) is written `"target": "identifier:focus-point|monks-focus"`
+  — never an item ID from one character. The Box resolves it on each actor (when patching, else on first use).
+* Imported effects' descriptions are the book's text: clear them (the strip script removes any with enricher markup).
 * Bump `version` whenever a patch changes. Unique `_id` per patch.
 * After editing patches: `npm run strip-rules-text` then `node scripts/strip-rules-text.cjs --check`.
 

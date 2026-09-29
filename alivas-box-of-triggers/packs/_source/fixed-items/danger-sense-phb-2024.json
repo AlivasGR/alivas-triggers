@@ -1,0 +1,128 @@
+{
+  "_id": "pEyeBMKjQ2wZ6TIp",
+  "name": "Danger Sense",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "52",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Danger Sense (PHB 2024 p. 52). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "requirements": "Barbarian 2",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {},
+    "identifier": "danger-sense",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/perception/eye-ringed-glow-angry-red.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "danger-sense",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "ego68nDiJuB3ZOoR",
+      "name": "Danger Sense",
+      "img": "icons/magic/perception/eye-ringed-glow-angry-red.webp",
+      "description": "",
+      "system": {
+        "changes": [
+          {
+            "key": "save",
+            "type": "dnd5e.advantage",
+            "value": "1",
+            "phase": "initial",
+            "conditions": "[{\"k\":\"roll.ability\",\"v\":\"dex\"},{\"o\":\"NOT\",\"v\":{\"k\":\"statuses.incapacitated\",\"o\":\"gte\",\"v\":1}}]"
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "units": "seconds",
+        "value": null,
+        "expiry": null,
+        "expired": false
+      },
+      "transfer": true,
+      "flags": {},
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662625277,
+        "modifiedTime": 1790662625277,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!pEyeBMKjQ2wZ6TIp.ego68nDiJuB3ZOoR"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662625277,
+    "modifiedTime": 1790662625277,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!pEyeBMKjQ2wZ6TIp"
+}

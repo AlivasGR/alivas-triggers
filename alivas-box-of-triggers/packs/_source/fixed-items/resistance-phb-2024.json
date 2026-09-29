@@ -1,0 +1,884 @@
+{
+  "_id": "N3BKon6BPwyNWB4o",
+  "name": "Resistance",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "312",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Resistance (PHB 2024 p. 312). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "level": 0,
+    "school": "abj",
+    "properties": [
+      "vocal",
+      "somatic",
+      "concentration"
+    ],
+    "materials": {
+      "value": "",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "target": {
+      "template": {
+        "contiguous": false,
+        "type": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "1",
+        "type": "willing",
+        "choice": false,
+        "special": ""
+      }
+    },
+    "range": {
+      "value": "0",
+      "units": "touch"
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute",
+      "expiry": null
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 2,
+    "activities": {
+      "dnd5eactivity000": {
+        "type": "utility",
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "roll": {
+          "visible": true,
+          "name": "Damage Reduction",
+          "formula": "1d4",
+          "prompt": false
+        },
+        "effects": [
+          {
+            "_id": "resistancexxxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance1xxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance2xxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance3xxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance4xxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance5xxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance6xxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance7xxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance8xxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance9xxxxx",
+            "uuid": null,
+            "level": {}
+          },
+          {
+            "_id": "resistance10xxxx",
+            "uuid": null,
+            "level": {}
+          }
+        ],
+        "_id": "dnd5eactivity000",
+        "target": {
+          "prompt": true,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          },
+          "override": false
+        },
+        "img": null,
+        "sort": 0,
+        "behaviors": [],
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "value": ""
+        },
+        "duration": {
+          "units": "inst",
+          "expiry": null,
+          "concentration": false,
+          "override": false
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "chooseEffects": {
+              "count": "1"
+            }
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    },
+    "identifier": "resistance"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/life/heart-cross-purple-orange.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "spell",
+          "identifier": "resistance",
+          "book": "PHB 2024"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "resistancexxxxxx",
+      "name": "Acid Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "acid"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistancexxxxxx"
+    },
+    {
+      "_id": "resistance1xxxxx",
+      "name": "Bludgeoning Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "bludgeoning"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance1xxxxx"
+    },
+    {
+      "_id": "resistance2xxxxx",
+      "name": "Cold Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "cold"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance2xxxxx"
+    },
+    {
+      "_id": "resistance3xxxxx",
+      "name": "Fire Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "fire"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance3xxxxx"
+    },
+    {
+      "_id": "resistance4xxxxx",
+      "name": "Lightning Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "lightning"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance4xxxxx"
+    },
+    {
+      "_id": "resistance5xxxxx",
+      "name": "Necrotic Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "necrotic"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance5xxxxx"
+    },
+    {
+      "_id": "resistance6xxxxx",
+      "name": "Piercing Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "piercing"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance6xxxxx"
+    },
+    {
+      "_id": "resistance7xxxxx",
+      "name": "Poison Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "poison"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance7xxxxx"
+    },
+    {
+      "_id": "resistance8xxxxx",
+      "name": "Radiant Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "radiant"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance8xxxxx"
+    },
+    {
+      "_id": "resistance9xxxxx",
+      "name": "Slashing Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "slashing"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance9xxxxx"
+    },
+    {
+      "_id": "resistance10xxxx",
+      "name": "Thunder Protection",
+      "img": "icons/magic/life/heart-cross-purple-orange.webp",
+      "description": "",
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "statuses": [],
+      "disabled": false,
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "transfer": false,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "reduceDamage": {
+            "formula": "1d4",
+            "types": [
+              "thunder"
+            ],
+            "oncePerTurn": true
+          }
+        }
+      },
+      "type": "base",
+      "start": null,
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1790662639756,
+        "modifiedTime": 1790662639756,
+        "lastModifiedBy": "onrEdnELJB1wlSy1",
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!N3BKon6BPwyNWB4o.resistance10xxxx"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1790662639756,
+    "modifiedTime": 1790662639756,
+    "lastModifiedBy": "onrEdnELJB1wlSy1",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!N3BKon6BPwyNWB4o"
+}

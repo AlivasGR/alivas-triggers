@@ -175,6 +175,25 @@ async function dispatch(system, owner, event, context) {
   });
 }
 
+/**
+ * An effect's area is going away with its effect: the creatures still inside count as leaving it ("areaLeave"), so
+ * effects given while inside end too. Lead GM, before the region is deleted.
+ * @param {RegionDocument} region
+ * @param {ActiveEffect5e} effect   The (deleted) effect that owned it.
+ */
+export async function releaseArea(region, effect) {
+  const system = region.behaviors?.find(b => b.type === AREA_TYPE)?.system;
+  const triggers = (effect.getFlag(MODULE_ID, "triggers") ?? []).filter(t => [t.event].flat().includes("areaLeave"));
+  if ( !system || !triggers.length ) return;
+  const bearer = effect.parent instanceof Actor ? effect.parent : (effect.parent?.actor ?? null);
+  const owner = { triggers, bearer, effect, excludeBearer: true };
+  for ( const token of region.parent.tokens.filter(t => tokenInRegion(t, region)) ) {
+    if ( !isTarget(token.actor, owner) ) continue;
+    await deps.runTriggerList(triggers, effect, bearer, "areaLeave", { subject: token.actor, targets: [token.actor], region,
+      fromArea: true, data: {} }, { key: `${region.uuid}|${token.actor.uuid}|release`, onRemove: async () => {} });
+  }
+}
+
 /* -------------------------------------------- */
 /*  Helpers                                     */
 /* -------------------------------------------- */

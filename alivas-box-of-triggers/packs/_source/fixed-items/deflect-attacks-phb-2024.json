@@ -115,7 +115,7 @@
               "type": "itemUses",
               "value": "1",
               "scaling": {},
-              "target": "wrH2HyyEh61HXqqr"
+              "target": "identifier:focus-point|monks-focus"
             }
           ],
           "scaling": {
@@ -266,7 +266,7 @@
       ]
     },
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "type": "feat",
