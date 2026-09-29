@@ -170,4 +170,13 @@ for an LLM to pick up cold: goal, sources, exact files, acceptance checks, what'
 When you stop mid-way (or can't test), update **Status**, **Done**, **Left** and append to **Log** — the next person
 starts from that file alone. Statuses: `open`, `in-progress`, `needs-live-test`, `blocked`, `done`.
 
-Releases are cut by the maintainer (`npm run release -- X.Y.Z`); contributors open pull requests.
+---
+
+## 9. Contributing
+
+* Fork, branch (`t-004-push-mastery`), open a pull request against `main`. One task per PR; the PR updates that
+  task's file (status, Done, Left, Log) so the state travels with the code.
+* Offline work is welcome: mark it `needs-live-test` and say so in the PR. Someone with Foundry picks it up from the
+  task file.
+* Don't change module versions — releases are cut by the maintainer (`npm run release -- X.Y.Z`).
+* Keep personal data out: no world dumps, player names, local paths or credentials in commits.
