@@ -19,6 +19,7 @@
  */
 
 import * as Creatures from "./creatures.mjs";
+import { isSkipping } from "./delay.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 export const AREA_TYPE = `${MODULE_ID}.area`;
@@ -96,6 +97,9 @@ async function onToken(system, name, event) {
   const region = system.region;
   // Hidden tokens are off-stage (Foundry still reports them entering and leaving).
   if ( !token?.actor || !region || (token.hidden && (name !== "areaLeave")) ) return;
+  // Delay turn: a delayed end of turn, or a resumed start, isn't a real turn edge for the area either.
+  const combatant = game.combats.find(c => c.started && c.combatants.some(cb => cb.tokenId === token.id))?.combatants.find(cb => cb.tokenId === token.id);
+  if ( combatant && (((name === "areaTurnEnd") && isSkipping("end", combatant.id)) || ((name === "areaTurnStart") && isSkipping("start", combatant.id))) ) return;
   // Creatures already inside when the area appeared were handled by areaCreated.
   const born = createdAt.get(region.id);
   if ( (name === "areaEnter") && born && (Date.now() - born.at < 3000) && born.tokens.has(token.id) ) return;

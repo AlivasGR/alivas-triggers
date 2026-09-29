@@ -32,6 +32,8 @@ Installing the Box installs the Engine too. Enable both in your world, then relo
 - hit by an attack (Shield), a creature succeeds on a d20 (Silvery Barbs), damage incoming (Absorb Elements), a spell being cast (Counterspell), a d20 about to be rolled with advantage or disadvantage (Restore Balance — decided before anyone sees the dice), Opportunity Attacks.
 - Checks range, line of sight and vision (Foundry's own), whether the creature is an ally or enemy, whether a reaction is left, and spell slots — it casts from the lowest slot that works.
 
+**Delay turn** (setting) — an ⏳ button on the combat tracker. On your turn (unless you're last in the order) press it to end your turn and delay; press it again (↺) at the end of any other creature's turn to act right away, before the creature whose turn it is — your initiative moves there for good, and that creature's turn picks up after yours without starting over. While delayed you have no reaction. When you delay, effects that help you and would end at the end of your turn end then; everything else at the end of your turn (an enemy's effect ending, "save at the end of your turn", end-of-turn damage) waits for the turn you actually take. Delay a whole round and you lose that turn: its end-of-turn effects resolve when your place in the order comes round again.
+
 ## Box
 
 Patches replace an item's **mechanics only** — activities, effects, reactions — and keep its description, image, source and play state. Patched items are matched by name, type and source book/page (or dnd5e compendium source), so Plutonium imports, dnd5e compendium drags and hand-made copies all work.

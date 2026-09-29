@@ -112,7 +112,9 @@ function combatantFor(actor, scene) {
 
 /** Has the creature used its reaction since the start of its turn? Tracked in combat only. */
 export function reactionUsed(actor) {
-  return !!combatantFor(actor)?.getFlag(MODULE_ID, "reactionUsed");
+  const combatant = combatantFor(actor);
+  // A creature delaying its turn has no reaction until it returns (delay.mjs).
+  return !!combatant?.getFlag(MODULE_ID, "reactionUsed") || !!combatant?.getFlag(MODULE_ID, "delayed");
 }
 
 /** Mark the reaction as used. The GM does the update if this user can't. */

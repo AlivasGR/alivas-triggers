@@ -194,3 +194,7 @@
 .aet-summary-sub { margin: 6px 0 2px; font-weight: 600; font-size: 12px; }
 .aet-summary-activity { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
 .aet-summary-activity button { flex: 0 0 auto; width: auto; line-height: 18px; padding: 0 8px; font-size: 11px; }
+
+/* Delay turn: a delayed combatant on the combat tracker */
+.combat-tracker li.aet-delayed .token-name, .combat-tracker li.aet-delayed .token-image { opacity: 0.55; }
+.combat-tracker .aet-delay:disabled { opacity: 0.35; cursor: default; }

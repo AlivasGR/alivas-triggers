@@ -90,6 +90,8 @@
  *   sustain { events, filter }                     ends at the end of the bearer's turn unless it did one of the events
  *                                                  during it (Rage: attack, force a save, extend)
  *
+ * Delay turn: see delay.mjs (combat tracker button, setting delayTurn).
+ *
  * Activity flags (flags.alivas-engine-of-triggers on the activity):
  *   onUse: [action, …]   actions run right after the activity is used, by the user — the same action formats as
  *                        triggers (giveEffect, removeStatus, inspire…); "targets" means the user's targets.
@@ -125,6 +127,7 @@ import * as Reactions from "./reactions.mjs";
 import * as Creatures from "./creatures.mjs";
 import * as Workflow from "./workflow.mjs";
 import * as Areas from "./areas.mjs";
+import * as Delay from "./delay.mjs";
 import { registerSettingsMenu } from "./settings-app.mjs";
 import { TriggerEditor, describeTrigger, describeReaction } from "./editor.mjs";
 
@@ -1172,6 +1175,7 @@ async function reduceDamage(actor, damages) {
  * designated GM client. Extend them so each turn change is handled exactly once.
  */
 Hooks.once("setup", () => {
+  Delay.patchExpiry();
   // Concentration: dnd5e posts a prompt when a concentrating creature takes damage. Roll it straight away instead
   // (setting "autoConcentration"), except for a PC whose player is connected in "auto" mode.
   const actorProto = CONFIG.Actor.documentClass.prototype;
@@ -1324,7 +1328,18 @@ Hooks.once("setup", () => {
   };
   /** Run turn logic in the window that advanced the turn, or (if another user did) in the designated GM's window. */
   const mine = combat => isLocal(combat.uuid) || (combat._sbaLastUserId && (combat._sbaLastUserId !== game.userId));
+  /** The end-of-turn workflow for a combatant (also run late for a forfeited delayed turn). */
+  const endOfTurn = combat => async combatant => {
+    await sustainTurnEnd(combatant?.actor);
+    await fire("turnEnd", combatant?.actor, { combat, combatant });
+    await fireForCombat(combat, "sourceTurnEnd", { combatant, sourceActor: combatant?.actor });
+  };
   proto._onStartTurn = async function(combatant, context) {
+    // Delay turn (delay.mjs): a turn resuming after a returning creature doesn't start again; a delayed turn that was
+    // never taken resolves its end first.
+    const delayMode = mine(this) && setting("delayTurn") ? await Delay.beforeStartTurn(this, combatant, context) : null;
+    if ( delayMode === "skip" ) return;
+    if ( delayMode === "forfeit" ) await Delay.forfeit(this, combatant, endOfTurn(this));
     await onStart.call(this, combatant, context);
     if ( !mine(this) ) return;
     await Reactions.resetReaction(combatant);
@@ -1335,9 +1350,9 @@ Hooks.once("setup", () => {
   proto._onEndTurn = async function(combatant, context) {
     await onEnd.call(this, combatant, context);
     if ( !mine(this) ) return;
-    await sustainTurnEnd(combatant?.actor);
-    await fire("turnEnd", combatant?.actor, { combat: this, combatant });
-    await fireForCombat(this, "sourceTurnEnd", { combatant, sourceActor: combatant?.actor });
+    // Delaying: its end-of-turn workflow waits for the end of the turn it actually takes.
+    if ( Delay.isDelayEnd(this, combatant, context) ) return Delay.markDelayEnd(combatant);
+    await endOfTurn(this)(combatant);
   };
   proto._onStartRound = async function(context) {
     await onStartRound.call(this, context);
@@ -2641,6 +2656,14 @@ Hooks.once("init", () => {
       + "rolled by the GM's client.",
     scope: "world", config: true, type: String, default: "prompt",
     choices: { prompt: "Their player rolls (popup)", auto: "Rolled automatically" }
+  });
+  game.settings.register(MODULE_ID, "delayTurn", {
+    name: "Delay turn",
+    hint: "A button on the combat tracker: on your turn (not when you're last), end it now and come back later — press it again "
+      + "at another creature's turn to act right before it; your initiative moves there. No reactions while delayed. Helpful "
+      + "effects that end at the end of your turn end when you delay; everything else at the end of your turn waits for the "
+      + "turn you actually take. Delay a whole round and you lose that turn.",
+    scope: "world", config: true, type: Boolean, default: true
   });
   game.settings.register(MODULE_ID, "wfRemoveTemplates", {
     name: "Remove areas of instantaneous spells",

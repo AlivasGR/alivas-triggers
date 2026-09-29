@@ -15,7 +15,9 @@ const SECTIONS = [
   { title: "Reactions", icon: "fa-bolt", hint: "Popups offering reactions (Shield, Counterspell, Deflect Attacks…) at the right moment.",
     keys: ["reactions", "reactionTimeout", "opportunityAttacks"] },
   { title: "Areas", icon: "fa-burst", hint: "Spell templates and auras.",
-    keys: ["wfRemoveTemplates"] }
+    keys: ["wfRemoveTemplates"] },
+  { title: "Combat", icon: "fa-hourglass-half", hint: "Turn options on the combat tracker.",
+    keys: ["delayTurn"] }
 ];
 export const GROUPED_SETTINGS = SECTIONS.flatMap(s => s.keys);
 

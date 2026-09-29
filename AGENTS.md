@@ -108,6 +108,10 @@ requiresItem, atTarget, after, refundUnlessSuccess… }]`. Windows: hitBy, d20Su
 spellCast, d20Rolling, hitting, leavesReach. Outcomes: acBonus, reroll, modifyRoll, damage, counter, straight,
 damageNext, none. Headers of `reactions.mjs` / `main.mjs` document every field.
 
+**Delay turn** (`delay.mjs`, setting `delayTurn`): combat tracker button; combatant flag `delayed`, combat flag `resume`; wraps
+`ActiveEffect#isExpiryEvent` so a delay only ends turn-end effects that help the delayer; returning reorders with
+`turnEvents: false`; reactions are blocked through `Reactions.reactionUsed`.
+
 **Workflow** (settings in *Automation settings*): saves (targeted → `resolveSave`; templates → their area), attacks
 (roll → hit → damage → rider saves → masteries), healing, weapon masteries. **One save routine:**
 `Workflow.rollSaveOutcome` — don't add another.
