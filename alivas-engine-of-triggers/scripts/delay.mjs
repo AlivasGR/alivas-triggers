@@ -12,6 +12,8 @@
  *   - start-of-turn things already happened (its turn had started);
  *   - effects ending at the end of its turn that help its side (put on by itself or an ally, or its own effects on
  *     enemies) end now — delaying can't stretch them;
+ *   - buffs it keeps up turn by turn (effect rule sustain — Rage) never end because it delayed: their upkeep is checked
+ *     at the end of the turn it actually takes. A forfeited turn is a turn without upkeep — Rage ends then;
  *   - everything else at the end of its turn (enemies' effects ending, "save at the end of your turn", end-of-turn
  *     damage, area end-of-turn triggers, Rage upkeep) waits for the end of the turn it actually takes.
  * Setting `delayTurn` switches the feature on or off.
@@ -180,6 +182,8 @@ export function patchExpiry() {
     if ( !result || (event !== "turnEnd") || !combat ) return result;
     const ending = combat.combatants.get(combat.previous?.combatantId);
     if ( !ending || !isDelayEnd(combat, ending, context) || !endsAtTurnEndOf(this, combat, ending) ) return result;
+    // Buffs kept up turn by turn (sustain — Rage) never end just because their bearer delayed.
+    if ( this.getFlag?.(MODULE_ID, "sustain") ) return false;
     return helpsSide(this, ending);
   };
 }
