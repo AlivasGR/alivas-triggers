@@ -132,6 +132,7 @@ import * as Delay from "./delay.mjs";
 import { registerSettingsMenu } from "./settings-app.mjs";
 import { TriggerEditor, describeTrigger, describeReaction, registerActionType, registerEditorSection } from "./editor.mjs";
 import * as Maneuvers from "./maneuvers.mjs";
+import * as Loot from "./loot.mjs";
 import * as Ready from "./ready.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
@@ -2813,13 +2814,14 @@ Hooks.once("ready", () => {
   Areas.initAreas({ runTriggerList, findUsageMessage, setting, saveMode: actor => Workflow.modeFor("Save", actor) });
   Maneuvers.initManeuvers({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
   Maneuvers.registerManeuverHooks();
+  Loot.initLoot({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
   Ready.initReady({ ACTIONS });
   Ready.registerReadyHooks();
   game.modules.get(MODULE_ID).api = {
     ACTIONS, fire, autoApply, findUsageMessage,
     openEditor: doc => TriggerEditor.open(doc), describeTrigger, describeReaction,
     creatures: Creatures, workflow: Workflow, areas: Areas,
-    registerAction, registerEditorSection, maneuvers: Maneuvers
+    registerAction, registerEditorSection, maneuvers: Maneuvers, loot: Loot
   };
   Hooks.callAll("alivasTriggers.ready", game.modules.get(MODULE_ID).api);
   console.log(`${MODULE_ID} | Ready`);
