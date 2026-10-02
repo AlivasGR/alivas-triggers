@@ -14,7 +14,7 @@
  *                                                  checks, writes send-to-alivas/contrib-<name>-<nn>-<stamp>.json (nn =
  *                                                  bundle number) + send-to-alivas/README.txt, opens that folder,
  *                                                  then re-baselines so the next bundle holds only newer work
- *   → send that file to the maintainer (email, chat, USB…)
+ *   → send that file to the maintainer on Discord
  *   (start [--force] re-records the baseline by hand)
  *
  * Maintainer (needs git)
@@ -270,7 +270,7 @@ function pack(args) {
   const others = writeOutboxReadme(path.basename(file));
   const rule = "=".repeat(78);
   console.log(`\n${rule}\n  READY TO SEND: bundle #${seq}, "${title}"\n\n  ${file}\n\n`
-    + "  Send this one file to Alivas, as an attachment (email, Discord, chat, USB stick…).\n"
+    + "  Send this one file to Alivas on Discord (drag it into a message to Alivas).\n"
     + "  Don't rename, unzip or edit it. It's in the folder \"send-to-alivas\" at the top of your copy"
     + (args["no-open"] ? ".\n" : ", which is opening now.\n")
     + (others ? `  That folder also holds ${others} earlier bundle(s): send any you haven't yet, lowest number first.\n` : "")
@@ -289,7 +289,7 @@ function writeOutboxReadme(newest) {
   const text = [
     "SEND THESE FILES TO ALIVAS (the maintainer of Alivas's Triggers)",
     "",
-    "Attach them to an email, a Discord or chat message, or copy them to a USB stick: any way works.",
+    "Send them to Alivas on Discord: drag each file into a message to Alivas.",
     "Don't rename, unzip or edit them; a checksum inside detects changes.",
     "Send them in number order. Sending one twice is harmless.",
     "",

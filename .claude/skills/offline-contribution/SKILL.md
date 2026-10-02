@@ -8,7 +8,7 @@ description: Set up and run contributions to this repo without git or a GitHub a
 **You do everything.** The user only does three things:
 - tells you their name once;
 - installs Node.js, and only if it's missing;
-- sends the finished file to the maintainer (Alivas) by email, chat, or any other channel.
+- sends the finished file to the maintainer (Alivas) on Discord.
 
 Don't ask the user to run commands. Tell them what you did in plain language.
 
@@ -102,8 +102,8 @@ contributors are fine; the maintainer renumbers.
 📎 Send this file to Alivas:
 <full path printed by pack>
 
-It's in the "send-to-alivas" folder in your copy of the repo (I've opened it for you). Attach it to an email or a
-Discord/chat message to Alivas, exactly as it is. Don't rename, unzip or edit it.
+It's in the "send-to-alivas" folder in your copy of the repo (I've opened it for you). Drag it into a Discord
+message to Alivas, exactly as it is. Don't rename, unzip or edit it.
 
 What's in it: <one line: the task and what was done>
 Still to do: <one line: e.g. "Alivas or someone with Foundry needs to live-test it (checklist in the task)" or "nothing">
