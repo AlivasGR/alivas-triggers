@@ -17,7 +17,7 @@ const path = require("path");
 const REPO = "AlivasGR/alivas-triggers";
 const ROOT = path.join(__dirname, "..");
 const DIST = path.join(ROOT, "dist");
-const MODULES = ["alivas-engine-of-triggers", "alivas-box-of-triggers"];
+const MODULES = ["alivas-engine-of-triggers", "alivas-box-of-triggers", "alivas-stage-of-triggers"];
 
 const version = process.argv[2];
 if ( !/^\d+\.\d+\.\d+$/.test(version ?? "") ) throw new Error("Usage: npm run release -- X.Y.Z");

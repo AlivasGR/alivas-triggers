@@ -416,7 +416,9 @@ async function moveOrUpdate(token, update) {
 }
 
 /** Move a token straight to a point (forced movement / teleport: no movement cost), here or through the lead GM. */
-async function displaceToken(token, { x, y }) {
+async function displaceToken(token, { x, y }, kind="move") {
+  // Forced movement and teleports, announced where they start (e.g. for animations): alivasTriggers.move.
+  if ( kind !== "relay" ) Hooks.callAll("alivasTriggers.move", { token, from: { x: token.x, y: token.y }, to: { x, y }, kind });
   if ( !token.isOwner ) return game.socket.emit(SOCKET, { type: "displaceToken", uuid: token.uuid, x, y });
   if ( typeof token.move === "function" ) return token.move([{ x, y, action: "displace" }], { autoRotate: false });
   return token.update({ x, y }, { teleport: true });
@@ -468,7 +470,7 @@ export async function pushCreature(from, target, feet) {
     pos = next;
     moved += scene.grid.distance;
   }
-  if ( moved ) await displaceToken(b, pos);
+  if ( moved ) await displaceToken(b, pos, feet < 0 ? "pull" : "push");
   return moved;
 }
 
@@ -693,7 +695,7 @@ HANDLERS.teleport = async function({ tokenUuid, range, sight, label }) {
     const centre = { x: x + (token.width * size / 2), y: y + (token.height * size / 2) };
     const visible = !sight || canvas.visibility?.testVisibility?.(centre, { tolerance: 1, object: token.object }) !== false;
     if ( (feet <= Number(range)) && spaceFree(token, x, y) && visible ) {
-      await displaceToken(token, { x, y });
+      await displaceToken(token, { x, y }, "teleport");
       return feet;
     }
     ui.notifications.warn(`${label}: that spot is ${feet > Number(range) ? `${feet} ft away` : (!visible ? "out of sight" : "occupied")} — try again.`);
@@ -787,7 +789,7 @@ Hooks.once("ready", () => {
     else if ( data?.type === "deleteEffects" ) await fromUuidSync(data.actorUuid)?.deleteEmbeddedDocuments("ActiveEffect", data.ids ?? []);
     else if ( data?.type === "displaceToken" ) {
       const token = fromUuidSync(data.uuid);
-      if ( token ) await displaceToken(token, { x: data.x, y: data.y });
+      if ( token ) await displaceToken(token, { x: data.x, y: data.y }, "relay");
     }
   });
 });

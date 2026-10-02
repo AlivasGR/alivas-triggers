@@ -78,6 +78,14 @@ alivas-engine-of-triggers/
   scripts/settings-app.mjs the grouped "Automation settings" window
 alivas-box-of-triggers/
   scripts/main.mjs         patch matching, buildPatched, Review & apply, auto-patch on create/import, weapon options
+alivas-stage-of-triggers/  animations + sounds (Sequencer; JB2A / PSFX); requires the Engine and Sequencer
+  scripts/cues.mjs         cue format (steps: onToken/projectile/melee/impact/area/aura/teleport/sound) + Sequencer player
+  scripts/sources.mjs      where cues come from (item/effect flags, presets, conditions, engine actions, moves), dnd5e
+                           hooks, Automated Animations hand-off + whole-word match guard
+  scripts/cue-editor.mjs   cue editor, item / effect animation windows, condition + move settings windows
+  scripts/picker.mjs       animation/sound browser (search, filters, recommendations, previews)
+  scripts/catalog.mjs      catalog built from Sequencer's database: families, search, recommend (no Foundry needed)
+  presets/box.json         cues for Box items (name + type match); presets/statuses.json — conditions
   packs/_source/fixed-items/*.json     patch sources (source of truth)
   packs/_source/weapon-options/*.json
   packs/<name>/            built compendia (gitignored; `npm run pack`)
@@ -139,6 +147,16 @@ shimmed; upcast activities carry `flags.dnd5e.scaling` (the usage card's `getAss
 
 ---
 
+**Extension API** (for other modules, e.g. the Stage):
+- `Hooks.on("alivasTriggers.ready", api => …)`, then `api.registerAction(type, { run, label, icon, hint, defaults, describe,
+  validate, fields, onAction, activity })` adds an action type (runtime + editor tile/fields), and
+  `api.registerEditorSection({ id, render, describe, validate, onAction })` adds a section under every action card.
+  Inputs bind with `data-path="action.…"`; buttons use `data-action="extAction"` / `"extSection"` + `data-op`.
+- `Hooks.on("alivasTriggers.action", { origin, action, trigger, effect, bearer, event, context, result, moves })` after
+  every trigger action and activity step (on the client that ran it); `Hooks.on("alivasTriggers.move", { token, from,
+  to, kind })` for every teleport / push / pull (`creatures.mjs` displaceToken). Keep unknown action fields (e.g.
+  `action.animation`) — the editor round-trips them.
+
 ## 5. The Box in one page
 
 A patch = a full item document in `packs/_source/fixed-items/<file>.json` with
@@ -156,6 +174,18 @@ A patch = a full item document in `packs/_source/fixed-items/<file>.json` with
 * After editing patches: `npm run strip-rules-text` then `node scripts/strip-rules-text.cjs --check`.
 
 ---
+
+## 5b. The Stage in one page
+
+Animations and sounds. A **cue** is `{ steps: [...] }` (format in `cues.mjs`'s header); it plays through Sequencer.
+Cues come from, most specific first: item flags (`cues[activityId|"*"][use|attack|hit|damage|area]`), effect flags
+(`cue.start|active|end`), `action.animation` on any engine action (or the `animate` action), presets
+(`presets/box.json` by item name + type; `presets/statuses.json`), the condition and move settings. Anything the Stage
+animates, Automated Animations skips (`aaHandOff`); otherwise AA plays with whole-word matches only (`aaGuard`).
+- **Presets** use only Sequencer database paths that exist; validate with `node private/work/anim/validate-presets.mjs`
+  (maintainer) or by checking every `file` is a prefix of a path in Sequencer's database. Prefer paths in the free JB2A
+  / PSFX. No rules text, as everywhere.
+- **catalog.mjs** is pure (no Foundry): test it with Node against a dump of path strings.
 
 ## 6. Working with or without Foundry
 

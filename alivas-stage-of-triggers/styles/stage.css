@@ -1,0 +1,62 @@
+/* Alivas's Stage of Triggers — editors (the picker has its own sheet: picker.css). */
+
+.ast-app .window-content { padding: 0; display: flex; flex-direction: column; }
+.ast-app .ast-scroll { flex: 1; overflow-y: auto; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.ast-app .ast-muted { opacity: 0.65; font-size: 0.9em; }
+.ast-app button { cursor: pointer; }
+.ast-app .ast-icon { flex: 0 0 auto; width: 1.9rem; padding: 0; line-height: 1.6rem; }
+.ast-app .ast-danger:hover { color: var(--color-level-error, #c33); }
+.ast-app .ast-primary { font-weight: bold; }
+
+/* Cue editor */
+.ast-editor { display: flex; flex-direction: column; height: 100%; }
+.ast-step { border: 1px solid var(--color-border-light-tertiary, #8884); border-radius: 8px; padding: 0.6rem 0.7rem; background: rgba(0, 0, 0, 0.04); display: flex; flex-direction: column; gap: 0.5rem; }
+.ast-step > header { display: flex; align-items: center; gap: 0.5rem; }
+.ast-step > header strong { flex: 1; }
+.ast-step-tools { display: flex; gap: 0.25rem; }
+.ast-badge { display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--color-warm-2, #c9593f); color: white; font-weight: bold; font-size: 0.85em; }
+.ast-kinds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.3rem; }
+.ast-kind { display: flex; align-items: center; gap: 0.35rem; justify-content: flex-start; padding: 0.25rem 0.45rem; font-size: 0.85em; border-radius: 6px; opacity: 0.75; }
+.ast-kind.active { opacity: 1; outline: 2px solid var(--color-warm-2, #c9593f); background: rgba(201, 89, 63, 0.12); }
+.ast-file { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+.ast-file button { flex: 0 0 auto; width: auto; padding: 0 0.6rem; }
+.ast-label { width: 5.5rem; font-weight: bold; font-size: 0.9em; }
+.ast-chosen { font-family: var(--font-mono, monospace); font-size: 0.85em; background: rgba(0, 0, 0, 0.08); padding: 0.1rem 0.4rem; border-radius: 4px; max-width: 22rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ast-mini { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.85em; }
+.ast-mini input { width: 4.2rem; }
+.ast-where { display: flex; gap: 1rem; flex-wrap: wrap; }
+.ast-where label { display: flex; align-items: center; gap: 0.4rem; }
+.ast-more summary { cursor: pointer; font-size: 0.9em; opacity: 0.8; }
+.ast-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem 1rem; margin-top: 0.4rem; }
+.ast-grid label { display: flex; align-items: center; gap: 0.4rem; }
+.ast-grid label > span:first-child { min-width: 4.5rem; }
+.ast-grid input[type="number"] { width: 5rem; }
+.ast-grid .ast-wide { grid-column: 1 / -1; }
+.ast-check { display: flex; align-items: center; gap: 0.4rem; }
+.ast-add { align-self: flex-start; width: auto; padding: 0 0.8rem; }
+.ast-footer { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.75rem; border-top: 1px solid var(--color-border-light-tertiary, #8884); }
+.ast-footer .ast-summary { flex: 1; }
+.ast-footer button { flex: 0 0 auto; width: auto; padding: 0 0.8rem; }
+
+/* Tables of moments */
+.ast-block { border: 1px solid var(--color-border-light-tertiary, #8884); border-radius: 8px; padding: 0.4rem 0.6rem; }
+.ast-block h3 { margin: 0.2rem 0 0.4rem; font-size: 1.05em; display: flex; align-items: center; gap: 0.4rem; border: none; }
+.ast-block h3 img { width: 22px; height: 22px; border: none; }
+.ast-block.ast-compact .ast-row { padding: 0.15rem 0; }
+.ast-row { display: grid; grid-template-columns: 11rem 1fr auto; gap: 0.6rem; align-items: center; padding: 0.3rem 0; border-top: 1px dashed #8883; }
+.ast-row:first-of-type { border-top: none; }
+.ast-row-label { display: flex; flex-direction: column; }
+.ast-row-label small { opacity: 0.6; font-size: 0.8em; }
+.ast-row-cue { font-size: 0.9em; }
+.ast-row-tools { display: flex; gap: 0.25rem; }
+.ast-row-tools button { width: 1.9rem; padding: 0; }
+.ast-tag { display: inline-block; font-size: 0.75em; padding: 0 0.35rem; border-radius: 8px; background: rgba(90, 130, 200, 0.25); }
+.ast-note { margin: 0; padding: 0.4rem 0.6rem; border-radius: 6px; background: rgba(90, 130, 200, 0.12); display: flex; gap: 0.5rem; align-items: center; }
+.ast-note button { width: auto; padding: 0 0.6rem; margin-left: auto; }
+
+/* Inside the engine's trigger editor */
+.aet-editor .ast-section { margin-top: 0.5rem; border-top: 1px dashed #8884; padding-top: 0.4rem; }
+.aet-editor .ast-section summary { cursor: pointer; }
+.aet-editor .ast-cue-summary { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.35rem; flex-wrap: wrap; }
+.aet-editor .ast-cue-summary > span:first-child { flex: 1; }
+.aet-editor .ast-cue-buttons { display: flex; gap: 0.3rem; }

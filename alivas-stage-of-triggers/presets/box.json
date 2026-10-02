@@ -1,0 +1,4868 @@
+[
+  {
+    "name": "Accelerate/Decelerate",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.03.blueteal",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.casting.on-token.001",
+                "volume": 0.5
+              }
+            },
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.blueteal",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.002",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "After Image",
+    "type": "spell",
+    "activities": {
+      "Cast": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shimmer.01.purple",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.casting.generic.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "After Image": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.misty_step.01.purple",
+              "at": "bearer",
+              "scale": 1.4
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shimmer.01.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.3,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Arc Blade (Weapon Option)",
+    "type": "feat",
+    "activities": {
+      "Arc Blade (melee)": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slash.01.bluepurple",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.lightning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.blue",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.lightning",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Arc Blade (15 ft)": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.chain_lightning.primary.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.cantrips.shocking-grasp.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.blue",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.lightning",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Arc Blade",
+    "type": "spell",
+    "activities": {
+      "Cast": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.static_electricity.01.blue",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.cantrips.shocking-grasp.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Arcane Recovery",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.healing_generic.burst.bluewhite",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.003",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Arms of the Astral Self",
+    "type": "feat",
+    "activities": {
+      "Summon the Arms": {
+        "damage": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.003.pinkpurple",
+              "at": "targets",
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Astral Arms Strike": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.unarmed_strike.magical.01.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.psychic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.003.pinkpurple",
+              "at": "targets",
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Astral Arms Strike (Bonus Action)": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.unarmed_strike.magical.01.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.psychic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.003.pinkpurple",
+              "at": "targets",
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Arms of the Astral Self": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_cast.initiate.001.instant.combined.bluepurple",
+              "at": "bearer",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.casting.on-token.001",
+                "volume": 0.6
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.token_border.circle.static.blue.003",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.3,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Bite",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.bite.400px.red",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Bladesong",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.blue",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.conditions.boon.004",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Bladesong": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shimmer.01.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.8,
+              "scale": 1.3,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Burning Blade (Weapon Option)",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slash.01.orange",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.fire.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.fire.01.orange",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.fire",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Burning Blade",
+    "type": "spell",
+    "activities": {
+      "Cast": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.fire.01",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.casting.fire.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Celestial Revelation",
+    "type": "feat",
+    "effects": {
+      "Heavenly Wings": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.swirling_feathers.outburst.01",
+              "at": "bearer",
+              "scale": 1.8,
+              "sound": {
+                "file": "psfx.conditions.boon.005",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.token_border.circle.static.orange.001",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.3,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Inner Radiance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.caster.yellowwhite",
+              "at": "bearer",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.cantrips.sacred-flame.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.yellow",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.6,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Necrotic Shroud": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.dark.01",
+              "at": "bearer",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.smoke.ring.loop.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.4,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Chromatic Orb",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.eldritch_blast.rainbow",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-magic.generic.projectile",
+                "volume": 0.6
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Chromatic Orb": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.many",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Command",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.03.orangeyellow",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.incantations.masculine.001.dry.harm.001",
+                "volume": 0.6
+              }
+            },
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.011.yellow",
+              "at": "targets",
+              "delay": 250,
+              "scale": 1.4
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Command: Halt": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.ui.chevrons3.red",
+              "at": "bearer",
+              "scale": 1
+            }
+          ]
+        }
+      },
+      "Command: Flee": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "bearer",
+              "scale": 1.5
+            }
+          ]
+        }
+      },
+      "Command: Approach": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.ui.chevrons3.green",
+              "at": "bearer",
+              "scale": 1
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Compelled Duel",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.03.orangeyellow",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.incantations.masculine.001.dry.harm.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Compelled": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.chain.standard.complete.02.red",
+              "at": "bearer",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.generic-layer.002",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.chain.standard.loop.01.red",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.8,
+              "scale": 1.2,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Counterspell",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.magic_signs.circle.02.abjuration.complete.dark_blue",
+              "at": "source",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.magic-signs.circle.v1.abjuration.complete",
+                "volume": 0.6
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.007.blue",
+              "at": "source",
+              "delay": 400,
+              "scale": 1.8,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Cunning Action",
+    "type": "feat",
+    "activities": {
+      "Dash": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "source",
+              "scale": 2,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Disengage": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.side.grey",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Hide": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.centered.grey",
+              "at": "source",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Deflect Attacks",
+    "type": "feat",
+    "activities": {
+      "Reduce": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.005.white",
+              "at": "source",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Redirect": {
+        "use": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.magic_missile.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-magic.generic.missile",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "damage": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Detect Evil and Good",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.detect_magic.circle.yellow",
+              "at": "source",
+              "scale": 12,
+              "sound": {
+                "file": "psfx.1st-level-spells.detect-magic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Detect Evil and Good": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.circle_of_stars.yellowblue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.4,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Detect Magic",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.detect_magic.circle.blue",
+              "at": "source",
+              "scale": 12,
+              "sound": {
+                "file": "psfx.1st-level-spells.detect-magic.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Detect Magic": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.circle_of_stars.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.4,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Divine Sense",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.detect_magic.circle.yellow",
+              "at": "source",
+              "scale": 12,
+              "sound": {
+                "file": "psfx.1st-level-spells.detect-magic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Divine Smite",
+    "type": "spell",
+    "activities": {
+      "Divine Smite": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.caster.yellowwhite",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.class-features.divine-smite.v1",
+                "volume": 0.7
+              }
+            },
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.target.yellowwhite",
+              "at": "targets",
+              "scale": 1.6,
+              "delay": 300
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Drone",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "area": {
+          "steps": [
+            {
+              "kind": "area",
+              "file": "jb2a.sleep.cloud.01.blue",
+              "at": "region",
+              "opacity": 0.7,
+              "fade": 600,
+              "sound": {
+                "file": "psfx.1st-level-spells.sleep.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Drone": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.sleep.symbol.blue",
+              "at": "bearer",
+              "scale": 1.2
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.sleep.symbol.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.8,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Enlarge/Reduce",
+    "type": "spell",
+    "activities": {
+      "Willing creature": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.02.blue",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.casting.generic.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Enlarge — unwilling (Con save)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.011.red",
+              "at": "targets",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Reduce — unwilling (Con save)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.011.blue",
+              "at": "targets",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Enlarged": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.energy_strands.in.red.01",
+              "at": "bearer",
+              "scale": 1.5
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.token_border.circle.static.orange.002",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.2,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Reduced": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.energy_strands.in.blue.01",
+              "at": "bearer",
+              "scale": 1.2
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.token_border.circle.static.blue.002",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.1,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Festering Aura",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "area": {
+          "steps": [
+            {
+              "kind": "area",
+              "file": "jb2a.fumes.toxic.green",
+              "at": "region",
+              "opacity": 0.6
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Festering Aura (aura)": {
+        "active": {
+          "steps": [
+            {
+              "kind": "aura",
+              "file": "jb2a.template_circle.out_pulse.01.loop.greenorange",
+              "at": "bearer",
+              "persist": true,
+              "below": true,
+              "opacity": 0.5
+            }
+          ]
+        }
+      },
+      "Festering Aura": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.poison.dark_green.01",
+              "at": "bearer",
+              "scale": 1.2
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Find Familiar",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.magic_signs.circle.02.conjuration.complete.dark_green",
+              "at": "source",
+              "scale": 1.8,
+              "sound": {
+                "file": "psfx.magic-signs.rune.v1.conjuration.complete",
+                "volume": 0.6
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.smoke.puff.centered.grey",
+              "at": "targets",
+              "scale": 1.4,
+              "delay": 500
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Flaming Sphere",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.fire.01",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.casting.fire.001",
+                "volume": 0.6
+              }
+            }
+          ]
+        },
+        "damage": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.fire.01.orange",
+              "at": "targets",
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.fire",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Flaming Sphere": {
+        "active": {
+          "steps": [
+            {
+              "kind": "aura",
+              "file": "jb2a.fire_ring.500px.red",
+              "at": "bearer",
+              "persist": true,
+              "below": true,
+              "opacity": 0.6
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Flurry of Blows",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.flurry_of_blows.physical.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Frigid Blade (Weapon Option)",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.magic_sword.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.cold.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.frost.blue",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.cold",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Frigid Blade",
+    "type": "spell",
+    "activities": {
+      "Cast": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.ice.01",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.casting.water.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Guidance",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.dancing_light.yellow",
+              "at": "targets",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.cantrips.dancing-lights.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Acrobatic Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Animal Handling Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Arcana Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Athletic Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Deception Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "History Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Insight Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Investigation Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Intimidation Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Medicine Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Nature Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Persuasion Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Perception Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Performance Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Religion Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Sleight of Hand Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Stealth Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Survival Guidance": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.yellow.few",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Hand of Harm",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "damage": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.001.dark_purple",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Heroism",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.caster.yellowwhite",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.1st-level-spells.bless.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Bravery": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.token_border.circle.static.orange.001",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.65,
+              "scale": 1.25,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Hold Person",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.03.bluepurple",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.casting.generic.001",
+                "volume": 0.4
+              }
+            },
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.chain.standard.complete.02.blue",
+              "at": "targets",
+              "delay": 300,
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.generic-layer.002",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Hungry Jaws",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.bite.400px.red",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Hunter's Mark",
+    "type": "spell",
+    "activities": {
+      "Mark Creature": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.hunters_mark.pulse.01.blue",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.casting.on-token.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Move Mark": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.hunters_mark.pulse.01.blue",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.casting.on-token.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Hunter's Mark": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.hunters_mark.loop.01.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.85,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Icicle Javelin",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.spell_projectile.ice_shard.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-magic.generic.projectile",
+                "volume": 0.6
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.frost.blue",
+              "at": "targets",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.cold",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Pinned (Icicle Javelin)": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact_themed.ice_shard.blue",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.snowflake.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.8,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Innate Sorcery",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_cast.initiate.001.instant.combined.purplered",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.casting.on-token.001",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Innate Sorcery": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.token_border.circle.static.purple.002",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.3,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Interception",
+    "type": "feat",
+    "activities": {
+      "Intercept": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.005.white",
+              "at": "source",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Keywand of the Stars",
+    "type": "equipment",
+    "activities": {
+      "Store a spell": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.magic_signs.rune.02.complete.01.blue",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.magic-signs.rune.v1.divination.complete",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Lay on Hands",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cure_wounds.400px.yellow",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.1st-level-spells.cure-wounds.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Remove Poison": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.healing_generic.burst.greenorange",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.1st-level-spells.cure-wounds.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Lesser Restoration",
+    "type": "spell",
+    "activities": {
+      "Cast": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.healing_generic.burst.greenorange",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.1st-level-spells.cure-wounds.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Life Drain",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.creature_attack.claw.001.green",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.necrotic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.001.dark_purple",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.6
+              }
+            }
+          ]
+        },
+        "damage": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.001.dark_purple",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Zombie Rises": {
+        "use": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.smoke.puff.centered.dark_green",
+              "at": "source",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Life Drain": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.energy_strands.in.purple.01",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Light",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.complete.yellow",
+              "at": "targets",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.cantrips.light.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Light": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.yellow",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.2,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Magic Awareness",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.detect_magic.circle.blue",
+              "at": "source",
+              "scale": 12,
+              "sound": {
+                "file": "psfx.1st-level-spells.detect-magic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Metamagic Adept: Subtle Spell",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.centered.grey",
+              "at": "source",
+              "scale": 1.1,
+              "opacity": 0.5,
+              "sound": {
+                "file": "psfx.incantations.whispers.fem",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Subtle Spell (next spell)": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.35,
+              "scale": 1,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Metamagic Adept: Twinned Spell",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.pinkyellow",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.006",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Metamagic: Heightened Spell",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.purplered",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.006",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Heightened Spell (next spell)": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.55,
+              "scale": 1.1,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Metamagic: Quickened Spell",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "source",
+              "scale": 1.8,
+              "sound": {
+                "file": "psfx.conditions.boon.006",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Mind Sliver",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.spell_projectile.skull.pinkpurple",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.cantrips.mind-sliver.v1",
+                "volume": 0.6
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.007.pink",
+              "at": "targets",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.psychic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Slivered": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.horror.purple.01",
+              "at": "bearer",
+              "scale": 1.1
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Minor Lifesteal",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.energy_strands.range.standard.dark_purple",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-magic.generic.energy-strands",
+                "volume": 0.5
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.001.dark_purple",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Minor Lifesteal": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.energy_strands.in.purple.01",
+              "at": "bearer",
+              "scale": 1.2
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Mirror Image",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.misty_step.01.blue",
+              "at": "source",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.2nd-level-spells.misty-step.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Mirror Image": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shimmer.01.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.3,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Musician",
+    "type": "feat",
+    "effects": {
+      "Encouraging Song": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.bardic_inspiration.blueyellow",
+              "at": "bearer",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.class-features.bardic-inspiration",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Patient Defense",
+    "type": "feat",
+    "activities": {
+      "Patient Defense": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.complete.01.blue",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.1st-level-spells.shield-spell.intro",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Patient Defense (Focus Point)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.complete.01.blue",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.1st-level-spells.shield-spell.intro",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Pearl of Power",
+    "type": "equipment",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.healing_generic.burst.bluewhite",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.003",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Protection from Evil and Good",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.magic_signs.circle.02.abjuration.complete.dark_blue",
+              "at": "targets",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.magic-signs.circle.v1.abjuration.complete",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Protected": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.loop.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.55,
+              "scale": 1.3,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Protection",
+    "type": "feat",
+    "activities": {
+      "Protect": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.005.white",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Protected (Fighting Style)": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.blue.01",
+              "at": "bearer",
+              "scale": 1.1
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Proto-Abjuration",
+    "type": "spell",
+    "activities": {
+      "Cast": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.magic_signs.circle.02.abjuration.complete.dark_blue",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.magic-signs.circle.v1.abjuration.complete",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Arcane Thorns": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.blue.01",
+              "at": "bearer",
+              "scale": 1.2
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.runes.blue.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.2,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Proto-Abjuration: Temporary HP": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.intro.blue",
+              "at": "bearer",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.1st-level-spells.shield-spell.intro",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Armored Ward": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.intro.blue",
+              "at": "bearer",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.1st-level-spells.shield-spell.intro",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.loop.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.55,
+              "scale": 1.3,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Resistance: Acid": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.02.intro.green",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        }
+      },
+      "Resistance: Cold": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.intro.blue",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        }
+      },
+      "Resistance: Fire": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.intro.red",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        }
+      },
+      "Resistance: Lightning": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.02.intro.blue",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        }
+      },
+      "Resistance: Thunder": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.03.intro.blue",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Proto-Evocation",
+    "type": "spell",
+    "activities": {
+      "Single target": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.magic_missile.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-magic.generic.missile",
+                "volume": 0.6
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Cone (level 3+ slot)": {
+        "area": {
+          "steps": [
+            {
+              "kind": "area",
+              "file": "jb2a.burning_hands.01.orange",
+              "at": "region",
+              "sound": {
+                "file": "psfx.1st-level-spells.burning-hands.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Line (level 3+ slot)": {
+        "area": {
+          "steps": [
+            {
+              "kind": "area",
+              "file": "jb2a.lightning_bolt.wide.blue",
+              "at": "region",
+              "sound": {
+                "file": "psfx.3rd-level-spells.call-lightning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Sphere (level 3+ slot)": {
+        "area": {
+          "steps": [
+            {
+              "kind": "area",
+              "file": "jb2a.fireball.explosion.orange",
+              "at": "region",
+              "sound": {
+                "file": "psfx.3rd-level-spells.fireball.v1.001.explosion",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Proto-Illusion",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.02.dark_purple",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.casting.generic.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Damaging illusion (level 5+ slot)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.007.pink",
+              "at": "targets",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.psychic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Proto-Necromancy",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.magic_signs.circle.02.necromancy.complete.dark_green",
+              "at": "source",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.5
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.smoke.puff.centered.dark_green",
+              "at": "targets",
+              "scale": 1.4,
+              "delay": 500
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Psi-Bolstered Knack",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.pinkyellow",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.003",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Psychic Blades",
+    "type": "feat",
+    "activities": {
+      "Psychic Blade": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.magic_sword.dark_purple",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.psychic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.007.pink",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.psychic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Psychic Blade (Bonus Action)": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.magic_sword.dark_purple",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.psychic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.007.pink",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.psychic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Rage",
+    "type": "feat",
+    "activities": {
+      "Expend Rage": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.010.red",
+              "at": "source",
+              "scale": 1.8,
+              "sound": {
+                "file": "psfx.creature.dragons.roar",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Extend Rage": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.010.red",
+              "at": "source",
+              "scale": 1.5
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Rage": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.token_border.circle.static.dark_red.002",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.65,
+              "scale": 1.25,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Reckless Attack",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.012.red",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.weapon-swooshes.heavy.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Reckless Attack": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.red",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.4,
+              "scale": 1.1,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Rend",
+    "type": "weapon",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.creature_attack.claw.001.green",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.claws.400px.red",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Resistance",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.03.white",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.005",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Acid Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.green.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Bludgeoning Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.yellow.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Cold Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.blue.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Fire Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.dark_red.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Lightning Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.blue.02",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Necrotic Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield_cracked.purple.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Piercing Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.yellow.02",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Poison Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.green.02",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Radiant Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.yellow.03",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Slashing Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.yellow.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Thunder Protection": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.shield.blue.03",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Restore Balance",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.011.blue",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Rotting Claw",
+    "type": "weapon",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.creature_attack.claw.001.green",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.necrotic.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.claws.400px.bright_green",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Rotting Fist",
+    "type": "weapon",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.creature_attack.fist.001.green",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.necrotic.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.001.dark_purple",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Cursed": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.condition.curse.01.001.green",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Sacred Weapon",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.caster.yellowwhite",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.cantrips.sacred-flame.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Sacred Weapon": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.yellow",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.2,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Sacred Weapon (Light)": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.yellow",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.45,
+              "scale": 1.1,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Scare",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.template_circle.symbol.out_flow.fear.dark_purple",
+              "at": "source",
+              "scale": 8,
+              "opacity": 0.8,
+              "sound": {
+                "file": "psfx.incantations.whispers.masc",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Searing Smite",
+    "type": "spell",
+    "activities": {
+      "Searing Smite": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.caster.orange",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.casting.fire.001",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Seared": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.fire.01.orange",
+              "at": "bearer",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.fire",
+                "volume": 0.7
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.flames.01.orange",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.8,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Shield",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.complete.01.blue",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.1st-level-spells.shield-spell.intro",
+                "volume": 0.7
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Imperceptible Barrier": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shield.01.loop.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.55,
+              "scale": 1.3,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Silvery Barbs",
+    "type": "spell",
+    "activities": {
+      "Cast": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Silvery Barbs": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.white",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.002",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Sneak Attack",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "damage": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.sneak_attack.dark_red",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Spellblade",
+    "type": "feat",
+    "activities": {
+      "Channeled Attack": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.03.bluepurple",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.casting.on-token.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Channeled Attack (next weapon attack)": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.static_electricity.01.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Spores",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "area": {
+          "steps": [
+            {
+              "kind": "area",
+              "file": "jb2a.fumes.toxic.green",
+              "at": "region",
+              "opacity": 0.7
+            }
+          ]
+        },
+        "damage": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.markers.poison.dark_green.01",
+              "at": "targets",
+              "scale": 1.1,
+              "sound": {
+                "file": "psfx.cantrips.poison-spray.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Staff of the Savants",
+    "type": "weapon",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.quarterstaff.melee.01.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Steady Aim",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_target.001.001.greenyellow",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Steady Aim": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.ui.indicator.green.01.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 0.8,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Step of the Wind",
+    "type": "feat",
+    "activities": {
+      "Step of the Wind": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "source",
+              "scale": 2,
+              "sound": {
+                "file": "psfx.cantrips.gust.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Step of the Wind (Focus Point)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "source",
+              "scale": 2,
+              "sound": {
+                "file": "psfx.cantrips.gust.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Stonespeaker Crystal",
+    "type": "equipment",
+    "activities": {
+      "Speak with Animals (2 charges)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_cast.initiate.001.instant.combined.greenyellow",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.casting.earth.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Speak with Dead (4 charges)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_cast.initiate.001.instant.combined.purplered",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.cantrips.toll-the-dead.rasping-whispers",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Speak with Plants (3 charges)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.swirling_leaves.outburst.01",
+              "at": "source",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.casting.earth.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Stunning Strike",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.011.yellow",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Stunned": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.dizzy_stars.400px.yellow",
+              "at": "bearer",
+              "scale": 1.2
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Suggestion",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.03.pinkyellow",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.incantations.whispers.fem",
+                "volume": 0.5
+              }
+            },
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.heart.pink.01",
+              "at": "targets",
+              "scale": 1.2,
+              "delay": 300
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Pursuing Suggestion": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.heart.pink.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.8,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Tasha's Mind Whip",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.007.pink",
+              "at": "targets",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.psychic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Mind Whipped": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.horror.purple.01",
+              "at": "bearer",
+              "scale": 1.1
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.stun.purple.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.8,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Thunderous Smite",
+    "type": "spell",
+    "activities": {
+      "Thunderous Smite": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.caster.blueyellow",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.cantrips.thunderclap.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Save vs. Push": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.template_circle.out_pulse.01.burst.bluewhite",
+              "at": "targets",
+              "scale": 1.5
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Thunderous Smite: Pushed": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.005.white",
+              "at": "bearer",
+              "scale": 1.8,
+              "sound": {
+                "file": "psfx.cantrips.thunderclap.v1",
+                "volume": 0.7
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Toll the Dead",
+    "type": "spell",
+    "activities": {
+      "Healthy Target": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.toll_the_dead.purple.skull_smoke",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.cantrips.toll-the-dead.ominous-bell",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Damaged Target": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.toll_the_dead.purple.shockwave",
+              "at": "targets",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.cantrips.toll-the-dead.ominous-bell",
+                "volume": 0.7
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Triage Expert",
+    "type": "feat",
+    "activities": {
+      "Blood and Bone": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cure_wounds.400px.red",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.1st-level-spells.cure-wounds.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Bedside Manner": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.healing_generic.burst.greenorange",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Trinket of the Raven Queen",
+    "type": "equipment",
+    "activities": {
+      "Necrotic Shroud": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.dark.01",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Necrotic Shroud": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.smoke.ring.loop.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1.4,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "True Strike (Weapon Option)",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.magic_sword.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.011.yellow",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Uncanny Dodge",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.005.white",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Uncanny Metabolism",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.healing_generic.burst.greenorange",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.1st-level-spells.cure-wounds.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Undead Fortitude",
+    "type": "feat",
+    "effects": {
+      "Undead Fortitude": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.001.dark_purple",
+              "at": "bearer",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Vengeful Blade (Weapon Option)",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.magic_sword.dark_purple",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.necrotic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.001.dark_purple",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Vengeful Aura": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.dark.01",
+              "at": "bearer",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.smoke.ring.loop.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.55,
+              "scale": 1.2,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Vengeful Blade",
+    "type": "spell",
+    "activities": {
+      "Detonate": {
+        "damage": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.explosion.04.dark_purple",
+              "at": "targets",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.7
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Vow of Enmity",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.skull.dark_red.01",
+              "at": "targets",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.incantations.masculine.001.dry.harm.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Vow of Enmity": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.skull.dark_red.01",
+              "at": "bearer",
+              "scale": 1.2
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.skull.dark_red.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.8,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Wild Surge",
+    "type": "feat",
+    "activities": {
+      "Shadowy Tendrils": {
+        "area": {
+          "steps": [
+            {
+              "kind": "area",
+              "file": "jb2a.arms_of_hadar.dark_purple",
+              "at": "region",
+              "sound": {
+                "file": "psfx.1st-level-spells.arms-of-hadar.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Spirit Explosion": {
+        "use": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.explosion.03.purplepink",
+              "at": "source",
+              "scale": 3,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.7
+              }
+            }
+          ]
+        }
+      },
+      "Bolt of Light": {
+        "use": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.guiding_bolt.01.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.cantrips.sacred-flame.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        },
+        "damage": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.011.yellow",
+              "at": "targets",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Summon Spirit (Wild Surge)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.magic_signs.circle.02.conjuration.complete.dark_blue",
+              "at": "source",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.magic-signs.rune.v1.conjuration.complete",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Infuse Weapon": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.purplered",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.006",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Wild Surge": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.energy_strands.in.purple.01",
+              "at": "bearer",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Wild Surge: Shadowy Tendrils": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.dark.01",
+              "at": "bearer",
+              "scale": 1.6,
+              "sound": {
+                "file": "psfx.1st-level-spells.arms-of-hadar.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Wild Surge: Spirit": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.blueteal",
+              "at": "bearer",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.conditions.boon.004",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shimmer.01.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1.3,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Wild Surge: Weapon": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.purplered",
+              "at": "bearer",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.conditions.boon.006",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Wild Surge: Retribution": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.static_electricity.01.purple",
+              "at": "bearer",
+              "scale": 1.2
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.static_electricity.01.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1.1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Wild Surge: Protective Lights": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.template_circle.out_pulse.01.burst.yellowwhite",
+              "at": "bearer",
+              "scale": 3,
+              "sound": {
+                "file": "psfx.1st-level-spells.bless.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "aura",
+              "file": "jb2a.template_circle.out_pulse.01.loop.yellowwhite",
+              "at": "bearer",
+              "persist": true,
+              "below": true,
+              "opacity": 0.5
+            }
+          ]
+        }
+      },
+      "Wild Surge: Flowers and Vines": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.swirling_leaves.outburst.01",
+              "at": "bearer",
+              "scale": 3,
+              "sound": {
+                "file": "psfx.casting.earth.001",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "aura",
+              "file": "jb2a.plant_growth.02.ring.4x4.loop.greenred",
+              "at": "bearer",
+              "persist": true,
+              "below": true,
+              "opacity": 0.55
+            }
+          ]
+        }
+      },
+      "Wild Surge: Bolt of Light": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.caster.yellowwhite",
+              "at": "bearer",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.cantrips.sacred-flame.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Blinded (Wild Surge)": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.009.white",
+              "at": "bearer",
+              "scale": 2,
+              "sound": {
+                "file": "psfx.cantrips.sacred-flame.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Wild Surge: Intangible Spirit": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.misty_step.01.blue",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.shimmer.01.blue",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.45,
+              "scale": 1.3,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Wild Surge: Infused Weapon": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.purplered",
+              "at": "bearer",
+              "scale": 1.3
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1.1,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Protective Lights": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.template_circle.out_pulse.01.burst.yellowwhite",
+              "at": "bearer",
+              "scale": 1.5
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.yellow",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 1.3,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Tangled (Wild Surge)": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.entangle.green",
+              "at": "bearer",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.1st-level-spells.entangle.vines",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.entangle.02.loop.02.green",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.8,
+              "scale": 1.1,
+              "below": true
+            }
+          ]
+        }
+      }
+    },
+    "actions": {
+      "teleport": {
+        "steps": [
+          {
+            "kind": "teleport",
+            "file": "jb2a.misty_step.01.purple",
+            "scale": 1,
+            "sound": {
+              "file": "psfx.2nd-level-spells.misty-step.v1",
+              "volume": 0.6
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Wrathful Smite",
+    "type": "spell",
+    "activities": {
+      "Wrathful Smite": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.caster.dark_red",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.class-features.divine-smite.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Frightened": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.target.dark_red",
+              "at": "bearer",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

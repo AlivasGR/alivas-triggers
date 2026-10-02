@@ -129,7 +129,7 @@ import * as Workflow from "./workflow.mjs";
 import * as Areas from "./areas.mjs";
 import * as Delay from "./delay.mjs";
 import { registerSettingsMenu } from "./settings-app.mjs";
-import { TriggerEditor, describeTrigger, describeReaction } from "./editor.mjs";
+import { TriggerEditor, describeTrigger, describeReaction, registerActionType, registerEditorSection } from "./editor.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const SOCKET = `module.${MODULE_ID}`;
@@ -1493,7 +1493,8 @@ async function runTriggerList(triggers, effect, bearer, event, context={}, { key
       // ask: the bearer's controller confirms first ("Use Uncanny Metabolism?").
       if ( trigger.ask && !(await confirmFor(bearer, trigger.label ?? effect.name, trigger.ask)) ) continue;
       if ( turn ) triggerTurns.set(onceKey, turn);
-      const result = await runAction(trigger, effect, bearer, event, context) ?? {};
+      const { result, moves } = await withMoves(() => runAction(trigger, effect, bearer, event, context));
+      emitAction({ origin: "trigger", action: trigger.action, trigger, effect, bearer, event, context, result, moves });
       if ( resolveThen(trigger.then, result) === "remove" ) {
         await (onRemove ? onRemove() : effect.delete());
         removed = true;
@@ -1883,7 +1884,9 @@ async function runOnUse(activity, targets, key="onUse") {
     const handler = ACTIONS[action?.type];
     if ( !handler ) continue;
     try {
-      await handler({ label: item.name, action }, standIn, actor, key, { activity, targets, subject: targets.length === 1 ? targets[0] : null });
+      const context = { activity, targets, subject: targets.length === 1 ? targets[0] : null };
+      const { result, moves } = await withMoves(() => handler({ label: item.name, action }, standIn, actor, key, context));
+      emitAction({ origin: key, action, trigger: null, effect: standIn, bearer: actor, event: key, context, result, moves });
     } catch(err) {
       console.error(`${MODULE_ID} | ${key} action "${action.type}" of ${item.name} failed`, err);
     }
@@ -2560,6 +2563,59 @@ function rollSave(actor, spec) {
   return actor.rollSavingThrow(config, { configure: false }, {});
 }
 
+/* -------------------------------------------- */
+/*  Extension hooks                             */
+/* -------------------------------------------- */
+
+/**
+ * Run an action while recording the forced movements and teleports it causes (hook alivasTriggers.move, fired by
+ * creatures.mjs where the move starts).
+ * @returns {Promise<{result: object, moves: object[]}>}
+ */
+async function withMoves(run) {
+  const moves = [];
+  const id = Hooks.on("alivasTriggers.move", m => moves.push(m));
+  try {
+    return { result: (await run()) ?? {}, moves };
+  } finally {
+    Hooks.off("alivasTriggers.move", id);
+  }
+}
+
+/**
+ * Announce an action that just ran — for other modules (animations, sounds, logs). Fired on the client that ran it.
+ * Hook "alivasTriggers.action" with:
+ *   origin   "trigger" | "onUse" | "onHit"
+ *   action   the action data (its type, and any fields other modules keep on it, e.g. action.animation)
+ *   trigger  the whole trigger (origin "trigger"), else null
+ *   effect   the effect owning it (an activity step: a stand-in whose parent is the item)
+ *   bearer   the actor carrying the effect / using the activity
+ *   event    the trigger event ("turnStart", "areaEnter", …) or the origin
+ *   context  { subject, targets, region, activity, usage, data, … } as the action saw it
+ *   result   what the action returned ({ success, … })
+ *   moves    [{ token, from: {x, y}, to: {x, y}, kind: "teleport" | "push" | "pull" | "move" }]
+ */
+function emitAction(payload) {
+  try { Hooks.callAll("alivasTriggers.action", payload); }
+  catch(err) { console.error(`${MODULE_ID} | alivasTriggers.action listener failed`, err); }
+}
+
+/**
+ * Add an action type: what it does, and how the editor shows it.
+ * @param {string} type
+ * @param {object} def   { run(trigger, effect, bearer, event, context) → result, label, icon, hint, defaults, activity,
+ *                         describe(action), validate(action), fields(action, ctx), onAction(op, ctx) } — see
+ *                         editor.mjs registerActionType.
+ */
+function registerAction(type, def) {
+  if ( typeof def?.run !== "function" ) throw new Error(`registerAction(${type}): run() is required`);
+  if ( ACTIONS[type] && !EXT_TYPES.has(type) ) throw new Error(`registerAction(${type}): a built-in action has that name`);
+  ACTIONS[type] = def.run;
+  EXT_TYPES.add(type);
+  registerActionType(type, def);
+}
+const EXT_TYPES = new Set();
+
 /**
  * Dispatch a trigger's action.
  */
@@ -2688,7 +2744,9 @@ Hooks.once("ready", () => {
   game.modules.get(MODULE_ID).api = {
     ACTIONS, fire, autoApply, findUsageMessage,
     openEditor: doc => TriggerEditor.open(doc), describeTrigger, describeReaction,
-    creatures: Creatures, workflow: Workflow, areas: Areas
+    creatures: Creatures, workflow: Workflow, areas: Areas,
+    registerAction, registerEditorSection
   };
+  Hooks.callAll("alivasTriggers.ready", game.modules.get(MODULE_ID).api);
   console.log(`${MODULE_ID} | Ready`);
 });

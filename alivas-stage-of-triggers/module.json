@@ -1,0 +1,74 @@
+{
+  "id": "alivas-stage-of-triggers",
+  "title": "Alivas's Stage of Triggers",
+  "description": "Animations and sounds for Alivas's Engine of Triggers and dnd5e: items, activities, effects, conditions, areas, teleports and every engine action, with a searchable animation/sound browser that recommends what fits. Plays JB2A animations and PSFX sounds through Sequencer; works alongside Automated Animations (and keeps its name matching honest).",
+  "version": "0.7.1",
+  "authors": [
+    {
+      "name": "Alivas",
+      "url": "https://github.com/AlivasGR"
+    }
+  ],
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14.368"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "6.0.0",
+          "verified": "6.0.5"
+        }
+      }
+    ],
+    "requires": [
+      {
+        "id": "alivas-engine-of-triggers",
+        "type": "module",
+        "manifest": "https://github.com/AlivasGR/alivas-triggers/releases/latest/download/alivas-engine-of-triggers.json",
+        "compatibility": {
+          "minimum": "0.7.1"
+        }
+      },
+      {
+        "id": "sequencer",
+        "type": "module",
+        "manifest": "https://github.com/fantasycalendar/FoundryVTT-Sequencer/releases/latest/download/module.json"
+      }
+    ],
+    "recommends": [
+      {
+        "id": "JB2A_DnD5e",
+        "type": "module",
+        "reason": "Animations (free). The Patreon collection (jb2a_patreon) adds more colours and effects."
+      },
+      {
+        "id": "psfx",
+        "type": "module",
+        "reason": "Sound effects."
+      },
+      {
+        "id": "autoanimations",
+        "type": "module",
+        "reason": "Optional: animations for everything this module doesn't cover."
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/main.mjs"
+  ],
+  "styles": [
+    "styles/stage.css",
+    "styles/picker.css"
+  ],
+  "url": "https://github.com/AlivasGR/alivas-triggers",
+  "license": "https://github.com/AlivasGR/alivas-triggers/blob/main/LICENSE",
+  "readme": "https://github.com/AlivasGR/alivas-triggers/blob/main/README.md",
+  "bugs": "https://github.com/AlivasGR/alivas-triggers/issues",
+  "changelog": "https://github.com/AlivasGR/alivas-triggers/releases",
+  "manifest": "https://github.com/AlivasGR/alivas-triggers/releases/latest/download/alivas-stage-of-triggers.json",
+  "download": "https://github.com/AlivasGR/alivas-triggers/releases/download/v0.7.1/alivas-stage-of-triggers.zip"
+}

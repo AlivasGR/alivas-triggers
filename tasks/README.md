@@ -1,6 +1,6 @@
 # Tasks
 
-Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-016**.
+Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-017**.
 
 **Foundry?** column: `no` = can be done fully without Foundry · `test` = the work is offline, only the final check
 needs Foundry · `yes` = needs a running Foundry throughout.
@@ -22,6 +22,7 @@ needs Foundry · `yes` = needs a running Foundry throughout.
 | [T-013](T-013-unit-tests.md) | Node unit tests for the pure parts (filters, formulas, patch matching, editor converters) | open | no |
 | [T-014](T-014-uses-bug-items.md) | Items whose attack spends uses they don't have (Dagger, Rope, Hooded Lantern) | open | test |
 | [T-015](T-015-paladin-barbarian-monk-species.md) | Aasimar, Lizardfolk, Paladin / Barbarian (Wild Magic) / Monk (Astral Self) to level 3 | needs-live-test | test |
+| [T-016](T-016-stage-preset-review.md) | Visual review of the Stage's animation presets (Box items, conditions) | needs-live-test | yes |
 
 Statuses: `open` · `in-progress` · `needs-live-test` · `blocked` · `done`. Keep this table in sync when you change a
 task's status. Done tasks stay listed until the next release, then the file is deleted (git keeps it).

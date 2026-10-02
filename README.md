@@ -34,6 +34,21 @@ Installing the Box installs the Engine too. Enable both in your world, then relo
 
 **Delay turn** (setting) — an ⏳ button on the combat tracker. On your turn (unless you're last in the order) press it to end your turn and delay; press it again (↺) at the end of any other creature's turn to act right away, before the creature whose turn it is — your initiative moves there for good, and that creature's turn picks up after yours without starting over. While delayed you have no reaction. When you delay, effects that would end at the end of your turn and came from you or an ally end then (configurable: all, or none); buffs you keep up each turn (Rage) don't end because you delayed — attack after you return to keep Rage going; everything else at the end of your turn (an enemy's effect ending, "save at the end of your turn", end-of-turn damage) waits for the turn you actually take. Delay a whole round and you lose that turn: its end-of-turn effects resolve when your place in the order comes round again (a Rage you didn't keep up ends).
 
+## Stage (animations and sounds)
+
+**Alivas's Stage of Triggers** plays animations and sounds for everything: an activity being used, an attack (hit or
+miss, per target), damage, a spell's area (lasting while the area does), an effect starting, lasting and ending,
+conditions, teleports and pushes, and any trigger of the Engine (every action has an optional *Animation and sound*).
+It ships presets for every Box item and for conditions, and an **Animations** button on item, activity and effect
+sheets to change them. Choosing an animation or sound opens a browser with search, filters (kind, shape, colour,
+loops, category), previews, favourites and recommendations for what you're animating.
+
+Needs **Sequencer**, plus animations and sounds to play: **JB2A** (free or Patreon) and **PSFX**. Works alongside
+**Automated Animations**: whatever the Stage animates, Automated Animations leaves alone; everything else it keeps
+playing — but only when its preset's name matches whole words (no more *Natural Armor* playing *Alarm*).
+
+Manifest: `https://github.com/AlivasGR/alivas-triggers/releases/latest/download/alivas-stage-of-triggers.json`
+
 ## Box
 
 Patches replace an item's **mechanics only** — activities, effects, reactions — and keep its description, image, source and play state. Patched items are matched by name, type and source book/page (or dnd5e compendium source), so Plutonium imports, dnd5e compendium drags and hand-made copies all work.

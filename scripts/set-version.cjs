@@ -22,14 +22,15 @@ const common = {
 const manifestUrl = id => `${BASE}/releases/latest/download/${id}.json`;
 const downloadUrl = id => `${BASE}/releases/download/v${version}/${id}.zip`;
 
-for ( const id of ["alivas-engine-of-triggers", "alivas-box-of-triggers"] ) {
+for ( const id of ["alivas-engine-of-triggers", "alivas-box-of-triggers", "alivas-stage-of-triggers"] ) {
   const p = path.join(__dirname, "..", id, "module.json");
   const m = JSON.parse(fs.readFileSync(p, "utf8"));
   Object.assign(m, common, { manifest: manifestUrl(id), download: downloadUrl(id) });
-  if ( id === "alivas-box-of-triggers" ) {
+  if ( id !== "alivas-engine-of-triggers" ) {
     m.relationships ??= {};
+    const others = (m.relationships.requires ?? []).filter(r => r.id !== "alivas-engine-of-triggers");
     m.relationships.requires = [{ id: "alivas-engine-of-triggers", type: "module", manifest: manifestUrl("alivas-engine-of-triggers"),
-      compatibility: { minimum: version } }];
+      compatibility: { minimum: version } }, ...others];
   }
   fs.writeFileSync(p, JSON.stringify(m, null, 2) + "\n");
   console.log(`${id} → ${version}`);

@@ -140,6 +140,52 @@ function thenEntries(actionType) {
   return entries;
 }
 
+/* -------------------------------------------- */
+/*  Extensions (other modules)                  */
+/* -------------------------------------------- */
+
+/** Action types added by other modules: type → { label, icon, hint, defaults, describe, validate, fields, onAction }. */
+const EXT_ACTIONS = new Map();
+/** Sections other modules add under every action ("Do" step) — e.g. an animation to play with it. */
+const EXT_SECTIONS = [];
+
+/**
+ * Add an action type to the editor (the engine's api.registerAction calls this).
+ * @param {string} type
+ * @param {object} def
+ * @param {string} def.label
+ * @param {string} [def.icon]          Font Awesome class, e.g. "fa-film"
+ * @param {string} [def.hint]
+ * @param {object} [def.defaults]      The action's starting data (type is added)
+ * @param {boolean} [def.activity]     Offer it in an activity's steps too (default true)
+ * @param {Function} [def.describe]    (action) → plain-English phrase ("a fire burst on the targets")
+ * @param {Function} [def.validate]    (action) → string[] of errors
+ * @param {Function} [def.fields]      (action, { editor, model, index }) → HTML; inputs bind with data-path="action.…"
+ * @param {Function} [def.onAction]    (op, { editor, model, index, target }) for buttons with data-action="extAction" data-op="…"
+ */
+export function registerActionType(type, def) {
+  EXT_ACTIONS.set(type, def);
+  if ( !TRIGGER_ACTIONS.some(([id]) => id === type) ) TRIGGER_ACTIONS.push([type, def.icon ?? "fa-puzzle-piece", def.label ?? type, def.hint ?? ""]);
+  DEFAULT_ACTIONS[type] = { ...(def.defaults ?? {}), type };
+  if ( (def.activity !== false) && !ACTIVITY_ACTIONS.includes(type) ) ACTIVITY_ACTIONS.push(type);
+}
+
+/**
+ * Add a section under every action in the editor (triggers, activity steps, area triggers).
+ * @param {object} def
+ * @param {string} def.id
+ * @param {Function} def.render        ({ editor, model, index, mode }) → HTML or "" (inputs bind with data-path="action.…")
+ * @param {Function} [def.describe]    (model) → extra sentence fragment for the card's summary, or ""
+ * @param {Function} [def.validate]    (model) → string[]
+ * @param {Function} [def.onAction]    (op, { editor, model, index, target }) for buttons with data-action="extSection"
+ *                                      data-section="<id>" data-op="…"
+ */
+export function registerEditorSection(def) {
+  const i = EXT_SECTIONS.findIndex(s => s.id === def.id);
+  if ( i >= 0 ) EXT_SECTIONS[i] = def;
+  else EXT_SECTIONS.push(def);
+}
+
 const DEFAULT_ACTIONS = {
   save: { type: "save", ability: "con", dc: "source" },
   damage: { type: "damage", formula: "1d6", damageType: "fire" },
@@ -670,8 +716,11 @@ function validateTrigger(model) {
       if ( !(Number(a.count) >= 1) ) errors.push("Restore duplicates: the count must be 1 or more.");
       break;
     case "note": break;
-    default: errors.push("Choose what happens under “Do”.");
+    default:
+      if ( EXT_ACTIONS.has(a.type) ) errors.push(...(EXT_ACTIONS.get(a.type).validate?.(a) ?? []));
+      else errors.push("Choose what happens under “Do”.");
   }
+  for ( const s of EXT_SECTIONS ) errors.push(...(s.validate?.(model) ?? []));
   if ( !thenEntries(a.type).some(([id]) => id === model.then) ) errors.push("Choose what happens to the effect afterwards.");
   errors.push(...rowErrors([...model.rows, ...model.mods.flatMap(m => m.rows)]));
   return errors;
@@ -745,7 +794,7 @@ function describeTriggerModel(model) {
     case "note": what = model.then === "remove" ? "the effect ends" : "a chat message"; break;
     case "duplicates": what = `${a.count} duplicate${Number(a.count) === 1 ? "" : "s"} (a d6 each; ${a.threshold}+ and a duplicate takes the hit)`; break;
     case "restoreDuplicates": what = "lost duplicates come back"; break;
-    default: what = "(nothing chosen)";
+    default: what = EXT_ACTIONS.get(a.type)?.describe?.(a) ?? "(nothing chosen)";
   }
   const then = {
     remove: (a.type === "note") ? "" : "; then the effect ends",
@@ -1001,6 +1050,8 @@ export class TriggerEditor extends ApplicationV2 {
       toggleAdvanced: TriggerEditor.#onToggleAdvanced,
       openArea: TriggerEditor.#onOpenArea,
       applyRaw: TriggerEditor.#onApplyRaw,
+      extAction: TriggerEditor.#onExtAction,
+      extSection: TriggerEditor.#onExtSection,
       save: TriggerEditor.#onSave,
       cancel: TriggerEditor.#onCancel
     }
@@ -1083,8 +1134,12 @@ export class TriggerEditor extends ApplicationV2 {
   }
 
   #describe(model) {
-    if ( this.mode === "activity" ) return describeTriggerModel(model).replace(/^[^:]*: /, model.phase === "hit" ? "When it hits: " : "Right after it's used: ");
-    return this.mode === "reactions" ? describeReactionModel(model, this.document) : describeTriggerModel(model);
+    let text;
+    if ( this.mode === "activity" ) text = describeTriggerModel(model).replace(/^[^:]*: /, model.phase === "hit" ? "When it hits: " : "Right after it's used: ");
+    else text = this.mode === "reactions" ? describeReactionModel(model, this.document) : describeTriggerModel(model);
+    if ( this.mode === "reactions" ) return text;
+    const extra = EXT_SECTIONS.map(s => s.describe?.(model)).filter(Boolean);
+    return extra.length ? `${text.replace(/\.$/, "")} — ${extra.join("; ")}.` : text;
   }
 
   /** The item this effect belongs to, if any (for "source's activity" choices). */
@@ -1244,7 +1299,7 @@ export class TriggerEditor extends ApplicationV2 {
       This effect has no area yet — set its size under Effect rules → Area and movement.</p>`);
     return this.#step(1, "When", when + extras.join(""), areaEvents ? "Pick one or more moments. “The targets” are the creatures concerned." : "Pick one or more moments.")
       + this.#step(2, "Only if", this.#rows("rows", m.rows, TRIGGER_FIELDS, m.events), "Optional — leave empty to always run.")
-      + this.#step(3, "Do", `<div class="aet-tiles">${tiles}</div>${this.#actionFields(m)}`)
+      + this.#step(3, "Do", `<div class="aet-tiles">${tiles}</div>${this.#actionFields(m)}${this.#extSections(m)}`)
       + this.#step(4, "Then", `<select data-path="then" class="aet-wide">${options(thenEntries(m.action.type), m.then)}</select>${label}`);
   }
 
@@ -1254,7 +1309,7 @@ export class TriggerEditor extends ApplicationV2 {
       <i class="fa-solid ${icon}"></i><strong>${esc(label)}</strong><small>${esc(hint)}</small></button>`).join("");
     const when = this.activity?.type === "attack" ? `<label class="aet-inline"><span>When</span><select data-path="phase" data-rerender>${options([["use", "Right after it's used"],
       ["hit", "When it hits (“the targets” = the creatures hit)"]], m.phase === "hit" ? "hit" : "use")}</select></label>` : "";
-    return this.#step(1, "Do", `${when}<div class="aet-tiles">${tiles}</div>${this.#actionFields(m)}`,
+    return this.#step(1, "Do", `${when}<div class="aet-tiles">${tiles}</div>${this.#actionFields(m)}${this.#extSections(m)}`,
       m.phase === "hit" ? "Runs for the attacker after its hits are settled." : "Runs for the creature using it. “The targets” are the creatures it targeted.");
   }
 
@@ -1383,8 +1438,27 @@ export class TriggerEditor extends ApplicationV2 {
     </div>`;
   }
 
+  /** Sections other modules add under the action (registerEditorSection). */
+  #extSections(m) {
+    const index = this.models.indexOf(m);
+    return EXT_SECTIONS.map(s => {
+      try { return s.render({ editor: this, model: m, index, mode: this.mode }) ?? ""; }
+      catch(err) { console.error(`${MODULE_ID} | editor section ${s.id} failed`, err); return ""; }
+    }).join("");
+  }
+
+  /** Read or write a card's model from outside (extensions): editor.models[index]. Re-render after changing it. */
+  modelAt(index) {
+    return this.models[index];
+  }
+
   #actionFields(m) {
     const a = m.action;
+    if ( EXT_ACTIONS.has(a.type) ) {
+      const def = EXT_ACTIONS.get(a.type);
+      try { return `<div class="aet-fields">${def.fields?.(a, { editor: this, model: m, index: this.models.indexOf(m) }) ?? ""}</div>`; }
+      catch(err) { console.error(`${MODULE_ID} | action ${a.type} fields failed`, err); return ""; }
+    }
     switch ( a.type ) {
       case "save": {
         const dcMode = ["source", "sourceSpell"].includes(a.dc) ? a.dc : (Number.isFinite(Number(a.dc)) ? "fixed" : "formula");
@@ -1941,6 +2015,24 @@ export class TriggerEditor extends ApplicationV2 {
 
   static #index(target) {
     return Number(target.closest(".aet-card")?.dataset.index);
+  }
+
+  /** A button of an extension's action fields: data-action="extAction" data-op="…". */
+  static async #onExtAction(event, target) {
+    const index = TriggerEditor.#index(target);
+    const model = this.models[index];
+    const def = EXT_ACTIONS.get(model?.action?.type);
+    if ( !def?.onAction ) return;
+    if ( await def.onAction(target.dataset.op, { editor: this, model, index, target }) !== false ) this.render();
+  }
+
+  /** A button of an extension's section: data-action="extSection" data-section="<id>" data-op="…". */
+  static async #onExtSection(event, target) {
+    const index = TriggerEditor.#index(target);
+    const model = this.models[index];
+    const def = EXT_SECTIONS.find(s => s.id === target.dataset.section);
+    if ( !model || !def?.onAction ) return;
+    if ( await def.onAction(target.dataset.op, { editor: this, model, index, target }) !== false ) this.render();
   }
 
   static #onOpenArea() {
