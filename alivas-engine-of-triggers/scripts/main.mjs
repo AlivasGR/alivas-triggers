@@ -957,7 +957,8 @@ Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
     const affects = activity.target?.affects?.type;
     let recipients = [];
     if ( isSelfTargeted(activity) ) recipients = [activity.actor];
-    else if ( affects !== "enemy" ) recipients = targets.length ? targets : [activity.actor];
+    else if ( (affects !== "enemy") || activity.flags?.[MODULE_ID]?.applyToTargets ) recipients = targets.length ? targets : [activity.actor];
+    // Activity flag applyToTargets: effects go on the targets even when they're enemies (Help: distract an enemy).
     if ( recipients.length ) chooseProfiles(activity, usageConfig).then(profiles => {
       if ( profiles.length ) for ( const actor of recipients ) autoApply(activity, actor, profiles, usage);
     });

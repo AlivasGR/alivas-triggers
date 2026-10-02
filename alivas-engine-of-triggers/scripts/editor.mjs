@@ -1281,7 +1281,7 @@ export class TriggerEditor extends ApplicationV2 {
       this.settings = { pay: f.pay ? clone(f.pay) : null, chooseEffects: f.chooseEffects ? clone(f.chooseEffects) : null,
         targetFilter: f.targetFilter ? clone(f.targetFilter) : null, summonEffects: Array.isArray(f.summonEffects) ? [...f.summonEffects] : [],
         repeat: f.repeat ? clone(f.repeat) : null, mastery: f.mastery ?? "", properties: [...(f.properties ?? [])],
-        requires: f.requires ? clone(f.requires) : {}, offerWhenBlocked: !!f.offerWhenBlocked };
+        requires: f.requires ? clone(f.requires) : {}, offerWhenBlocked: !!f.offerWhenBlocked, applyToTargets: !!f.applyToTargets };
     } else if ( this.mode === "area" ) {
       const list = this.activity.flags?.[MODULE_ID]?.area?.triggers;
       this.models = (Array.isArray(list) ? list : []).map(x => triggerToModel(x));
@@ -1627,6 +1627,7 @@ export class TriggerEditor extends ApplicationV2 {
       ${REQUIREMENTS.map(([k, label]) => `<label class="aet-check"><input type="checkbox" data-setting="req.${k}" data-rerender${s.requires?.[k] ? " checked" : ""}><span>${esc(label)}</span></label>`).join("")}
       <label class="aet-inline"><span>Target size</span><span class="aet-muted">at most</span><input type="number" class="aet-num" min="0" data-setting="req.maxSizeAbove" data-rerender value="${esc(s.requires?.maxSizeAbove ?? "")}" placeholder="any"><span class="aet-muted">sizes larger than the user</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="offerWhenBlocked" data-rerender${s.offerWhenBlocked ? " checked" : ""}><span>Offer this when a hostile creature blocks the user's move (Tumble, Overrun)</span></label>
+      <label class="aet-check"><input type="checkbox" data-setting="applyToTargets"${s.applyToTargets ? " checked" : ""}><span>Its effects go on the targets even if they're enemies (no save — Help: distract an enemy)</span></label>
       ${(describeRequires(s.requires).length || s.offerWhenBlocked) ? `<p class="aet-muted">→ ${esc([describeRequires(s.requires).length ? `Needs: ${describeRequires(s.requires).join(", ")}.` : "", s.offerWhenBlocked ? "Offered when a hostile creature blocks the user's move." : ""].filter(Boolean).join(" "))}</p>` : ""}
       <label class="aet-inline"><span>Use it automatically when the only target is</span><select data-setting="targetPick">${options([["", "— (always ask)"],
         ["damaged", "Missing hit points"], ["healthy", "At full hit points"], ["bloodied", "Bloodied (half HP or less)"], ["unbloodied", "Not bloodied"],
@@ -2286,6 +2287,7 @@ export class TriggerEditor extends ApplicationV2 {
       return el.hasAttribute("data-rerender");
     }
     if ( key === "offerWhenBlocked" ) { this.settings.offerWhenBlocked = el.checked; return true; }
+    if ( key === "applyToTargets" ) { this.settings.applyToTargets = el.checked; return false; }
     if ( key === "chooseOn" ) { this.settings.chooseEffects = el.checked ? { count: "1" } : null; return true; }
     if ( key === "pay.from" ) { this.settings.pay.from = el.value.split(",").map(s => s.trim()).filter(Boolean); return false; }
     if ( key === "pay.cost" ) { this.settings.pay.cost = Number(el.value) || 1; return false; }
@@ -2599,7 +2601,8 @@ export class TriggerEditor extends ApplicationV2 {
         targetFilter: s.targetFilter?.length ? s.targetFilter : null, summonEffects: s.summonEffects?.length ? s.summonEffects : null,
         repeat: (Number(s.repeat?.count) > 1) ? { count: Number(s.repeat.count), ...(s.repeat.swap ? { swap: s.repeat.swap } : {}) } : null,
         mastery: s.mastery || null, properties: s.properties?.length ? s.properties : null,
-        requires: Object.keys(s.requires ?? {}).length ? s.requires : null, offerWhenBlocked: s.offerWhenBlocked ? true : null
+        requires: Object.keys(s.requires ?? {}).length ? s.requires : null, offerWhenBlocked: s.offerWhenBlocked ? true : null,
+        applyToTargets: s.applyToTargets ? true : null
       } });
     } else if ( this.mode === "area" ) {
       await this.activity.update({ [`flags.${MODULE_ID}`]: {
@@ -2722,6 +2725,7 @@ function describeActivityAutomation(activity) {
   const needs = describeRequires(f.requires);
   if ( needs.length ) list.push(`Needs: ${needs.join(", ")}.`);
   if ( f.offerWhenBlocked ) list.push("Offered when a hostile creature blocks the user's move.");
+  if ( f.applyToTargets ) list.push("Its effects go on its targets, enemies included.");
   if ( f.repeat?.count > 1 ) list.push(`${f.repeat.count} strikes per use${f.repeat.swap ? ` (one may be ${f.repeat.swap})` : ""}.`);
   for ( const tr of f.area?.triggers ?? [] ) {
     try { list.push(`Its area: ${describeTrigger(tr)}`); } catch(err) { list.push("Its area: (a trigger the editor can't read)"); }

@@ -405,6 +405,9 @@ class FixesMenu extends foundry.applications.api.ApplicationV2 {
 /* -------------------------------------------- */
 
 const MANEUVER_TYPES = ["character", "npc"];
+/** A creature that should have Combat Maneuvers: a character or npc that isn't an Item Piles pile, merchant or vault. */
+const wantsManeuvers = actor => MANEUVER_TYPES.includes(actor?.type)
+  && !(actor.flags?.["item-piles"]?.data?.enabled ?? actor.getFlag?.("item-piles", "data")?.enabled);
 const grantOn = () => game.settings.get(MODULE_ID, "grantManeuvers");
 const homebrewOn = () => game.settings.get(MODULE_ID, "homebrewManeuvers");
 const maneuverPatch = () => PATCHES.find(p => p.data.flags?.[MODULE_ID]?.maneuvers) ?? null;
@@ -433,7 +436,7 @@ function maneuverData() {
 
 /** A world actor is about to be created: include Combat Maneuvers. */
 Hooks.on("preCreateActor", (actor, data, options, userId) => {
-  if ( (userId !== game.userId) || !MANEUVER_TYPES.includes(actor.type) || !grantOn() ) return;
+  if ( (userId !== game.userId) || !wantsManeuvers(actor) || !grantOn() ) return;
   const items = actor.toObject().items ?? [];
   if ( items.some(isManeuvers) ) return;
   const item = maneuverData();
@@ -469,7 +472,7 @@ async function syncManeuvers() {
   const patch = maneuverPatch();
   if ( !patch ) return;
   for ( const actor of game.actors.contents ) {
-    if ( !MANEUVER_TYPES.includes(actor.type) ) continue;
+    if ( !wantsManeuvers(actor) ) continue;
     try {
       const have = actor.items.filter(i => isManeuvers(i));
       if ( !have.length ) {

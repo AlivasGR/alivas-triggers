@@ -892,7 +892,11 @@
           "chatFlavor": "Distract an enemy within 5 ft; an ally's next attack against it has Advantage.",
           "value": ""
         },
-        "flags": {},
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "applyToTargets": true
+          }
+        },
         "visibility": {
           "level": {},
           "requireAttunement": false,
