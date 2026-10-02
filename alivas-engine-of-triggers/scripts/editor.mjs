@@ -137,7 +137,8 @@ const TRIGGER_ACTIONS = [
   ["place", "fa-up-down-left-right", "Place a creature", "The bearer's player picks a free space for a creature (Shove Aside, Hurl)"],
   ["release", "fa-hand-back-fist", "Let go", "The bearer releases its holds on the creatures concerned"],
   ["escape", "fa-person-running", "Break free", "The bearer checks against the hold on it; a success ends the hold"],
-  ["endEffect", "fa-circle-xmark", "End an effect", "Remove an effect by name or condition from the creatures concerned"]
+  ["endEffect", "fa-circle-xmark", "End an effect", "Remove an effect by name or condition from the creatures concerned"],
+  ["useReaction", "fa-hourglass-half", "Spend the reaction", "The bearer's reaction is used (Ready)"]
 ];
 
 /** The actions a check's success / failure lists may hold. */
@@ -234,7 +235,8 @@ const DEFAULT_ACTIONS = {
   place: { type: "place", range: 5, fromReach: true },
   release: { type: "release" },
   escape: { type: "escape", skills: ["ath", "acr"] },
-  endEffect: { type: "endEffect", name: "" }
+  endEffect: { type: "endEffect", name: "" },
+  useReaction: { type: "useReaction" }
 };
 
 /** Starting data for a step in a check's success / failure list (only SUB_ACTIONS). */
@@ -772,7 +774,7 @@ function validateTrigger(model) {
     case "passThrough": case "place": case "release": case "endEffect":
       errors.push(...validateStep(a));
       break;
-    case "note": break;
+    case "note": case "useReaction": break;
     default:
       if ( EXT_ACTIONS.has(a.type) ) errors.push(...(EXT_ACTIONS.get(a.type).validate?.(a) ?? []));
       else errors.push("Choose what happens under “Do”.");
@@ -939,6 +941,7 @@ function describeTriggerModel(model, sub=false) {
     case "place": what = `${whom(a.to)} is moved to a space the bearer picks within ${a.range ?? 5} ft${a.fromReach ? " (and within the bearer's reach)" : ""}${a.fall ? "; a fall deals bludgeoning damage and leaves it Prone" : ""}`; break;
     case "release": what = `the bearer lets go of ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "what it holds"}`; break;
     case "escape": what = `the bearer tries to break free of the hold on it with ${(a.skills ?? []).map(skillLabel).join(" or ") || "?"}${(a.skills?.length ?? 0) > 1 ? " (the better)" : ""}; a success ends the hold`; break;
+    case "useReaction": what = "the bearer's reaction is spent"; break;
     case "endEffect": what = `${[a.name ? `“${a.name}”` : "", a.status ? statusLabel(a.status) : ""].filter(Boolean).join(" / ") || "?"} ends on ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the bearer"}`; break;
     default: what = EXT_ACTIONS.get(a.type)?.describe?.(a) ?? "(nothing chosen)";
   }
@@ -1041,7 +1044,7 @@ function describeReactionModel(model, item) {
 
 /** Actions offered in an activity's "right after it's used" steps. */
 const ACTIVITY_ACTIONS = ["giveEffect", "removeStatus", "inspire", "tempHp", "damage", "spendHitDie", "recoverSlots", "storeSpell", "toggleLight",
-  "random", "teleport", "push", "sense", "note", "check", "passThrough", "place", "release", "escape", "endEffect"];
+  "random", "teleport", "push", "sense", "note", "check", "passThrough", "place", "release", "escape", "endEffect", "useReaction"];
 
 /** Activity requirements (flag `requires`): [key, label]. maxSizeAbove is a number and handled separately. */
 const REQUIREMENTS = [

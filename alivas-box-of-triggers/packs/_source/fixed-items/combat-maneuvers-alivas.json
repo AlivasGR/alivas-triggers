@@ -1472,10 +1472,18 @@
           "expiry": null
         },
         "description": {
-          "chatFlavor": "Hold an action and a reaction for a trigger (note only).",
+          "chatFlavor": "Prepare an action for a trigger; your reaction is spent to release it.",
           "value": ""
         },
-        "flags": {},
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "useReaction"
+              }
+            ]
+          }
+        },
         "visibility": {
           "level": {},
           "requireAttunement": false,

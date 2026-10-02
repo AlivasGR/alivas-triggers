@@ -1,4 +1,6 @@
 /**
+ * NOT WIRED IN (on hold, see tasks/T-017-ready-action.md): kept as the starting point for the full Ready mechanic.
+ *
  * Alivas's Engine of Triggers — Ready (2024): prepare one of your activities for a trigger; when it happens, use your
  * reaction to release it against the creature that triggered it.
  *

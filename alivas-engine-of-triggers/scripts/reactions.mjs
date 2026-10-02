@@ -118,7 +118,7 @@ export function reactionUsed(actor) {
 }
 
 /** Mark the reaction as used. The GM does the update if this user can't. */
-async function markReactionUsed(actor) {
+export async function markReactionUsed(actor) {
   const combatant = combatantFor(actor);
   if ( !combatant ) return;
   if ( combatant.isOwner ) return combatant.setFlag(MODULE_ID, "reactionUsed", true);

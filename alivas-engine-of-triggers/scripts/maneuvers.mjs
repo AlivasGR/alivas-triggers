@@ -36,9 +36,11 @@
  *   release     { }  — the bearer lets go: its tethers on the targets (or all) end.
  *   escape      { skills: ["ath","acr"] }  — the bearer checks against the tether on it; success ends it.
  *   endEffect   { name?, status? , to? }  — remove matching effects from the creatures concerned.
+ *   useReaction { }  — the bearer's reaction is spent (Ready).
  */
 
 import * as Creatures from "./creatures.mjs";
+import * as Reactions from "./reactions.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const INCAPACITATING = ["incapacitated", "paralyzed", "petrified", "stunned", "unconscious", "dead"];
@@ -65,10 +67,13 @@ const tokenDoc = actor => Creatures.tokenFor(actor);
 
 /** Does the actor have a hand free (2024: no two-handed weapon; not two things in hand)? */
 export function hasFreeHand(actor) {
-  const held = actor.items.filter(i => (i.type === "weapon") && i.system.equipped && (i.system.type?.value !== "natural"));
+  // dnd5e "equipped" also means "carried ready", so weapons alone don't prove both hands are busy. No free hand: a
+  // two-handed weapon, or a shield plus a weapon. Unarmed strikes and natural weapons never count.
+  const held = actor.items.filter(i => (i.type === "weapon") && i.system.equipped && (i.system.type?.value !== "natural")
+    && (i.system.identifier !== "unarmed-strike") && !/unarmed strike/i.test(i.name));
   const shield = actor.items.some(i => (i.type === "equipment") && i.system.equipped && (i.system.type?.value === "shield"));
   if ( held.some(w => w.system.properties?.has?.("two")) ) return false;
-  return (held.length + (shield ? 1 : 0)) < 2;
+  return !(shield && held.length);
 }
 
 /** A creature's weight: the override flag, else its size's typical weight. */
@@ -305,6 +310,13 @@ export const MANEUVER_ACTIONS = {
     if ( success ) await endTether(e, `${bearer.name} breaks free (${total} vs DC ${dc})`);
     else await deps.announce(trigger, effect, bearer, event, `${bearer.name} fails to break free (${total} vs DC ${dc}).`);
     return { success };
+  },
+
+  /** The bearer uses its reaction (Ready: preparing an action spends the reaction it will be released with). */
+  async useReaction(trigger, effect, bearer) {
+    if ( Reactions.reactionUsed(bearer) ) return {};
+    await Reactions.markReactionUsed(bearer);
+    return {};
   },
 
   /** Remove effects by name or status from the creatures concerned (default the bearer). */

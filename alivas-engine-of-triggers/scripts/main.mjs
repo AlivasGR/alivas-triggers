@@ -133,7 +133,6 @@ import { registerSettingsMenu } from "./settings-app.mjs";
 import { TriggerEditor, describeTrigger, describeReaction, registerActionType, registerEditorSection } from "./editor.mjs";
 import * as Maneuvers from "./maneuvers.mjs";
 import * as Loot from "./loot.mjs";
-import * as Ready from "./ready.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const SOCKET = `module.${MODULE_ID}`;
@@ -890,7 +889,6 @@ Hooks.on("moveToken", (token, movement, operation, user) => {
   const movedThisTurn = (movement.history?.distance ?? 0) + moved;
   fire("moved", token.actor, { data: { moved, movedThisTurn, ownTurn } });
   if ( setting("reactions") ) Reactions.leavesReach(token, movement);
-  if ( setting("reactions") ) Ready.readyMoved(token, movement);
 });
 
 /**
@@ -2816,8 +2814,6 @@ Hooks.once("ready", () => {
   Maneuvers.initManeuvers({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
   Maneuvers.registerManeuverHooks();
   Loot.initLoot({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
-  Ready.initReady({ ACTIONS });
-  Ready.registerReadyHooks();
   game.modules.get(MODULE_ID).api = {
     ACTIONS, fire, autoApply, findUsageMessage,
     openEditor: doc => TriggerEditor.open(doc), describeTrigger, describeReaction,
