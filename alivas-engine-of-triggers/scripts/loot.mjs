@@ -394,6 +394,11 @@ export async function writeObstacle(pile, patch) {
   if ( !actor || !game.user.isGM ) return false;
   const next = foundry.utils.mergeObject(foundry.utils.deepClone(actor.getFlag(MODULE_ID, "obstacle") ?? {}), patch, { inplace: false });
   await actor.update({ [`flags.${MODULE_ID}.==obstacle`]: next });
+  // Keep Item Piles' own lock in step (it's what players' clicks obey).
+  const token = tokenOf(pile);
+  if ( token && (typeof patch.locked === "boolean") && (ipTest("isItemPileLocked", token) !== patch.locked) ) {
+    await ip(patch.locked ? "lockItemPile" : "unlockItemPile", token);
+  }
   return true;
 }
 
@@ -446,6 +451,7 @@ export async function pickLock(pile, actor) {
   if ( total === undefined || total === null ) return { success: false, cancelled: true };
   const success = total >= lockDC;
   if ( success ) await requestUnlock(token, actor, "picks the lock of");
+  else await chat(actor, `<strong>${esc(actor.name)}</strong> fails to pick the lock of <strong>${esc(token.name)}</strong> (${total} vs DC ${lockDC}).`);
   return { success, total, dc: lockDC };
 }
 
