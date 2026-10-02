@@ -23,6 +23,8 @@ import { isSkipping } from "./delay.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 export const AREA_TYPE = `${MODULE_ID}.area`;
+/** How long an instantaneous spell's area stays up after it resolves (ms). */
+const AREA_LINGER_MS = 3000;
 export const AREA_EVENTS = ["areaCreated", "areaEnter", "areaLeave", "areaTurnStart", "areaTurnEnd"];
 
 let deps = {};
@@ -130,7 +132,11 @@ function resolveOwner(system) {
     name: item.name, img: item.img, parent: item, origin: item.uuid, uuid: `${region?.uuid}.area`,
     getSourceActor: () => activity.actor, getFlag: () => undefined,
     flags: { dnd5e: { spellLevel: system.level ?? scaled.item?.system?.level ?? 0 } },
-    delete: async () => { if ( region?.parent?.regions.get(region.id) ) await region.delete(); }
+    // An instantaneous spell's area lingers a moment before it goes, so animations placed on it (Automated Animations,
+    // the Stage) can play — removing it at once cancels them.
+    delete: async () => {
+      setTimeout(() => { if ( region?.parent?.regions.get(region.id) ) region.delete(); }, AREA_LINGER_MS);
+    }
   };
   return { triggers: areaTriggersFor(activity), bearer: activity.actor, effect: standIn, activity: scaled, usage,
     token: null };

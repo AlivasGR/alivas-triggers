@@ -75,7 +75,16 @@ function findPatch(data, owner) {
   // consumption belongs to that item.
   if ( data.flags?.dnd5e?.cachedFor ) return null;
   const desc = describe(data, owner);
-  return PATCHES.find(p => p.keys.some(k => keyMatches(desc, k))) ?? null;
+  const found = PATCHES.find(p => p.keys.some(k => keyMatches(desc, k)));
+  if ( found ) return found;
+  // A chosen option named after its feature ("Fighting Style: Protection", as Plutonium's Charactermancer names it)
+  // matches the option's own patch ("Protection").
+  const [parent, ...rest] = String(data.name ?? "").split(/:\s+/);
+  const option = rest.join(": ").trim();
+  if ( !option ) return null;
+  const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const optionDesc = { ...desc, name: option, identifier: desc.identifier.replace(new RegExp(`^${slug(parent)}-`), "") };
+  return PATCHES.find(p => p.keys.some(k => keyMatches(optionDesc, k))) ?? null;
 }
 
 async function loadPatches() {

@@ -128,9 +128,23 @@ export function statusCues(id) {
 
 /** Does anything of ours animate this activity or effect? (Then Automated Animations stays out of it.) */
 export function hasOwnCues({ item, activity, effect }) {
-  if ( effect ) return !!effectCues(effect) || (effect.statuses?.size && [...effect.statuses].some(s => statusCues(s)));
+  if ( effect ) {
+    if ( effectCues(effect) || (effect.statuses?.size && [...effect.statuses].some(s => statusCues(s))) ) return true;
+    // An effect from an item we animate is ours too (Celestial Revelation's wings: the feature's preset owns them).
+    const from = effectItem(effect);
+    return from ? hasOwnCues({ item: from, activity: null }) : false;
+  }
   const { cues } = itemCues(item, activity);
-  return Object.values(cues ?? {}).some(c => normalizeCue(c));
+  if ( Object.values(cues ?? {}).some(c => normalizeCue(c)) ) return true;
+  // Any activity of the item animated by us → we own the whole item (no Automated Animations on its other activities,
+  // e.g. a feature whose preset animates one activity and its effect). Effect-only presets leave the item to AA.
+  const anyPhase = map => Object.values(map ?? {}).some(phases => Object.values(phases ?? {}).some(c => normalizeCue(c)));
+  const own = item?.getFlag?.(MODULE_ID, "cues");
+  if ( anyPhase(own) || anyPhase(presetFor(item)?.activities) ) return true;
+  // The activity applies an effect that has a "start" animation of ours: that animation is the activity's, so AA
+  // stays out (Celestial Revelation's Heavenly Wings). An effect with only a loop leaves the cast to AA.
+  const applied = (activity?.effects ?? []).map(p => p.effect ?? item?.effects?.get?.(p._id ?? p.id)).filter(Boolean);
+  return applied.some(e => normalizeCue(effectCues(e)?.start));
 }
 
 /* -------------------------------------------- */

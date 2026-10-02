@@ -181,7 +181,9 @@ Animations and sounds. A **cue** is `{ steps: [...] }` (format in `cues.mjs`'s h
 Cues come from, most specific first: item flags (`cues[activityId|"*"][use|attack|hit|damage|area]`), effect flags
 (`cue.start|active|end`), `action.animation` on any engine action (or the `animate` action), presets
 (`presets/box.json` by item name + type; `presets/statuses.json`), the condition and move settings. Anything the Stage
-animates, Automated Animations skips (`aaHandOff`); otherwise AA plays with whole-word matches only (`aaGuard`).
+animates, Automated Animations skips (`aaHandOff`): an effect that has a cue, an effect from an item with activity cues, an
+item with any activity cue, an activity that applies an effect with a `start` cue. Otherwise AA plays, with whole-word
+matches only (`aaGuard`). Instantaneous areas linger 3 s before removal so animations on them can play.
 - **Presets** use only Sequencer database paths that exist; validate with `node private/work/anim/validate-presets.mjs`
   (maintainer) or by checking every `file` is a prefix of a path in Sequencer's database. Prefer paths in the free JB2A
   / PSFX. No rules text, as everywhere.
