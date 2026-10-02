@@ -81,7 +81,14 @@ function findPatch(data, owner) {
   // matches the option's own patch ("Protection").
   const [parent, ...rest] = String(data.name ?? "").split(/:\s+/);
   const option = rest.join(": ").trim();
-  if ( !option ) return null;
+  // The other way round: an option imported on its own ("Heightened Spell", from Plutonium's option importer) matches
+  // a patch keyed by its full name ("Metamagic: Heightened Spell") — same type and book, any page.
+  if ( !option ) return PATCHES.find(p => p.keys.some(k => {
+    if ( !String(k.name ?? "").includes(": ") ) return false;
+    if ( String(k.name).split(/:\s+/).slice(1).join(": ").trim() !== desc.name ) return false;
+    const { name, page, identifier, ...rest } = k;
+    return keyMatches(desc, rest);
+  })) ?? null;
   const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const optionDesc = { ...desc, name: option, identifier: desc.identifier.replace(new RegExp(`^${slug(parent)}-`), "") };
   return PATCHES.find(p => p.keys.some(k => keyMatches(optionDesc, k))) ?? null;

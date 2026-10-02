@@ -2502,7 +2502,7 @@ Creatures.HANDLERS.rollSave = async function({ actorUuid, spec }) {
   const actor = fromUuidSync(actorUuid);
   if ( !actor?.isOwner ) return null;
   const rolls = await rollSave(actor, spec);
-  return rolls?.[0] ? { total: rolls[0].total } : null;
+  return rolls?.[0] ? { total: rolls[0].total, d20: rolls[0].d20?.total ?? rolls[0].dice?.[0]?.total ?? null } : null;
 };
 
 /* -------------------------------------------- */

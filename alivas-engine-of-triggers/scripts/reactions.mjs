@@ -443,7 +443,12 @@ const note = (actor, html) => ChatMessage.implementation.create({
 
 /** Reroll a d20 roll and post it. Returns the kept result as { total, isCritical, isFumble }. */
 async function rerollD20(current, roll, keep, actor, label) {
-  const again = await roll.reroll();
+  // A full Roll rerolls itself; a bare result ({ total, d20 }, from a save rolled on another client) rerolls its d20
+  // and keeps the same modifiers.
+  let again;
+  if ( typeof roll?.reroll === "function" ) again = await roll.reroll();
+  else if ( Number.isFinite(roll?.d20) ) again = await new Roll(`1d20 + ${current.total - roll.d20}`).evaluate();
+  else return current;
   await again.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor }), flavor: `${label}: reroll (keeps the ${keep})` });
   const useNew = (keep === "higher") ? (again.total > current.total) : (again.total < current.total);
   return useNew ? { total: again.total, isCritical: again.isCritical, isFumble: again.isFumble } : current;

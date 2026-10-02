@@ -227,17 +227,21 @@ function descriptors(actor) {
  * that rolls by itself after the reaction timeout; NPCs are rolled on the GM's client.
  * @returns {Promise<number|null>} the total
  */
-export async function rollSaveFor(actor, { ability, dc, advantage=false, disadvantage=false, bonus=[] }, label) {
+export async function rollSaveFor(actor, spec, label) {
+  return (await rollSaveResult(actor, spec, label))?.total ?? null;
+}
+
+/** The same, keeping the d20's face too (rerolls need it): { total, d20 } or null. */
+async function rollSaveResult(actor, { ability, dc, advantage=false, disadvantage=false, bonus=[] }, label) {
   const user = Creatures.controllerOf(actor);
   const spec = { ability, dc, advantage, disadvantage, bonus };
   const prompt = !user?.isGM && (deps.setting("wfTargetPC") === "prompt");
   if ( user && (user.id !== game.user.id) ) {
-    const result = await Creatures.runAs(user, prompt ? "rollSavePrompt" : "rollSave", { actorUuid: actor.uuid, spec, label });
-    return result?.total ?? null;
+    return await Creatures.runAs(user, prompt ? "rollSavePrompt" : "rollSave", { actorUuid: actor.uuid, spec, label }) ?? null;
   }
-  if ( prompt ) return (await Creatures.HANDLERS.rollSavePrompt({ actorUuid: actor.uuid, spec, label }))?.total ?? null;
+  if ( prompt ) return (await Creatures.HANDLERS.rollSavePrompt({ actorUuid: actor.uuid, spec, label })) ?? null;
   const rolls = await deps.rollSave(actor, spec);
-  return rolls?.[0]?.total ?? null;
+  return rolls?.[0] ? { total: rolls[0].total, d20: rolls[0].d20?.total ?? rolls[0].dice?.[0]?.total ?? null } : null;
 }
 
 /**
@@ -249,11 +253,12 @@ export async function rollSaveFor(actor, { ability, dc, advantage=false, disadva
  * @returns {Promise<{total: number|null, success: boolean}>}
  */
 export async function rollSaveOutcome(actor, spec, label) {
-  const total = await rollSaveFor(actor, spec, label);
+  const result = await rollSaveResult(actor, spec, label);
+  const total = result?.total ?? null;
   if ( total === null ) return { total: null, success: false };
   let success = total >= spec.dc;
   if ( success && deps.setting("reactions") && deps.saveSucceeded ) {
-    success = (await deps.saveSucceeded({ actor, roll: { total }, dc: spec.dc, label: `the save against ${label}` })).success;
+    success = (await deps.saveSucceeded({ actor, roll: { total, d20: result.d20 }, dc: spec.dc, label: `the save against ${label}` })).success;
   }
   return { total, success };
 }
@@ -283,7 +288,7 @@ Creatures.HANDLERS.rollSavePrompt = async function({ actorUuid, spec, label }) {
   if ( timer ) clearTimeout(timer);
   const rolls = await deps.rollSave(actor, { ...spec, advantage: !!spec.advantage || (choice === "advantage"),
     disadvantage: !!spec.disadvantage || (choice === "disadvantage") });
-  return rolls?.[0] ? { total: rolls[0].total } : null;
+  return rolls?.[0] ? { total: rolls[0].total, d20: rolls[0].d20?.total ?? rolls[0].dice?.[0]?.total ?? null } : null;
 };
 
 /** One chat card listing each creature's result (NPC totals are not shown to players). */
