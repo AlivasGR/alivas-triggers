@@ -60,7 +60,15 @@
           "alivas-engine-of-triggers": {
             "requires": {
               "maxSizeAbove": 1
-            }
+            },
+            "saveAdvantage": true,
+            "onFail": [
+              {
+                "type": "place",
+                "range": 5,
+                "fromReach": true
+              }
+            ]
           }
         },
         "visibility": {
@@ -75,14 +83,7 @@
           "max": "",
           "recovery": []
         },
-        "effects": [
-          {
-            "_id": "HFX8oqxdCsPFOyNC",
-            "level": {},
-            "onSave": false,
-            "uuid": null
-          }
-        ],
+        "effects": [],
         "target": {
           "override": false,
           "prompt": true,
@@ -150,13 +151,11 @@
             "onUse": [
               {
                 "type": "check",
-                "ability": "str",
-                "skills": [],
+                "roll": "attack",
                 "dc": "8 + max(@target.abilities.str.mod, @target.abilities.dex.mod) + @target.prof",
                 "onSuccess": [
                   {
-                    "type": "note",
-                    "text": "The target drops a held item at its feet."
+                    "type": "dropHeld"
                   }
                 ]
               }
@@ -322,7 +321,21 @@
               "grappling": true,
               "maxSizeAbove": 1,
               "canLift": true
-            }
+            },
+            "onFail": [
+              {
+                "type": "place",
+                "range": "5 * max(1, @abilities.str.mod)",
+                "fall": true
+              },
+              {
+                "type": "endEffect",
+                "status": "grappled",
+                "to": {
+                  "who": "targets"
+                }
+              }
+            ]
           },
           "alivas-box-of-triggers": {
             "homebrew": true
@@ -340,14 +353,7 @@
           "max": "",
           "recovery": []
         },
-        "effects": [
-          {
-            "_id": "SvGB5GurOWXVBMNv",
-            "level": {},
-            "onSave": false,
-            "uuid": null
-          }
-        ],
+        "effects": [],
         "target": {
           "override": false,
           "prompt": true,
@@ -643,6 +649,9 @@
         },
         "flags": {
           "alivas-engine-of-triggers": {
+            "requires": {
+              "minSizeAbove": 2
+            },
             "onUse": [
               {
                 "type": "check",
@@ -731,8 +740,24 @@
           "alivas-engine-of-triggers": {
             "onUse": [
               {
-                "type": "note",
-                "text": "The user tries to shake off a creature climbing on it; the GM sets the check."
+                "type": "check",
+                "skills": [
+                  "ath"
+                ],
+                "dc": "8 + max(@target.abilities.str.mod, @target.abilities.dex.mod) + @target.prof",
+                "onSuccess": [
+                  {
+                    "type": "endEffect",
+                    "name": "Climbing",
+                    "to": {
+                      "who": "targets"
+                    }
+                  },
+                  {
+                    "type": "push",
+                    "distance": 5
+                  }
+                ]
               }
             ]
           },
@@ -2088,43 +2113,6 @@
       "_key": "!items.effects!EyGl5Rqnc8X5dTgs.aiPivfxfy3PCQHow"
     },
     {
-      "_id": "HFX8oqxdCsPFOyNC",
-      "name": "Shoved Aside",
-      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
-      "type": "base",
-      "transfer": false,
-      "disabled": false,
-      "statuses": [],
-      "tint": "#ffffff",
-      "sort": 0,
-      "origin": null,
-      "description": "",
-      "duration": {
-        "value": null,
-        "units": "seconds",
-        "expiry": null
-      },
-      "system": {
-        "changes": []
-      },
-      "flags": {
-        "alivas-engine-of-triggers": {
-          "triggers": [
-            {
-              "label": "Shove Aside",
-              "event": "applied",
-              "action": {
-                "type": "note",
-                "text": "The user moves this creature 5 ft to another space within the user's reach."
-              },
-              "then": "remove"
-            }
-          ]
-        }
-      },
-      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.HFX8oqxdCsPFOyNC"
-    },
-    {
       "_id": "RrMZT2LpdWcZ6jsr",
       "name": "Pinned",
       "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
@@ -2155,54 +2143,6 @@
         }
       },
       "_key": "!items.effects!EyGl5Rqnc8X5dTgs.RrMZT2LpdWcZ6jsr"
-    },
-    {
-      "_id": "SvGB5GurOWXVBMNv",
-      "name": "Hurled",
-      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
-      "type": "base",
-      "transfer": false,
-      "disabled": false,
-      "statuses": [],
-      "tint": "#ffffff",
-      "sort": 0,
-      "origin": null,
-      "description": "",
-      "duration": {
-        "value": null,
-        "units": "seconds",
-        "expiry": null
-      },
-      "system": {
-        "changes": []
-      },
-      "flags": {
-        "alivas-engine-of-triggers": {
-          "triggers": [
-            {
-              "label": "Hurl Creature",
-              "event": "applied",
-              "action": {
-                "type": "endEffect",
-                "status": "grappled"
-              }
-            },
-            {
-              "label": "Hurl Creature",
-              "event": "applied",
-              "action": {
-                "type": "note",
-                "text": "The user moves this creature up to 5 ft x the user's Strength modifier (minimum 5 ft) to a free space; falling damage if it lands lower."
-              },
-              "then": "remove"
-            }
-          ]
-        },
-        "alivas-box-of-triggers": {
-          "homebrew": true
-        }
-      },
-      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.SvGB5GurOWXVBMNv"
     },
     {
       "_id": "9BHKupsY6EVDwp0Q",

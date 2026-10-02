@@ -366,11 +366,13 @@
       "match": [
         {
           "name": "Unarmed Strike",
-          "type": "weapon"
+          "type": "weapon",
+          "book": "PHB 2024"
         },
         {
           "identifier": "unarmed-strike",
-          "type": "weapon"
+          "type": "weapon",
+          "book": "PHB 2024"
         }
       ],
       "keep": {
