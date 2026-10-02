@@ -200,3 +200,10 @@
 /* Delay turn: a delayed combatant on the combat tracker */
 .combat-tracker li.aet-delayed .token-name, .combat-tracker li.aet-delayed .token-image { opacity: 0.55; }
 .combat-tracker .aet-delay:disabled { opacity: 0.35; cursor: default; }
+
+/* Check: success / failure step lists */
+.aet-sublist { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.aet-substep { margin-left: 8px; padding: 8px 10px; border-left: 2px solid var(--aet-accent); border-radius: 0 6px 6px 0; background: var(--aet-fill); display: flex; flex-direction: column; gap: 8px; }
+.aet-substep-head { justify-content: space-between; }
+.aet-substep-tools { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.aet-badge.aet-mini { transform: scale(0.85); }

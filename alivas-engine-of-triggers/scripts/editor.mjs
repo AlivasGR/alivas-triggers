@@ -30,6 +30,8 @@ const options = (entries, selected) => entries.map(([value, label]) =>
 const abilityEntries = () => Object.entries(CONFIG.DND5E.abilities).map(([id, a]) => [id, a.label]);
 const abilityLabel = id => CONFIG.DND5E.abilities[id]?.label ?? id?.toUpperCase?.() ?? "";
 const abilityAbbr = id => (CONFIG.DND5E.abilities[id]?.abbreviation ?? id ?? "").toUpperCase();
+const skillEntries = () => Object.entries(CONFIG.DND5E.skills ?? {}).map(([id, s]) => [id, game.i18n.localize(s.label ?? id)]);
+const skillLabel = id => game.i18n.localize(CONFIG.DND5E.skills?.[id]?.label ?? id);
 const damageEntries = () => [
   ...Object.entries(CONFIG.DND5E.damageTypes).map(([id, d]) => [id, d.label]),
   ...Object.entries(CONFIG.DND5E.healingTypes).map(([id, d]) => [id, d.label])
@@ -129,13 +131,30 @@ const TRIGGER_ACTIONS = [
   ["rollActivity", "fa-wand-sparkles", "Source's activity", "Roll a damage activity of whoever applied this"],
   ["note", "fa-comment", "Just a message", "Post a chat line — pair with “End the effect”"],
   ["duplicates", "fa-clone", "Duplicates", "Mirror Image-style: a duplicate may take the hit"],
-  ["restoreDuplicates", "fa-rotate", "Restore duplicates", "Lost duplicates come back"]
+  ["restoreDuplicates", "fa-rotate", "Restore duplicates", "Lost duplicates come back"],
+  ["check", "fa-dice-d20", "Ability check", "The bearer rolls a skill or ability check against a DC, with steps for success and failure (Shove, Grapple, Tumble)"],
+  ["passThrough", "fa-person-walking-dashed-line-arrow-right", "Pass through", "The bearer may move through creatures until the end of its turn"],
+  ["place", "fa-up-down-left-right", "Place a creature", "The bearer's player picks a free space for a creature (Shove Aside, Hurl)"],
+  ["release", "fa-hand-back-fist", "Let go", "The bearer releases its holds on the creatures concerned"],
+  ["escape", "fa-person-running", "Break free", "The bearer checks against the hold on it; a success ends the hold"],
+  ["endEffect", "fa-circle-xmark", "End an effect", "Remove an effect by name or condition from the creatures concerned"]
+];
+
+/** The actions a check's success / failure lists may hold. */
+const SUB_ACTIONS = ["giveEffect", "removeStatus", "passThrough", "place", "push", "release", "endEffect", "damage", "note", "tempHp"];
+/** Check DC presets: [id, label, formula]. */
+const CHECK_DC_PRESETS = [
+  ["dex", "8 + the target's DEX modifier + proficiency", "8 + @target.abilities.dex.mod + @target.prof"],
+  ["str", "8 + the target's STR modifier + proficiency", "8 + @target.abilities.str.mod + @target.prof"],
+  ["grapple", "Your Grapple DC (8 + STR modifier + proficiency)", "8 + @abilities.str.mod + @prof"]
 ];
 
 function thenEntries(actionType) {
   const entries = [["keep", "Keep the effect"], ["remove", "End the effect"]];
   if ( actionType === "save" ) entries.push(["removeOnSuccess", "End it on a successful save"],
     ["removeOnFailure", "End it on a failed save"]);
+  if ( ["check", "escape"].includes(actionType) ) entries.push(["removeOnSuccess", "End it on a success"],
+    ["removeOnFailure", "End it on a failure"]);
   if ( actionType === "duplicates" ) entries.push(["removeWhenDepleted", "End it when no duplicates are left"]);
   return entries;
 }
@@ -209,7 +228,27 @@ const DEFAULT_ACTIONS = {
   rollActivity: { type: "rollActivity", item: "", activity: "" },
   note: { type: "note" },
   duplicates: { type: "duplicates", count: 3, threshold: 3 },
-  restoreDuplicates: { type: "restoreDuplicates", count: 3 }
+  restoreDuplicates: { type: "restoreDuplicates", count: 3 },
+  check: { type: "check", skills: ["acr"], dc: CHECK_DC_PRESETS[0][2], onSuccess: [], onFailure: [] },
+  passThrough: { type: "passThrough" },
+  place: { type: "place", range: 5, fromReach: true },
+  release: { type: "release" },
+  escape: { type: "escape", skills: ["ath", "acr"] },
+  endEffect: { type: "endEffect", name: "" }
+};
+
+/** Starting data for a step in a check's success / failure list (only SUB_ACTIONS). */
+const DEFAULT_SUB_ACTIONS = {
+  giveEffect: { type: "giveEffect", effect: "", to: { who: "targets" } },
+  removeStatus: { type: "removeStatus", statuses: [], to: { who: "targets" } },
+  passThrough: { type: "passThrough" },
+  place: { type: "place", range: 5, fromReach: true },
+  push: { type: "push", distance: 10 },
+  release: { type: "release" },
+  endEffect: { type: "endEffect", name: "" },
+  damage: { type: "damage", formula: "1d6", damageType: "bludgeoning", to: { who: "targets" } },
+  note: { type: "note" },
+  tempHp: { type: "tempHp", formula: "1d10 + 5" }
 };
 
 const FORMULA_HINT = "Formulas can use the source's data, e.g. <code>@abilities.wis.mod</code>, <code>@prof</code>, "
@@ -615,6 +654,17 @@ function modelToTrigger(model) {
   const filter = rowsToFilter(model.rows, TRIGGER_FIELDS);
   if ( filter ) out.filter = filter;
   const action = clone(model.action);
+  const numeric = step => {
+    if ( (step?.type === "place") && (String(step.range ?? "").trim() !== "") && Number.isFinite(Number(step.range)) ) step.range = Number(step.range);
+  };
+  numeric(action);
+  if ( action.type === "check" ) {
+    for ( const key of ["onSuccess", "onFailure"] ) action[key]?.forEach?.(numeric);
+    for ( const key of ["onSuccess", "onFailure"] ) if ( !action[key]?.length ) delete action[key];
+    if ( action.ability && action.skills?.length ) delete action.ability;
+    if ( !action.skills?.length ) delete action.skills;
+    if ( !action.advantage ) delete action.advantage;
+  }
   if ( action.type === "save" ) {
     const mods = model.mods.map(m => {
       const mod = {};
@@ -715,6 +765,13 @@ function validateTrigger(model) {
     case "restoreDuplicates":
       if ( !(Number(a.count) >= 1) ) errors.push("Restore duplicates: the count must be 1 or more.");
       break;
+    case "check": errors.push(...validateCheck(a)); break;
+    case "escape":
+      if ( !a.skills?.length ) errors.push("Break free: pick at least one skill.");
+      break;
+    case "passThrough": case "place": case "release": case "endEffect":
+      errors.push(...validateStep(a));
+      break;
     case "note": break;
     default:
       if ( EXT_ACTIONS.has(a.type) ) errors.push(...(EXT_ACTIONS.get(a.type).validate?.(a) ?? []));
@@ -723,6 +780,63 @@ function validateTrigger(model) {
   for ( const s of EXT_SECTIONS ) errors.push(...(s.validate?.(model) ?? []));
   if ( !thenEntries(a.type).some(([id]) => id === model.then) ) errors.push("Choose what happens to the effect afterwards.");
   errors.push(...rowErrors([...model.rows, ...model.mods.flatMap(m => m.rows)]));
+  return errors;
+}
+
+/** Errors for one step of a check's success / failure list (also used for the new top-level actions). */
+function validateStep(a) {
+  const errors = [];
+  switch ( a?.type ) {
+    case "giveEffect":
+      if ( !String(a.effect ?? "").trim() ) errors.push("Choose which effect to give.");
+      errors.push(...selectorErrors(a.to));
+      break;
+    case "removeStatus":
+      if ( !a.statuses?.length ) errors.push("Pick at least one condition to end.");
+      errors.push(...selectorErrors(a.to));
+      break;
+    case "passThrough": errors.push(...selectorErrors(a.to)); break;
+    case "place":
+      if ( !formulaOk(a.range) ) errors.push("Place a creature: the range needs a number of feet or a formula, e.g. 5 * max(1, @abilities.str.mod).");
+      errors.push(...selectorErrors(a.to));
+      break;
+    case "push":
+      if ( !Number(a.distance) ) errors.push("Push or pull: a distance in feet (negative pulls).");
+      errors.push(...selectorErrors(a.to));
+      break;
+    case "endEffect":
+      if ( !String(a.name ?? "").trim() && !String(a.status ?? "").trim() ) errors.push("End an effect: give its name or a condition.");
+      errors.push(...selectorErrors(a.to));
+      break;
+    case "damage":
+      if ( !formulaOk(a.formula) ) errors.push("The damage needs a valid formula, e.g. 2d6 or 1d8 + 3.");
+      errors.push(...selectorErrors(a.to));
+      break;
+    case "tempHp":
+      if ( !formulaOk(a.formula) ) errors.push("Temporary HP needs a formula, e.g. 1d10 + 5.");
+      errors.push(...selectorErrors(a.to));
+      break;
+    case "release": case "note": break;
+    default: errors.push("Choose what this step does.");
+  }
+  return errors;
+}
+
+function validateCheck(a) {
+  const errors = [];
+  const abilityMode = !!a.ability && !a.skills?.length;
+  if ( abilityMode ) {
+    if ( !(a.ability in CONFIG.DND5E.abilities) ) errors.push("Check: choose which ability is rolled.");
+  } else if ( !a.skills?.length ) errors.push("Check: pick at least one skill, or roll an ability.");
+  if ( a.dc !== "tether" ) {
+    if ( (a.dc === undefined) || (String(a.dc).trim() === "") ) errors.push("Check: set the DC (a number, a formula, or the escape DC of a hold).");
+    else if ( !Number.isFinite(Number(a.dc)) && !formulaOk(a.dc) ) errors.push("Check: the DC must be a number or a formula.");
+  }
+  if ( a.vs ) errors.push(...selectorErrors(a.vs));
+  if ( !a.onSuccess?.length && !a.onFailure?.length ) errors.push("Check: add at least one step under “On a success” or “On a failure”.");
+  for ( const [key, label] of [["onSuccess", "On a success"], ["onFailure", "On a failure"]] ) {
+    (a[key] ?? []).forEach((step, i) => errors.push(...validateStep(step).map(e => `${label}, step ${i + 1}: ${e}`)));
+  }
   return errors;
 }
 
@@ -749,8 +863,34 @@ export function describeTrigger(trigger) {
   return describeTriggerModel(model);
 }
 
-function describeTriggerModel(model) {
+/** A step of a check's success / failure list as a phrase ("it" = the creature the check was against). */
+function describeStep(step) {
+  const text = describeTriggerModel({ events: [], rows: [], action: step, mods: [], then: "keep", extra: {} }, true)
+    .replace(/^\(no moment chosen\): /i, "").replace(/\.$/, "");
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+function describeCheck(a) {
+  const abilityMode = !!a.ability && !a.skills?.length;
+  const names = abilityMode ? [`${abilityLabel(a.ability)}`] : (a.skills ?? []).map(skillLabel);
+  const roll = !names.length ? "a check" : `${/^[aeiou]/i.test(names[0]) ? "an" : "a"} ${names.join(" or ")} check${names.length > 1 ? " (the better skill)" : ""}`;
+  const preset = CHECK_DC_PRESETS.find(([, , formula]) => formula === String(a.dc ?? "").trim());
+  const dc = a.dc === "tether" ? "the escape DC of the hold on the bearer"
+    : preset ? preset[1].replace(/ \(.*\)$/, "").replace(/^Your /, "your ")
+      : Number.isFinite(Number(a.dc)) && String(a.dc ?? "") !== "" ? `DC ${a.dc}` : `DC ${a.dc || "?"}`;
+  let what = `${roll} vs ${dc}`;
+  if ( a.vs ) what += ` against ${describeSelector(a.vs, { you: "the bearer" })}`;
+  if ( a.advantage === "larger" ) what += " (advantage if larger, disadvantage if smaller)";
+  else if ( a.advantage === true ) what += " (with advantage)";
+  if ( a.onSuccess?.length ) what += `; on a success: ${a.onSuccess.map(describeStep).join(", then ")}`;
+  if ( a.onFailure?.length ) what += `; on a failure: ${a.onFailure.map(describeStep).join(", then ")}`;
+  return what;
+}
+
+function describeTriggerModel(model, sub=false) {
   const a = model.action;
+  const it = sub ? "it" : "the creature concerned";
+  const whom = sel => sel ? describeSelector(sel, { you: "the bearer" }) : it;
   const when = model.events.length ? model.events.map(e => EVENT_PHRASE[e] ?? e).join(", or ") : "(no moment chosen)";
   const cond = model.rows.length ? `, if ${model.rows.map(r => describeRow(r, TRIGGER_FIELDS)).join(" and ")}` : "";
   let what;
@@ -794,6 +934,12 @@ function describeTriggerModel(model) {
     case "note": what = model.then === "remove" ? "the effect ends" : "a chat message"; break;
     case "duplicates": what = `${a.count} duplicate${Number(a.count) === 1 ? "" : "s"} (a d6 each; ${a.threshold}+ and a duplicate takes the hit)`; break;
     case "restoreDuplicates": what = "lost duplicates come back"; break;
+    case "check": what = describeCheck(a); break;
+    case "passThrough": what = `the bearer may move through ${whom(a.to)} this turn`; break;
+    case "place": what = `${whom(a.to)} is moved to a space the bearer picks within ${a.range ?? 5} ft${a.fromReach ? " (and within the bearer's reach)" : ""}${a.fall ? "; a fall deals bludgeoning damage and leaves it Prone" : ""}`; break;
+    case "release": what = `the bearer lets go of ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "what it holds"}`; break;
+    case "escape": what = `the bearer tries to break free of the hold on it with ${(a.skills ?? []).map(skillLabel).join(" or ") || "?"}${(a.skills?.length ?? 0) > 1 ? " (the better)" : ""}; a success ends the hold`; break;
+    case "endEffect": what = `${[a.name ? `“${a.name}”` : "", a.status ? statusLabel(a.status) : ""].filter(Boolean).join(" / ") || "?"} ends on ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the bearer"}`; break;
     default: what = EXT_ACTIONS.get(a.type)?.describe?.(a) ?? "(nothing chosen)";
   }
   const then = {
@@ -895,7 +1041,25 @@ function describeReactionModel(model, item) {
 
 /** Actions offered in an activity's "right after it's used" steps. */
 const ACTIVITY_ACTIONS = ["giveEffect", "removeStatus", "inspire", "tempHp", "damage", "spendHitDie", "recoverSlots", "storeSpell", "toggleLight",
-  "random", "teleport", "push", "sense", "note"];
+  "random", "teleport", "push", "sense", "note", "check", "passThrough", "place", "release", "escape", "endEffect"];
+
+/** Activity requirements (flag `requires`): [key, label]. maxSizeAbove is a number and handled separately. */
+const REQUIREMENTS = [
+  ["freeHand", "The user has a hand free"],
+  ["grappling", "The user is grappling the target"],
+  ["grappled", "The user is grappled"],
+  ["speed", "The user's Speed isn't 0"],
+  ["canLift", "The user can lift the target"]
+];
+
+/** An activity's `requires` as short phrases. */
+function describeRequires(req) {
+  if ( !req ) return [];
+  const list = REQUIREMENTS.filter(([k]) => req[k]).map(([, label]) => label.charAt(0).toLowerCase() + label.slice(1));
+  if ( Number.isFinite(req.maxSizeAbove) ) list.push(req.maxSizeAbove === 0 ? "each target no larger than the user"
+    : `each target at most ${req.maxSizeAbove} size${req.maxSizeAbove === 1 ? "" : "s"} larger than the user`);
+  return list;
+}
 
 /** Activity setting "use it automatically when the only target is…" ↔ targetFilter. */
 const TARGET_PICKS = {
@@ -934,7 +1098,11 @@ function readRules(effect) {
     dropRadiant: (f.dropSave?.unlessTypes ?? ["radiant"]).includes("radiant"), dropCrit: f.dropSave?.unlessCritical ?? true,
     reduceFormula: f.reduceDamage?.formula ?? "", reduceTypes: [...(f.reduceDamage?.types ?? [])], reduceOnce: !!f.reduceDamage?.oncePerTurn,
     diceMin: f.damageDice?.min ?? "", diceFilter: JSON.stringify(f.damageDice?.filter ?? []),
-    attackedBySource: f.attackedWith?.by === "source",
+    attackedBy: f.attackedWith?.by ?? "",
+    tetherOn: !!f.tether, tetherRange: f.tether?.range ?? 5, tetherDrag: !!f.tether?.drag, tetherDc: f.tether?.dc ?? "",
+    tetherRaw: f.tether ? clone(f.tether) : null,
+    checksMode: f.checksWith?.mode ?? "", checksOnce: !!f.checksWith?.once, checksSkills: [...(f.checksWith?.skills ?? [])],
+    checksTools: (f.checksWith?.tools ?? []).join(", "), checksAbilities: [...(f.checksWith?.abilities ?? [])],
     attackedTypes: [...(f.attackedWith?.attacker?.find?.(x => x.k === "details.type.value")?.v ?? [])],
     attacksUnlessSource: f.attacksWith?.unlessTarget === "source",
     lightBright: f.light?.bright ?? "", lightDim: f.light?.dim ?? "", lightColor: f.light?.color ?? "#ffe9a8",
@@ -978,9 +1146,16 @@ function rulesUpdate(r) {
   set("area", { radius: Number(r.areaRadius), color: r.areaColor || "#ff7a1a" }, Number(r.areaRadius) > 0);
   set("evasion", r.evasion, r.evasion?.length);
   set("ownRollsOnly", true, r.ownRollsOnly);
-  set("attackedWith", { mode: r.attackedMode, ...(r.attackedOnce ? { once: true } : {}), ...(r.attackedBySource ? { by: "source" } : {}),
+  set("attackedWith", { mode: r.attackedMode, ...(r.attackedOnce ? { once: true } : {}), ...(r.attackedBy ? { by: r.attackedBy } : {}),
     ...(r.attackedTypes?.length ? { attacker: [{ k: "details.type.value", o: "in", v: [...r.attackedTypes] }] } : {}) }, r.attackedMode);
   set("attacksWith", { mode: r.attacksMode, ...(r.attacksOnce ? { once: true } : {}), ...(r.attacksUnlessSource ? { unlessTarget: "source" } : {}) }, r.attacksMode);
+  const { range: _r, drag: _d, dc: _dc, ...tetherRest } = r.tetherRaw ?? {};
+  const tetherDc = String(r.tetherDc ?? "").trim();
+  set("tether", { ...tetherRest, range: Number(r.tetherRange) > 0 ? Number(r.tetherRange) : 5, ...(r.tetherDrag ? { drag: true } : {}),
+    ...((tetherDc !== "") && Number.isFinite(Number(tetherDc)) ? { dc: Number(tetherDc) } : {}) }, r.tetherOn);
+  const checkTools = String(r.checksTools ?? "").split(",").map(t => t.trim()).filter(Boolean);
+  set("checksWith", { mode: r.checksMode, ...(r.checksOnce ? { once: true } : {}), ...(r.checksSkills?.length ? { skills: [...r.checksSkills] } : {}),
+    ...(checkTools.length ? { tools: checkTools } : {}), ...(r.checksAbilities?.length ? { abilities: [...r.checksAbilities] } : {}) }, r.checksMode);
   const reduce = String(r.reduceFormula ?? "").trim();
   set("reduceDamage", { formula: reduce, ...(r.reduceTypes?.length ? { types: [...r.reduceTypes] } : {}), ...(r.reduceOnce ? { oncePerTurn: true } : {}) }, reduce);
   const diceFilter = parseFilterText(r.diceFilter);
@@ -1043,6 +1218,9 @@ export class TriggerEditor extends ApplicationV2 {
       addResult: TriggerEditor.#onAddResult,
       removeResult: TriggerEditor.#onRemoveResult,
       removeRow: TriggerEditor.#onRemoveRow,
+      addSub: TriggerEditor.#onAddSub,
+      removeSub: TriggerEditor.#onRemoveSub,
+      moveSub: TriggerEditor.#onMoveSub,
       addMod: TriggerEditor.#onAddMod,
       removeMod: TriggerEditor.#onRemoveMod,
       toggleType: TriggerEditor.#onToggleType,
@@ -1099,7 +1277,8 @@ export class TriggerEditor extends ApplicationV2 {
       ];
       this.settings = { pay: f.pay ? clone(f.pay) : null, chooseEffects: f.chooseEffects ? clone(f.chooseEffects) : null,
         targetFilter: f.targetFilter ? clone(f.targetFilter) : null, summonEffects: Array.isArray(f.summonEffects) ? [...f.summonEffects] : [],
-        repeat: f.repeat ? clone(f.repeat) : null, mastery: f.mastery ?? "", properties: [...(f.properties ?? [])] };
+        repeat: f.repeat ? clone(f.repeat) : null, mastery: f.mastery ?? "", properties: [...(f.properties ?? [])],
+        requires: f.requires ? clone(f.requires) : {}, offerWhenBlocked: !!f.offerWhenBlocked };
     } else if ( this.mode === "area" ) {
       const list = this.activity.flags?.[MODULE_ID]?.area?.triggers;
       this.models = (Array.isArray(list) ? list : []).map(x => triggerToModel(x));
@@ -1323,7 +1502,8 @@ export class TriggerEditor extends ApplicationV2 {
       damage: [r.ignoreDamageFrom, r.evasion?.length, r.noHealing, r.dropSave, r.onlyIfStatus, r.saveAdvStatuses?.length, r.healingExtraDie,
         String(r.reduceFormula ?? "").trim(), Number(r.diceMin) > 1],
       area: [Number(r.areaRadius) > 0, r.stopOnCollision, r.disengaged, (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0)],
-      weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0, String(r.acFormula ?? "").trim()]
+      weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0, String(r.acFormula ?? "").trim()],
+      holds: [r.tetherOn, r.checksMode]
     };
     const typePills = (list, key, entries) => entries.map(([id, label]) => `<label class="aet-check aet-small-check">
       <input type="checkbox" data-rule-list="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
@@ -1382,7 +1562,8 @@ export class TriggerEditor extends ApplicationV2 {
       ${group("weapons", "Weapon attacks", `
         <label class="aet-inline"><span>Attacks against the bearer have</span><select data-rule="attackedMode" data-rerender>${options([["", "— (normal)"], ["advantage", "Advantage"], ["disadvantage", "Disadvantage"]], r.attackedMode)}</select>
           ${r.attackedMode ? `<label class="aet-check aet-small-check"><input type="checkbox" data-rule="attackedOnce"${r.attackedOnce ? " checked" : ""}><span>only the next one (then it ends)</span></label>
-          <label class="aet-check aet-small-check"><input type="checkbox" data-rule="attackedBySource"${r.attackedBySource ? " checked" : ""}><span>only the source's attacks</span></label>` : ""}</label>
+          <span class="aet-muted">attacks by</span><select data-rule="attackedBy">${options([["", "anyone"], ["source", "only the source"],
+            ["allyOfSource", "only an ally of the effect's source"], ...((r.attackedBy && !["source", "allyOfSource"].includes(r.attackedBy)) ? [[r.attackedBy, "a specific creature (kept)"]] : [])], r.attackedBy)}</select>` : ""}</label>
         ${r.attackedMode ? `<div class="aet-sub"><div class="aet-subtitle">…only from attackers of type <span class="aet-muted">(none = any)</span></div>
           <div class="aet-pills">${typePills(r.attackedTypes, "attackedTypes", creatureTypeEntries())}</div></div>` : ""}
         <label class="aet-inline"><span>The bearer's attacks have</span><select data-rule="attacksMode" data-rerender>${options([["", "— (normal)"], ["advantage", "Advantage"], ["disadvantage", "Disadvantage"]], r.attacksMode)}</select>
@@ -1397,6 +1578,18 @@ export class TriggerEditor extends ApplicationV2 {
         <label class="aet-check"><input type="checkbox" data-rule="attackProficient"${r.attackProficient ? " checked" : ""}><span>…only with weapons the bearer is proficient with</span></label>
         <div class="aet-subtitle">Must use one of</div><div class="aet-pills">${abilityBoxes(r.attackOnly, "attackOnly")}</div>
         <p class="aet-muted">The best allowed ability is used and shown on the sheet; the roll dialog offers the others.</p>`)}
+      ${group("holds", "Holds and ability checks", `
+        <label class="aet-check"><input type="checkbox" data-rule="tetherOn" data-rerender${r.tetherOn ? " checked" : ""}><span>Holds the creature (grapple) — the bearer is held by whoever applied it</span></label>
+        ${r.tetherOn ? `<div class="aet-sub">
+          <label class="aet-inline"><span>Hold range</span><input type="number" class="aet-num" data-rule="tetherRange" value="${esc(r.tetherRange)}" min="0"><span class="aet-muted">ft — the hold ends when they are farther apart, or the holder is Incapacitated</span></label>
+          <label class="aet-check"><input type="checkbox" data-rule="tetherDrag"${r.tetherDrag ? " checked" : ""}><span>Drags it along: it moves with its holder, who pays double movement unless it is Tiny or 2+ sizes smaller</span></label>
+          <label class="aet-inline"><span>Escape DC</span><input type="number" class="aet-num" data-rule="tetherDc" value="${esc(r.tetherDc)}" placeholder="auto"><span class="aet-muted">optional fixed DC (blank = the applying activity's save DC)</span></label></div>` : ""}
+        <label class="aet-inline"><span>The bearer's ability checks have</span><select data-rule="checksMode" data-rerender>${options([["", "— (normal)"], ["advantage", "Advantage"], ["disadvantage", "Disadvantage"]], r.checksMode)}</select>
+          ${r.checksMode ? `<label class="aet-check aet-small-check"><input type="checkbox" data-rule="checksOnce"${r.checksOnce ? " checked" : ""}><span>only the next one (then it ends)</span></label>` : ""}</label>
+        ${r.checksMode ? `<div class="aet-sub"><div class="aet-subtitle">…only checks of these skills <span class="aet-muted">(nothing checked = any check)</span></div>
+          <div class="aet-pills">${typePills(r.checksSkills, "checksSkills", skillEntries())}</div>
+          <div class="aet-subtitle">…or these abilities</div><div class="aet-pills">${abilityBoxes(r.checksAbilities, "checksAbilities")}</div>
+          <label class="aet-inline"><span>…or these tools</span><input type="text" class="aet-wide" data-rule="checksTools" value="${esc(r.checksTools)}" placeholder="tool ids, comma-separated (e.g. thief)"></label></div>` : ""}`)}
     </details>`;
   }
 
@@ -1427,6 +1620,11 @@ export class TriggerEditor extends ApplicationV2 {
         <label class="aet-inline"><span>Weapon mastery it always has</span><select data-setting="mastery">${options([["", "— (the weapon's, if chosen)"],
           ...Object.entries(CONFIG.DND5E.weaponMasteries ?? {}).map(([k, v]) => [k, v.label ?? k])], s.mastery)}</select></label>
         <label class="aet-inline"><span>Counts as having</span><input type="text" class="aet-wide" data-setting="propertiesText" value="${esc((s.properties ?? []).join(", "))}" placeholder="weapon properties, e.g. fin, thr (for Sneak Attack and the like)"></label>` : ""}
+      <div class="aet-subtitle">Requirements <span class="aet-muted">(checked before it is used; if one isn't met, the use is blocked with a notice)</span></div>
+      ${REQUIREMENTS.map(([k, label]) => `<label class="aet-check"><input type="checkbox" data-setting="req.${k}" data-rerender${s.requires?.[k] ? " checked" : ""}><span>${esc(label)}</span></label>`).join("")}
+      <label class="aet-inline"><span>Target size</span><span class="aet-muted">at most</span><input type="number" class="aet-num" min="0" data-setting="req.maxSizeAbove" data-rerender value="${esc(s.requires?.maxSizeAbove ?? "")}" placeholder="any"><span class="aet-muted">sizes larger than the user</span></label>
+      <label class="aet-check"><input type="checkbox" data-setting="offerWhenBlocked" data-rerender${s.offerWhenBlocked ? " checked" : ""}><span>Offer this when a hostile creature blocks the user's move (Tumble, Overrun)</span></label>
+      ${(describeRequires(s.requires).length || s.offerWhenBlocked) ? `<p class="aet-muted">→ ${esc([describeRequires(s.requires).length ? `Needs: ${describeRequires(s.requires).join(", ")}.` : "", s.offerWhenBlocked ? "Offered when a hostile creature blocks the user's move." : ""].filter(Boolean).join(" "))}</p>` : ""}
       <label class="aet-inline"><span>Use it automatically when the only target is</span><select data-setting="targetPick">${options([["", "— (always ask)"],
         ["damaged", "Missing hit points"], ["healthy", "At full hit points"], ["bloodied", "Bloodied (half HP or less)"], ["unbloodied", "Not bloodied"],
         ...(targetPickOf(s.targetFilter) === "custom" ? [["custom", "Custom filter (kept)"]] : [])], targetPickOf(s.targetFilter))}</select></label>
@@ -1452,8 +1650,7 @@ export class TriggerEditor extends ApplicationV2 {
     return this.models[index];
   }
 
-  #actionFields(m) {
-    const a = m.action;
+  #actionFields(m, a=m.action, P="action") {
     if ( EXT_ACTIONS.has(a.type) ) {
       const def = EXT_ACTIONS.get(a.type);
       try { return `<div class="aet-fields">${def.fields?.(a, { editor: this, model: m, index: this.models.indexOf(m) }) ?? ""}</div>`; }
@@ -1476,21 +1673,21 @@ export class TriggerEditor extends ApplicationV2 {
           </div>`;
         }).join("");
         return `<div class="aet-fields">
-          <label class="aet-inline"><span>Ability</span><select data-path="action.ability">${options(abilityEntries(), a.ability)}</select></label>
+          <label class="aet-inline"><span>Ability</span><select data-path="${P}.ability">${options(abilityEntries(), a.ability)}</select></label>
           <label class="aet-inline"><span>Who saves</span><select data-special="saveWho" data-rerender>${options([["bearer", "The bearer"], ["targets", "The creatures it concerns (in the area / the triggering one)"], ["subject", "The triggering creature"], ["chosen", "Creatures chosen…"]], !a.to ? "bearer" : (["subject", "targets"].includes(a.to.who) ? a.to.who : "chosen"))}</select></label>
-          ${a.to && !["subject", "targets"].includes(a.to.who) ? this.#selectorFields("action.to", a.to, "trigger") : ""}
+          ${a.to && !["subject", "targets"].includes(a.to.who) ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}
           <label class="aet-inline"><span>DC</span><select data-special="dcMode" data-rerender>${options([["source", "Same as the effect's source"], ["sourceSpell", "The source's spell save DC"], ["fixed", "A fixed number"], ["formula", "A formula (the source's data)"]], dcMode)}</select>
-            ${dcMode === "fixed" ? `<input type="number" class="aet-num" data-path="action.dc" data-type="number" value="${esc(a.dc)}">` : ""}
-            ${dcMode === "formula" ? `<input type="text" class="aet-formula" data-path="action.dc" value="${esc(a.dc)}" placeholder="8 + @prof + @abilities.cha.mod">` : ""}</label>
+            ${dcMode === "fixed" ? `<input type="number" class="aet-num" data-path="${P}.dc" data-type="number" value="${esc(a.dc)}">` : ""}
+            ${dcMode === "formula" ? `<input type="text" class="aet-formula" data-path="${P}.dc" value="${esc(a.dc)}" placeholder="8 + @prof + @abilities.cha.mod">` : ""}</label>
           <label class="aet-check"><input type="checkbox" data-special="saveDamage" data-rerender${dmg ? " checked" : ""}>
             <span>Deal damage on a failed save</span></label>
           ${dmg ? `<div class="aet-sub">
-            <label class="aet-inline"><span>Damage</span><input type="text" class="aet-formula" data-path="action.damage.formula" value="${esc(dmg.formula)}" placeholder="e.g. 2d6">
-              <select data-path="action.damage.type">${options(damageEntries(), dmg.type)}</select></label>
-            <label class="aet-inline"><span>On a success</span><select data-path="action.damage.onSuccess">${options([["none", "No damage"], ["half", "Half damage"]], dmg.onSuccess ?? "none")}</select></label>
+            <label class="aet-inline"><span>Damage</span><input type="text" class="aet-formula" data-path="${P}.damage.formula" value="${esc(dmg.formula)}" placeholder="e.g. 2d6">
+              <select data-path="${P}.damage.type">${options(damageEntries(), dmg.type)}</select></label>
+            <label class="aet-inline"><span>On a success</span><select data-path="${P}.damage.onSuccess">${options([["none", "No damage"], ["half", "Half damage"]], dmg.onSuccess ?? "none")}</select></label>
           </div>` : ""}
-          <label class="aet-inline"><span>On a failure, also</span><select data-path="action.failStatus">${options([["", "Nothing"], ...statusEntries()], a.failStatus ?? "")}</select>
-            <select data-path="action.failUntil">${options([["turnStart", "until the start of its next turn"], ["turnEnd", "until the end of its next turn"],
+          <label class="aet-inline"><span>On a failure, also</span><select data-path="${P}.failStatus">${options([["", "Nothing"], ...statusEntries()], a.failStatus ?? "")}</select>
+            <select data-path="${P}.failUntil">${options([["turnStart", "until the start of its next turn"], ["turnEnd", "until the end of its next turn"],
               ["sourceStart", "until the start of the source's next turn"], ["sourceEnd", "until the end of the source's next turn"]], a.failUntil ?? "turnStart")}</select></label>
           <div class="aet-subtitle">Save modifiers <span class="aet-muted">(optional)</span></div>
           ${mods}
@@ -1499,86 +1696,86 @@ export class TriggerEditor extends ApplicationV2 {
       }
       case "tempHp":
         return `<div class="aet-fields"><label class="aet-inline"><span>Temporary HP</span>
-          <input type="text" class="aet-formula" data-path="action.formula" value="${esc(a.formula)}" placeholder="e.g. 1d10 + 5"></label>
-          <p class="aet-muted">${FORMULA_HINT}</p>${this.#selectorFields("action.to", a.to ?? { who: "bearer" }, "trigger")}</div>`;
+          <input type="text" class="aet-formula" data-path="${P}.formula" value="${esc(a.formula)}" placeholder="e.g. 1d10 + 5"></label>
+          <p class="aet-muted">${FORMULA_HINT}</p>${this.#selectorFields(`${P}.to`, a.to ?? { who: "bearer" }, "trigger")}</div>`;
       case "recoverSlots":
         return `<div class="aet-fields"><label class="aet-inline"><span>Budget (slot levels)</span>
-          <input type="text" class="aet-formula" data-path="action.budget" value="${esc(a.budget)}" placeholder="ceil(@classes.wizard.levels / 2)"></label>
-          <label class="aet-inline"><span>Highest slot level</span><input type="number" class="aet-num" data-path="action.maxLevel" data-type="number" value="${esc(a.maxLevel ?? 5)}"></label>
-          <label class="aet-inline"><span>At most</span><input type="number" class="aet-num" data-path="action.maxSlots" data-type="number" value="${esc(a.maxSlots ?? "")}" placeholder="any"><span class="aet-muted">slots (1 = Pearl of Power)</span></label>
+          <input type="text" class="aet-formula" data-path="${P}.budget" value="${esc(a.budget)}" placeholder="ceil(@classes.wizard.levels / 2)"></label>
+          <label class="aet-inline"><span>Highest slot level</span><input type="number" class="aet-num" data-path="${P}.maxLevel" data-type="number" value="${esc(a.maxLevel ?? 5)}"></label>
+          <label class="aet-inline"><span>At most</span><input type="number" class="aet-num" data-path="${P}.maxSlots" data-type="number" value="${esc(a.maxSlots ?? "")}" placeholder="any"><span class="aet-muted">slots (1 = Pearl of Power)</span></label>
           <p class="aet-muted">The bearer's player picks the slots. As a trigger, spends one use of the item this effect is on; on an activity, the activity's own cost pays.</p></div>`;
       case "spendHitDie":
-        return `<div class="aet-fields">${this.#selectorFields("action.to", a.to ?? { who: "targets" }, "trigger")}
+        return `<div class="aet-fields">${this.#selectorFields(`${P}.to`, a.to ?? { who: "targets" }, "trigger")}
           <p class="aet-muted">Each spends its largest Hit Point Die left and regains the roll. A healer with the extra-die rule rolls one more and keeps the best.</p></div>`;
       case "useActivity":
         return `<div class="aet-fields"><label class="aet-inline"><span>Activity</span>
-          <input type="text" class="aet-wide" data-path="action.activity" value="${esc(a.activity ?? "")}" placeholder="name or id — blank = its save"></label>
-          <label class="aet-check"><input type="checkbox" data-path="action.consume" data-type="boolean"${a.consume ? " checked" : ""}><span>The bearer uses it normally, paying its cost (e.g. Uncanny Metabolism)</span></label>
+          <input type="text" class="aet-wide" data-path="${P}.activity" value="${esc(a.activity ?? "")}" placeholder="name or id — blank = its save"></label>
+          <label class="aet-check"><input type="checkbox" data-path="${P}.consume" data-type="boolean"${a.consume ? " checked" : ""}><span>The bearer uses it normally, paying its cost (e.g. Uncanny Metabolism)</span></label>
           <p class="aet-muted">Runs on the triggering creature (or its targets): saves are rolled and damage/effects applied like any automated save.</p></div>`;
       case "drainMaxHp":
         return `<div class="aet-fields"><label class="aet-inline"><span>Amount</span>
-          <input type="text" class="aet-formula" data-path="action.amount" value="${esc(a.amount ?? "@amount")}" placeholder="@amount"></label>
-          <label class="aet-inline"><span>Lasts</span><select data-path="action.until">${options([["longRest", "Until a Long Rest"], ["never", "Until removed (a curse)"]], a.until ?? "longRest")}</select></label>
-          ${this.#selectorFields("action.to", a.to ?? { who: "targets" }, "trigger")}
+          <input type="text" class="aet-formula" data-path="${P}.amount" value="${esc(a.amount ?? "@amount")}" placeholder="@amount"></label>
+          <label class="aet-inline"><span>Lasts</span><select data-path="${P}.until">${options([["longRest", "Until a Long Rest"], ["never", "Until removed (a curse)"]], a.until ?? "longRest")}</select></label>
+          ${this.#selectorFields(`${P}.to`, a.to ?? { who: "targets" }, "trigger")}
           <p class="aet-muted">With “Deals damage”, @amount is the damage dealt and “the targets” is the damaged creature.</p></div>`;
       case "repeatActivity":
         return `<div class="aet-fields"><label class="aet-inline"><span>At most</span>
-          <input type="text" class="aet-formula" data-path="action.max" value="${esc(a.max ?? "1")}" placeholder="1 or @spellLevel"><span class="aet-muted">times per use (@spellLevel = the level it was cast at)</span></label>
-          ${this.#selectorFields("action.to", a.to ?? {}, "trigger")}
+          <input type="text" class="aet-formula" data-path="${P}.max" value="${esc(a.max ?? "1")}" placeholder="1 or @spellLevel"><span class="aet-muted">times per use (@spellLevel = the level it was cast at)</span></label>
+          ${this.#selectorFields(`${P}.to`, a.to ?? {}, "trigger")}
           <p class="aet-muted">Use with “Rolls damage”. The new attack can hit or miss; on a hit its damage is rolled, which can trigger this again.</p></div>`;
       case "storeSpell":
         return `<div class="aet-fields"><label class="aet-inline"><span>Schools</span>
           <input type="text" class="aet-wide" data-special="storeSchools" value="${esc((a.schools ?? []).join(", "))}" placeholder="specialist, or school ids (evo, abj…), blank = any"></label>
-          <label class="aet-inline"><span>Cast at</span><input type="number" class="aet-num" data-path="action.attack" data-type="number" value="${esc(a.attack ?? "")}" placeholder="own"><span class="aet-muted">to hit</span>
-            <input type="number" class="aet-num" data-path="action.dc" data-type="number" value="${esc(a.dc ?? "")}" placeholder="own"><span class="aet-muted">save DC (blank = the caster's own)</span></label>
+          <label class="aet-inline"><span>Cast at</span><input type="number" class="aet-num" data-path="${P}.attack" data-type="number" value="${esc(a.attack ?? "")}" placeholder="own"><span class="aet-muted">to hit</span>
+            <input type="number" class="aet-num" data-path="${P}.dc" data-type="number" value="${esc(a.dc ?? "")}" placeholder="own"><span class="aet-muted">save DC (blank = the caster's own)</span></label>
           <p class="aet-muted">The user picks one of their level 1+ spells and a slot to spend. The item gains a “Cast stored …” activity (no slot needed), gone once cast. Storing again replaces it. “specialist” = the user's Wizard school.</p></div>`;
       case "activityDamage":
         return `<div class="aet-fields"><label class="aet-inline"><span>Multiplier</span>
-          <input type="number" class="aet-num" step="0.5" min="0" data-path="action.multiplier" data-type="number" value="${esc(a.multiplier ?? 0.5)}"><span class="aet-muted">0.5 = half</span></label>
+          <input type="number" class="aet-num" step="0.5" min="0" data-path="${P}.multiplier" data-type="number" value="${esc(a.multiplier ?? 0.5)}"><span class="aet-muted">0.5 = half</span></label>
           <p class="aet-muted">Use with “Misses with an attack”: rolls the attack or spell's own damage (scaling included) and deals it to the creature it missed. Damage only — no other effects.</p></div>`;
       case "toggleLight":
         return `<div class="aet-fields">
-          <label class="aet-inline"><span>Bright / dim (ft)</span><input type="number" class="aet-num" data-path="action.bright" data-type="number" value="${esc(a.bright)}">
-            <input type="number" class="aet-num" data-path="action.dim" data-type="number" value="${esc(a.dim)}"></label>
-          <label class="aet-inline"><span>Colour</span><input type="color" data-path="action.color" value="${esc(a.color || "#ffb86b")}"></label></div>`;
+          <label class="aet-inline"><span>Bright / dim (ft)</span><input type="number" class="aet-num" data-path="${P}.bright" data-type="number" value="${esc(a.bright)}">
+            <input type="number" class="aet-num" data-path="${P}.dim" data-type="number" value="${esc(a.dim)}"></label>
+          <label class="aet-inline"><span>Colour</span><input type="color" data-path="${P}.color" value="${esc(a.color || "#ffb86b")}"></label></div>`;
       case "random": {
         const effects = (this.parentItem ?? (this.mode === "activity" ? this.document : null))?.effects?.contents.filter(e => e.id !== this.document.id) ?? [];
         const effectField = (r, j) => effects.length
-          ? `<select data-path="action.results.${j}.effect">${options([["", "— choose —"], ...effects.map(e => [e.name, e.name])], r.effect)}</select>`
-          : `<input type="text" data-path="action.results.${j}.effect" value="${esc(r.effect)}" placeholder="Effect name on the item">`;
+          ? `<select data-path="${P}.results.${j}.effect">${options([["", "— choose —"], ...effects.map(e => [e.name, e.name])], r.effect)}</select>`
+          : `<input type="text" data-path="${P}.results.${j}.effect" value="${esc(r.effect)}" placeholder="Effect name on the item">`;
         const rows = (a.results ?? []).map((r, j) => `<div class="aet-row" data-result="${j}">
-          <input type="text" class="aet-num" data-path="action.results.${j}.roll" value="${esc(r.roll)}" placeholder="1 or 2-3">
+          <input type="text" class="aet-num" data-path="${P}.results.${j}.roll" value="${esc(r.roll)}" placeholder="1 or 2-3">
           ${effectField(r, j)}
-          <input type="text" data-path="action.results.${j}.label" value="${esc(r.label ?? "")}" placeholder="name in chat (optional)">
+          <input type="text" data-path="${P}.results.${j}.label" value="${esc(r.label ?? "")}" placeholder="name in chat (optional)">
           <button type="button" class="aet-icon aet-danger aet-edit" data-action="removeResult" data-tooltip="Remove"><i class="fa-solid fa-xmark"></i></button></div>`).join("");
         return `<div class="aet-fields"><label class="aet-inline"><span>Roll</span>
-          <input type="text" class="aet-formula" data-path="action.formula" value="${esc(a.formula)}" placeholder="1d8"></label>
+          <input type="text" class="aet-formula" data-path="${P}.formula" value="${esc(a.formula)}" placeholder="1d8"></label>
           <div class="aet-subtitle">Results <span class="aet-muted">(roll → effect given)</span></div>${rows}
           <button type="button" class="aet-add-small aet-edit" data-action="addResult"><i class="fa-solid fa-plus"></i> Add a row</button>
           <label class="aet-check"><input type="checkbox" data-special="actionTo" data-rerender${a.to ? " checked" : ""}><span>Give it to other creatures instead of the bearer</span></label>
-          ${a.to ? this.#selectorFields("action.to", a.to, "trigger") : ""}
+          ${a.to ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}
           <p class="aet-muted">Each result is an effect of this item — give it triggers of its own (a save when applied, a bonus while it lasts…).</p></div>`;
       }
       case "teleport":
         return `<div class="aet-fields"><label class="aet-inline"><span>Up to</span>
-          <input type="number" class="aet-num" data-path="action.range" data-type="number" value="${esc(a.range)}"><span class="aet-muted">ft</span></label>
-          <label class="aet-check"><input type="checkbox" data-path="action.sight" data-type="boolean" data-invert${a.sight === false ? " checked" : ""}><span>The spot doesn't need to be visible</span></label>
+          <input type="number" class="aet-num" data-path="${P}.range" data-type="number" value="${esc(a.range)}"><span class="aet-muted">ft</span></label>
+          <label class="aet-check"><input type="checkbox" data-path="${P}.sight" data-type="boolean" data-invert${a.sight === false ? " checked" : ""}><span>The spot doesn't need to be visible</span></label>
           <label class="aet-check"><input type="checkbox" data-special="actionTo" data-rerender${a.to ? " checked" : ""}><span>Move other creatures instead of the bearer</span></label>
-          ${a.to ? this.#selectorFields("action.to", a.to, "trigger") : ""}
+          ${a.to ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}
           <p class="aet-muted">The creature's player (or the GM) clicks an unoccupied spot within range.</p></div>`;
       case "push":
         return `<div class="aet-fields"><label class="aet-inline"><span>Distance</span>
-          <input type="number" class="aet-num" data-path="action.distance" data-type="number" value="${esc(a.distance)}"><span class="aet-muted">ft (negative pulls)</span></label>
-          <label class="aet-inline"><span>Away from</span><select data-path="action.from">${options([["", "The bearer"], ["source", "The effect's source"]], a.from ?? "")}</select></label>
+          <input type="number" class="aet-num" data-path="${P}.distance" data-type="number" value="${esc(a.distance)}"><span class="aet-muted">ft (negative pulls)</span></label>
+          <label class="aet-inline"><span>Away from</span><select data-path="${P}.from">${options([["", "The bearer"], ["source", "The effect's source"]], a.from ?? "")}</select></label>
           <label class="aet-check"><input type="checkbox" data-special="actionTo" data-rerender${a.to ? " checked" : ""}><span>Choose who moves (default: the creature concerned — the one hit, or the bearer)</span></label>
-          ${a.to ? this.#selectorFields("action.to", a.to, "trigger") : ""}
+          ${a.to ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}
           <p class="aet-muted">Straight line, one square at a time; stops before walls and other creatures.</p></div>`;
       case "sense": {
         const types = new Set(a.creatures?.find?.(f => f.k === "details.type.value")?.v ?? []);
         const pills = creatureTypeEntries().map(([id, label]) => `<label class="aet-check aet-small-check">
           <input type="checkbox" data-special="senseType" value="${id}"${types.has(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
         return `<div class="aet-fields"><label class="aet-inline"><span>Within</span>
-          <input type="number" class="aet-num" data-path="action.range" data-type="number" value="${esc(a.range)}"><span class="aet-muted">ft</span></label>
+          <input type="number" class="aet-num" data-path="${P}.range" data-type="number" value="${esc(a.range)}"><span class="aet-muted">ft</span></label>
           <label class="aet-check"><input type="checkbox" data-special="senseCreatures" data-rerender${a.creatures !== undefined ? " checked" : ""}><span>Creatures (their tokens are pinged)</span></label>
           ${a.creatures !== undefined ? `<div class="aet-sub"><div class="aet-subtitle">Of type <span class="aet-muted">(none = any)</span></div><div class="aet-pills">${pills}</div></div>` : ""}
           <label class="aet-check"><input type="checkbox" data-special="senseMagic"${a.items === "magic" ? " checked" : ""}><span>Magic items and spells on creatures, and spell areas</span></label>
@@ -1586,32 +1783,32 @@ export class TriggerEditor extends ApplicationV2 {
       }
       case "damage":
         return `<div class="aet-fields"><label class="aet-inline"><span>Damage</span>
-          <input type="text" class="aet-formula" data-path="action.formula" value="${esc(a.formula)}" placeholder="e.g. 2d6">
-          <select data-path="action.damageType">${options(damageEntries(), a.damageType)}</select></label>
+          <input type="text" class="aet-formula" data-path="${P}.formula" value="${esc(a.formula)}" placeholder="e.g. 2d6">
+          <select data-path="${P}.damageType">${options(damageEntries(), a.damageType)}</select></label>
           <label class="aet-check"><input type="checkbox" data-special="damageTo" data-rerender${a.to ? " checked" : ""}>
             <span>Deal it to other creatures instead of the bearer (e.g. the attacker, for thorns)</span></label>
-          ${a.to ? this.#selectorFields("action.to", a.to, "trigger") : ""}
+          ${a.to ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}
           <p class="aet-muted">${FORMULA_HINT}</p></div>`;
       case "rollActivity": {
         const item = this.parentItem;
         const acts = item?.system.activities?.contents ?? [];
         const itemRef = item ? (item.system.identifier || item.name) : "";
         const actField = acts.length && (a.item === itemRef || !a.item)
-          ? `<select data-path="action.activity">${options([["", "— choose —"], ...acts.map(x => [x.name, x.name])], a.activity)}</select>`
-          : `<input type="text" data-path="action.activity" value="${esc(a.activity)}" placeholder="Activity name">`;
+          ? `<select data-path="${P}.activity">${options([["", "— choose —"], ...acts.map(x => [x.name, x.name])], a.activity)}</select>`
+          : `<input type="text" data-path="${P}.activity" value="${esc(a.activity)}" placeholder="Activity name">`;
         return `<div class="aet-fields">
-          <label class="aet-inline"><span>Item</span><input type="text" data-path="action.item" value="${esc(a.item || itemRef)}" placeholder="Item name or identifier"></label>
+          <label class="aet-inline"><span>Item</span><input type="text" data-path="${P}.item" value="${esc(a.item || itemRef)}" placeholder="Item name or identifier"></label>
           <label class="aet-inline"><span>Activity</span>${actField}</label>
           <p class="aet-muted">Rolled from the creature that applied this effect, at the bearer.</p></div>`;
       }
       case "giveEffect": {
         const effects = this.parentItem?.effects?.contents.filter(e => e.id !== this.document.id) ?? [];
         const field = effects.length
-          ? `<select data-path="action.effect">${options([["", "— choose —"], ...effects.map(e => [e.name, e.name])], a.effect)}</select>`
-          : `<input type="text" data-path="action.effect" value="${esc(a.effect)}" placeholder="Effect name on the item">`;
+          ? `<select data-path="${P}.effect">${options([["", "— choose —"], ...effects.map(e => [e.name, e.name])], a.effect)}</select>`
+          : `<input type="text" data-path="${P}.effect" value="${esc(a.effect)}" placeholder="Effect name on the item">`;
         return `<div class="aet-fields">
           <label class="aet-inline"><span>Effect</span>${field}</label>
-          ${this.#selectorFields("action.to", a.to, "trigger")}
+          ${this.#selectorFields(`${P}.to`, a.to, "trigger")}
           <p class="aet-muted">Taken from the item this effect belongs to or came from. An earlier copy on a creature is replaced.</p></div>`;
       }
       case "removeStatus": {
@@ -1620,23 +1817,92 @@ export class TriggerEditor extends ApplicationV2 {
         const custom = (a.statuses ?? []).filter(s => !known.has(s));
         return `<div class="aet-fields"><div class="aet-subtitle">Conditions</div><div class="aet-pills">${pills}</div>
           <label class="aet-inline"><span>Other statuses</span><input type="text" class="aet-wide" data-special="customStatuses" value="${esc(custom.join(", "))}" placeholder="custom ids set by effects, comma-separated (e.g. tangled)"></label>
-          <label class="aet-check"><input type="checkbox" data-path="action.choose" data-type="boolean"${a.choose ? " checked" : ""}><span>End only one per creature (the bearer picks)</span></label>
-          ${this.#selectorFields("action.to", a.to, "trigger")}</div>`;
+          <label class="aet-check"><input type="checkbox" data-path="${P}.choose" data-type="boolean"${a.choose ? " checked" : ""}><span>End only one per creature (the bearer picks)</span></label>
+          ${this.#selectorFields(`${P}.to`, a.to, "trigger")}</div>`;
       }
       case "inspire": case "swapInitiative":
-        return `<div class="aet-fields">${this.#selectorFields("action.to", a.to, "trigger")}</div>`;
+        return `<div class="aet-fields">${this.#selectorFields(`${P}.to`, a.to, "trigger")}</div>`;
       case "duplicates":
         return `<div class="aet-fields">
-          <label class="aet-inline"><span>Duplicates</span><input type="number" class="aet-num" data-path="action.count" data-type="number" value="${esc(a.count)}" min="1"></label>
-          <label class="aet-inline"><span>Duplicate hit on</span><input type="number" class="aet-num" data-path="action.threshold" data-type="number" value="${esc(a.threshold)}" min="1" max="6"><span class="aet-muted">or higher on any d6</span></label></div>`;
+          <label class="aet-inline"><span>Duplicates</span><input type="number" class="aet-num" data-path="${P}.count" data-type="number" value="${esc(a.count)}" min="1"></label>
+          <label class="aet-inline"><span>Duplicate hit on</span><input type="number" class="aet-num" data-path="${P}.threshold" data-type="number" value="${esc(a.threshold)}" min="1" max="6"><span class="aet-muted">or higher on any d6</span></label></div>`;
       case "restoreDuplicates":
         return `<div class="aet-fields">
-          <label class="aet-inline"><span>Back to</span><input type="number" class="aet-num" data-path="action.count" data-type="number" value="${esc(a.count)}" min="1"><span class="aet-muted">duplicates</span></label>
+          <label class="aet-inline"><span>Back to</span><input type="number" class="aet-num" data-path="${P}.count" data-type="number" value="${esc(a.count)}" min="1"><span class="aet-muted">duplicates</span></label>
           <label class="aet-inline"><span>Chat reason</span><input type="text" data-path="extra.reason" value="${esc(m.extra.reason)}" placeholder="e.g. takes the Dodge action"></label></div>`;
+      case "check": {
+        const abilityMode = !!a.ability && !a.skills?.length;
+        const preset = CHECK_DC_PRESETS.find(([, , formula]) => formula === String(a.dc ?? "").trim());
+        const dcMode = a.dc === "tether" ? "tether" : (preset ? preset[0]
+          : ((String(a.dc ?? "") !== "") && Number.isFinite(Number(a.dc)) ? "fixed" : "formula"));
+        const dcEntries = [["tether", "The escape DC of a hold on the bearer"], ...CHECK_DC_PRESETS.map(([id, label]) => [id, label]),
+          ["fixed", "A fixed number"], ["formula", "A formula"]];
+        return `<div class="aet-fields">
+          <label class="aet-inline"><span>Roll</span><select data-special="checkKind" data-rerender>${options([["skills", "A skill check (the best of several)"], ["ability", "An ability check"]], abilityMode ? "ability" : "skills")}</select>
+            ${abilityMode ? `<select data-path="${P}.ability">${options(abilityEntries(), a.ability)}</select>` : ""}</label>
+          ${abilityMode ? "" : `<div class="aet-pills">${this.#skillBoxes(a.skills, "skills")}</div>`}
+          <label class="aet-inline"><span>Against</span><select data-special="checkDc" data-rerender>${options(dcEntries, dcMode)}</select>
+            ${dcMode === "fixed" ? `<input type="number" class="aet-num" data-path="${P}.dc" data-type="number" value="${esc(a.dc)}">` : ""}
+            ${dcMode === "formula" ? `<input type="text" class="aet-formula" data-path="${P}.dc" value="${esc(a.dc)}" placeholder="8 + @target.abilities.dex.mod + @target.prof">` : ""}</label>
+          ${dcMode === "formula" ? `<p class="aet-muted">The bearer's data as <code>@abilities.str.mod</code>, <code>@prof</code>; the target's as <code>@target.abilities.dex.mod</code>, <code>@target.prof</code>.</p>` : ""}
+          <label class="aet-inline"><span>Advantage</span><select data-special="checkAdv">${options([["", "None"], ["always", "Always"],
+            ["larger", "If larger (disadvantage if smaller)"]], a.advantage === true ? "always" : (a.advantage === "larger" ? "larger" : ""))}</select></label>
+          <label class="aet-check"><input type="checkbox" data-special="checkVs" data-rerender${a.vs ? " checked" : ""}${a.dc === "tether" ? " disabled" : ""}><span>Roll against other creatures than the ones concerned (one check per creature)</span></label>
+          ${a.vs ? this.#selectorFields(`${P}.vs`, a.vs, "trigger") : ""}
+          ${this.#subList(m, "onSuccess", "On a success", a.onSuccess)}
+          ${this.#subList(m, "onFailure", "On a failure", a.onFailure)}
+          <p class="aet-muted">In the steps, “it” is the creature the check was against.</p></div>`;
+      }
+      case "passThrough":
+        return `<div class="aet-fields"><label class="aet-check"><input type="checkbox" data-special="actionTo" data-rerender${a.to ? " checked" : ""}><span>Choose which creatures (default: the creature concerned)</span></label>
+          ${a.to ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}
+          <p class="aet-muted">The bearer can move through them until the end of its turn.</p></div>`;
+      case "place":
+        return `<div class="aet-fields"><label class="aet-inline"><span>Within</span>
+          <input type="text" class="aet-formula" data-path="${P}.range" value="${esc(a.range ?? "")}" placeholder="5 or 5 * max(1, @abilities.str.mod)"><span class="aet-muted">ft of where it stands — a number or a formula</span></label>
+          <label class="aet-check"><input type="checkbox" data-path="${P}.fromReach" data-type="boolean"${a.fromReach ? " checked" : ""}><span>…and within the bearer's reach</span></label>
+          <label class="aet-check"><input type="checkbox" data-path="${P}.fall" data-type="boolean"${a.fall ? " checked" : ""}><span>It falls if it lands lower: 1d6 bludgeoning per 10 ft (max 20d6) and Prone</span></label>
+          <label class="aet-check"><input type="checkbox" data-special="actionTo" data-rerender${a.to ? " checked" : ""}><span>Choose which creatures (default: the creature concerned)</span></label>
+          ${a.to ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}
+          <p class="aet-muted">The bearer's player picks a free space for each creature.</p></div>`;
+      case "release":
+        return `<p class="aet-muted">The bearer lets go: its holds on the creatures concerned (or all of them) end.</p>`;
+      case "escape":
+        return `<div class="aet-fields"><div class="aet-subtitle">Roll the best of</div><div class="aet-pills">${this.#skillBoxes(a.skills, "skills")}</div>
+          <p class="aet-muted">Against the escape DC of the hold on the bearer; a success ends the hold.</p></div>`;
+      case "endEffect":
+        return `<div class="aet-fields">
+          <label class="aet-inline"><span>Effect named</span><input type="text" class="aet-wide" data-path="${P}.name" value="${esc(a.name ?? "")}" placeholder="the effect's name (optional)"></label>
+          <label class="aet-inline"><span>Or a condition</span><select data-path="${P}.status">${options([["", "—"], ...statusEntries()], a.status ?? "")}</select></label>
+          <label class="aet-check"><input type="checkbox" data-special="actionTo" data-rerender${a.to ? " checked" : ""}><span>End it on other creatures instead of the bearer</span></label>
+          ${a.to ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}</div>`;
       case "note":
         return `<p class="aet-muted">Posts a line in chat. Choose “End the effect” below for effects that end when this happens.</p>`;
       default: return "";
     }
+  }
+
+  /** Skill checkboxes for a list on the action (or sub-step) the inputs sit in. */
+  #skillBoxes(list, key) {
+    return skillEntries().map(([id, label]) => `<label class="aet-check aet-small-check">
+      <input type="checkbox" data-special="skillBox" data-key="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
+  }
+
+  /** A check's "On a success" / "On a failure" list: compact sub-cards of steps, each with its normal fields. */
+  #subList(m, key, title, list) {
+    const n = list?.length ?? 0;
+    const entries = SUB_ACTIONS.map(id => [id, TRIGGER_ACTIONS.find(t => t[0] === id)?.[2] ?? id]);
+    const steps = (list ?? []).map((step, j) => `<div class="aet-substep" data-sub="${key}.${j}">
+      <div class="aet-row aet-substep-head"><span class="aet-badge aet-mini">${j + 1}</span>
+        <select data-special="subType">${options(SUB_ACTIONS.includes(step.type) ? entries : [...entries, [step.type, `${step.type} (kept as is)`]], step.type)}</select>
+        <span class="aet-substep-tools">
+          ${j > 0 ? `<button type="button" class="aet-icon aet-edit" data-action="moveSub" data-dir="-1" data-tooltip="Move up"><i class="fa-solid fa-arrow-up"></i></button>` : ""}
+          ${j < n - 1 ? `<button type="button" class="aet-icon aet-edit" data-action="moveSub" data-dir="1" data-tooltip="Move down"><i class="fa-solid fa-arrow-down"></i></button>` : ""}
+          <button type="button" class="aet-icon aet-danger aet-edit" data-action="removeSub" data-tooltip="Remove"><i class="fa-solid fa-xmark"></i></button></span></div>
+      ${this.#actionFields(m, step, `action.${key}.${j}`)}
+    </div>`).join("");
+    return `<div class="aet-sublist"><div class="aet-subtitle">${title}</div>${steps}
+      <button type="button" class="aet-add-small aet-edit" data-action="addSub" data-list="${key}"><i class="fa-solid fa-plus"></i> Add a step</button></div>`;
   }
 
   #reactionBody(m) {
@@ -1821,6 +2087,9 @@ export class TriggerEditor extends ApplicationV2 {
   #apply(el) {
     const { model } = this.#modelFor(el);
     if ( !model ) return false;
+    // Inside a check's success / failure list the "action" is that step.
+    const subEl = el.closest("[data-sub]");
+    const act = subEl ? foundry.utils.getProperty(model.action, subEl.dataset.sub) : model.action;
     if ( el.dataset.path ) {
       foundry.utils.setProperty(model, el.dataset.path, this.#readValue(el));
       return el.hasAttribute("data-rerender");
@@ -1864,8 +2133,39 @@ export class TriggerEditor extends ApplicationV2 {
       else delete model.extra.cost;
     }
     if ( el.dataset.special === "actionTo" ) {
-      if ( el.checked ) model.action.to = { who: "choose", range: 30 };
-      else delete model.action.to;
+      if ( el.checked ) act.to = { who: "choose", range: 30 };
+      else delete act.to;
+    }
+    if ( el.dataset.special === "subType" ) {
+      const i = Number(subEl.dataset.sub.split(".").at(-1));
+      const key = subEl.dataset.sub.split(".")[0];
+      model.action[key][i] = clone(DEFAULT_SUB_ACTIONS[el.value] ?? { type: el.value });
+    }
+    if ( el.dataset.special === "skillBox" ) {
+      const list = new Set(act[el.dataset.key] ?? []);
+      if ( el.checked ) list.add(el.value); else list.delete(el.value);
+      act[el.dataset.key] = [...list];
+      return false;
+    }
+    if ( el.dataset.special === "checkKind" ) {
+      if ( el.value === "ability" ) { delete act.skills; act.ability = act.ability || "str"; }
+      else { delete act.ability; act.skills = act.skills?.length ? act.skills : ["ath"]; }
+    }
+    if ( el.dataset.special === "checkDc" ) {
+      const preset = CHECK_DC_PRESETS.find(([id]) => id === el.value);
+      if ( el.value === "tether" ) { act.dc = "tether"; delete act.vs; }
+      else if ( preset ) act.dc = preset[2];
+      else if ( el.value === "fixed" ) act.dc = 13;
+      else act.dc = (act.dc === "tether") || Number.isFinite(Number(act.dc)) ? "8 + @prof + @abilities.str.mod" : act.dc;
+    }
+    if ( el.dataset.special === "checkAdv" ) {
+      if ( el.value === "always" ) act.advantage = true;
+      else if ( el.value === "larger" ) act.advantage = "larger";
+      else delete act.advantage;
+    }
+    if ( el.dataset.special === "checkVs" ) {
+      if ( el.checked ) act.vs = { who: "targets" };
+      else delete act.vs;
     }
     if ( el.dataset.special === "senseCreatures" ) {
       if ( el.checked ) model.action.creatures = [];
@@ -1873,7 +2173,7 @@ export class TriggerEditor extends ApplicationV2 {
     }
     if ( el.dataset.special === "customStatuses" ) {
       const known = new Set(statusEntries().map(([id]) => id));
-      model.action.statuses = [...(model.action.statuses ?? []).filter(s => known.has(s)),
+      act.statuses = [...(act.statuses ?? []).filter(s => known.has(s)),
         ...el.value.split(",").map(s => s.trim()).filter(Boolean)];
       return false;
     }
@@ -1888,8 +2188,8 @@ export class TriggerEditor extends ApplicationV2 {
       return false;
     }
     if ( el.dataset.special === "damageTo" ) {
-      if ( el.checked ) model.action.to = { who: "subject" };
-      else delete model.action.to;
+      if ( el.checked ) act.to = { who: "subject" };
+      else delete act.to;
     }
     if ( el.dataset.special === "saveDamage" ) {
       if ( el.checked ) model.action.damage = { formula: "1d6", type: "poison", onSuccess: "none" };
@@ -1974,6 +2274,15 @@ export class TriggerEditor extends ApplicationV2 {
       this.settings.summonEffects = [...list];
       return false;
     }
+    if ( key?.startsWith("req.") ) {
+      const k = key.slice(4);
+      const req = this.settings.requires ??= {};
+      if ( el.type === "checkbox" ) { if ( el.checked ) req[k] = true; else delete req[k]; }
+      else if ( (el.value === "") || !Number.isFinite(Number(el.value)) ) delete req[k];
+      else req[k] = Number(el.value);
+      return el.hasAttribute("data-rerender");
+    }
+    if ( key === "offerWhenBlocked" ) { this.settings.offerWhenBlocked = el.checked; return true; }
     if ( key === "chooseOn" ) { this.settings.chooseEffects = el.checked ? { count: "1" } : null; return true; }
     if ( key === "pay.from" ) { this.settings.pay.from = el.value.split(",").map(s => s.trim()).filter(Boolean); return false; }
     if ( key === "pay.cost" ) { this.settings.pay.cost = Number(el.value) || 1; return false; }
@@ -2163,10 +2472,37 @@ export class TriggerEditor extends ApplicationV2 {
 
   static #onToggleStatus(event, target) {
     const model = this.models[TriggerEditor.#index(target)];
-    const list = new Set(model.action.statuses ?? []);
+    const sub = target.closest("[data-sub]");
+    const act = sub ? foundry.utils.getProperty(model.action, sub.dataset.sub) : model.action;
+    const list = new Set(act.statuses ?? []);
     if ( list.has(target.dataset.status) ) list.delete(target.dataset.status);
     else list.add(target.dataset.status);
-    model.action.statuses = [...list];
+    act.statuses = [...list];
+    this.render();
+  }
+
+  /** A check's success / failure lists. */
+  static #onAddSub(event, target) {
+    const model = this.models[TriggerEditor.#index(target)];
+    (model.action[target.dataset.list] ??= []).push(clone(DEFAULT_SUB_ACTIONS.note));
+    this.render();
+  }
+
+  static #onRemoveSub(event, target) {
+    const model = this.models[TriggerEditor.#index(target)];
+    const [key, i] = target.closest("[data-sub]").dataset.sub.split(".");
+    model.action[key].splice(Number(i), 1);
+    this.render();
+  }
+
+  static #onMoveSub(event, target) {
+    const model = this.models[TriggerEditor.#index(target)];
+    const [key, i] = target.closest("[data-sub]").dataset.sub.split(".");
+    const list = model.action[key];
+    const from = Number(i);
+    const to = from + Number(target.dataset.dir);
+    if ( (to < 0) || (to >= list.length) ) return;
+    [list[from], list[to]] = [list[to], list[from]];
     this.render();
   }
 
@@ -2259,7 +2595,8 @@ export class TriggerEditor extends ApplicationV2 {
         pay: s.pay?.from?.length ? s.pay : null, chooseEffects: s.chooseEffects ?? null,
         targetFilter: s.targetFilter?.length ? s.targetFilter : null, summonEffects: s.summonEffects?.length ? s.summonEffects : null,
         repeat: (Number(s.repeat?.count) > 1) ? { count: Number(s.repeat.count), ...(s.repeat.swap ? { swap: s.repeat.swap } : {}) } : null,
-        mastery: s.mastery || null, properties: s.properties?.length ? s.properties : null
+        mastery: s.mastery || null, properties: s.properties?.length ? s.properties : null,
+        requires: Object.keys(s.requires ?? {}).length ? s.requires : null, offerWhenBlocked: s.offerWhenBlocked ? true : null
       } });
     } else if ( this.mode === "area" ) {
       await this.activity.update({ [`flags.${MODULE_ID}`]: {
@@ -2344,7 +2681,8 @@ function describeRules(effect) {
   if ( r.attackAdd?.length ) list.push(`Weapon attacks may also use ${abl(r.attackAdd)}${r.attackProficient ? " (proficient weapons)" : ""}.`);
   if ( r.attackOnly?.length ) list.push(`Weapon attacks must use ${abl(r.attackOnly)}.`);
   const typeNames = ids => ids.map(id => game.i18n.localize(CONFIG.DND5E.creatureTypes[id]?.label ?? id)).join(", ");
-  if ( r.attackedMode && (r.attackedBySource || r.attackedTypes?.length) ) list.push(`(${r.attackedMode} only ${r.attackedBySource ? "for the source's attacks" : ""}${r.attackedBySource && r.attackedTypes?.length ? " and " : ""}${r.attackedTypes?.length ? `from ${typeNames(r.attackedTypes)}` : ""}.)`);
+  const byText = { source: "the source's attacks", allyOfSource: "attacks by an ally of the effect's source" }[r.attackedBy] ?? (r.attackedBy ? "one creature's attacks" : "");
+  if ( r.attackedMode && (byText || r.attackedTypes?.length) ) list.push(`(${r.attackedMode} only ${byText ? `for ${byText}` : ""}${byText && r.attackedTypes?.length ? " and " : ""}${r.attackedTypes?.length ? `from ${typeNames(r.attackedTypes)}` : ""}.)`);
   if ( r.attacksMode && r.attacksUnlessSource ) list.push("(not against the source.)");
   if ( String(r.reduceFormula ?? "").trim() ) list.push(`Incoming ${r.reduceTypes?.length ? r.reduceTypes.map(damageLabel).join(" / ").toLowerCase() + " " : ""}damage is reduced by ${r.reduceFormula}${r.reduceOnce ? " (once per turn)" : ""}.`);
   if ( Number(r.diceMin) > 1 ) list.push(`The bearer's damage dice count at least ${r.diceMin}${(parseFilterText(r.diceFilter) ?? []).length ? " (on matching attacks)" : ""}.`);
@@ -2352,6 +2690,11 @@ function describeRules(effect) {
   if ( r.noSpells ) list.push("The bearer can't cast spells or concentrate.");
   if ( String(r.whileStatus ?? "").trim() ) list.push(`Lasts only while the bearer has ${r.whileStatus}.`);
   if ( String(r.acFormula ?? "").trim() ) list.push(`Armor Class option: ${r.acFormula}${r.acUnarmored ? " (without armor)" : ""}${r.acLabel ? ` — “${r.acLabel}”` : ""}.`);
+  if ( r.tetherOn ) list.push(`Holds the bearer (grapple) to whoever applied it: the hold ends beyond ${r.tetherRange || 5} ft or when the holder is Incapacitated${r.tetherDrag ? "; the bearer is dragged along with its holder" : ""}${r.tetherDc !== "" ? `; escape DC ${r.tetherDc}` : ""}.`);
+  if ( r.checksMode ) {
+    const only = [...(r.checksSkills ?? []).map(skillLabel), ...(r.checksAbilities ?? []).map(abilityLabel), ...String(r.checksTools ?? "").split(",").map(t => t.trim()).filter(Boolean)];
+    list.push(`The bearer's ${only.length ? `${only.join(" / ")} ` : "ability "}checks have ${r.checksMode}${r.checksOnce ? " (the next one only)" : ""}.`);
+  }
   if ( r.sustainEvents?.length ) list.push(`Ends at the end of the bearer's turn unless it ${r.sustainEvents.join(" / ")}${(parseFilterText(r.sustainFilter) ?? []).length ? " (matching a condition)" : ""} during it.`);
   return list;
 }
@@ -2373,6 +2716,9 @@ function describeActivityAutomation(activity) {
   if ( f.chooseEffects ) list.push(`The user picks ${f.chooseEffects.count ?? 1} of its effects.`);
   if ( f.targetFilter?.length ) list.push("Used automatically when its single target matches.");
   if ( f.summonEffects?.length ) list.push(`Puts ${f.summonEffects.map(id => item?.effects.get(id)?.name ?? id).join(", ")} on what it summons.`);
+  const needs = describeRequires(f.requires);
+  if ( needs.length ) list.push(`Needs: ${needs.join(", ")}.`);
+  if ( f.offerWhenBlocked ) list.push("Offered when a hostile creature blocks the user's move.");
   if ( f.repeat?.count > 1 ) list.push(`${f.repeat.count} strikes per use${f.repeat.swap ? ` (one may be ${f.repeat.swap})` : ""}.`);
   for ( const tr of f.area?.triggers ?? [] ) {
     try { list.push(`Its area: ${describeTrigger(tr)}`); } catch(err) { list.push("Its area: (a trigger the editor can't read)"); }
