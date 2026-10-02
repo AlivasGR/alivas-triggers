@@ -256,7 +256,7 @@ function candidates(scene) {
  * @param {string} situation  HTML describing the moment.
  * @param {object[]} options  { id, label, detail?, itemId, activityId, configure?, targetUuid?, rollAttack? }
  */
-async function ask(actor, situation, options) {
+export async function ask(actor, situation, options) {
   const user = controllerOf(actor);
   if ( !user ) return { choice: "skip" };
   if ( (user === game.user) || (user.isGM && game.user.isGM) ) return showPrompt(actor.uuid, situation, options);
@@ -337,14 +337,20 @@ async function showPrompt(actorUuid, situation, options) {
     const level = actor.system.spells?.[usageConfig.spell?.slot]?.level;
     if ( level ) castLevel = level;
   });
+  // The attack workflow may roll the attack as part of the use: then don't roll it a second time.
+  let attacked = false;
+  const attackHook = Hooks.on("dnd5e.rollAttackV2", (rolls, { subject }={}) => { if ( subject?.uuid === activity.uuid ) attacked = true; });
   let result;
   try {
     result = await activity.use(usage, { configure: !!option.configure }, {});
   } finally {
     Hooks.off("dnd5e.activityConsumption", hookId);
   }
-  if ( !result ) return { choice: "skip" };
-  if ( option.rollAttack && (activity.type === "attack") ) await activity.rollAttack({}, { configure: false }, {});
+  if ( !result ) { Hooks.off("dnd5e.rollAttackV2", attackHook); return { choice: "skip" }; }
+  // Give an automatic roll a moment to happen before deciding.
+  if ( option.rollAttack && (activity.type === "attack") && !attacked ) await new Promise(r => setTimeout(r, 300));
+  Hooks.off("dnd5e.rollAttackV2", attackHook);
+  if ( option.rollAttack && (activity.type === "attack") && !attacked ) await activity.rollAttack({}, { configure: false }, {});
   if ( option.reaction !== false ) await markReactionUsed(actor);
   await markTurn(actor, option);
   return { choice, used: true, castLevel };

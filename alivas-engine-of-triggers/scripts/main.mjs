@@ -132,6 +132,7 @@ import * as Delay from "./delay.mjs";
 import { registerSettingsMenu } from "./settings-app.mjs";
 import { TriggerEditor, describeTrigger, describeReaction, registerActionType, registerEditorSection } from "./editor.mjs";
 import * as Maneuvers from "./maneuvers.mjs";
+import * as Ready from "./ready.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const SOCKET = `module.${MODULE_ID}`;
@@ -888,6 +889,7 @@ Hooks.on("moveToken", (token, movement, operation, user) => {
   const movedThisTurn = (movement.history?.distance ?? 0) + moved;
   fire("moved", token.actor, { data: { moved, movedThisTurn, ownTurn } });
   if ( setting("reactions") ) Reactions.leavesReach(token, movement);
+  if ( setting("reactions") ) Ready.readyMoved(token, movement);
 });
 
 /**
@@ -2811,6 +2813,8 @@ Hooks.once("ready", () => {
   Areas.initAreas({ runTriggerList, findUsageMessage, setting, saveMode: actor => Workflow.modeFor("Save", actor) });
   Maneuvers.initManeuvers({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
   Maneuvers.registerManeuverHooks();
+  Ready.initReady({ ACTIONS });
+  Ready.registerReadyHooks();
   game.modules.get(MODULE_ID).api = {
     ACTIONS, fire, autoApply, findUsageMessage,
     openEditor: doc => TriggerEditor.open(doc), describeTrigger, describeReaction,
