@@ -120,16 +120,17 @@ const obj = t => t?.object ?? t;
  * Play a cue.
  * @param {object} cue
  * @param {object} ctx  see the header
+ * @param {{local?: boolean}} [options]  local: only on this screen (previews)
  * @returns {Promise<boolean>} whether anything played
  */
-export async function playCue(cue, ctx={}) {
+export async function playCue(cue, ctx={}, { local=false }={}) {
   const c = normalizeCue(cue);
   if ( !c || !canPlay() ) return false;
   const seq = new Sequence({ moduleName: MODULE_ID, softFail: true });
   let added = 0;
   for ( const step of c.steps ) added += addStep(seq, step, ctx);
   if ( !added ) return false;
-  await seq.play();
+  await seq.play({ local });
   return true;
 }
 

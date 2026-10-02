@@ -126,7 +126,7 @@ export function previewCue(cue) {
     to: { x: source.document.x + (2 * canvas.grid.size), y: source.document.y }, kind: "teleport" }];
   const hit = new Map(tgts.map(t => [t.id, true]));
   return playCue(cue, { source: source.document, bearer: source.document, targets: tgts.map(t => t.document),
-    subject: tgts[0].document, region, radius: 10, moves, hit, origin: null, preview: units });
+    subject: tgts[0].document, region, radius: 10, moves, hit, origin: null, preview: units }, { local: true });
 }
 
 /* -------------------------------------------- */

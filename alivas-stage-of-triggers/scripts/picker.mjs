@@ -970,7 +970,7 @@ export class Picker extends ApplicationV2 {
     const fam = this._sel?.family;
     const isSound = this.mode === "sound" || fam?.library === "psfx" || fam?.kind === "sound";
     try {
-      if ( isSound ) { await new Sequence().sound().file(path).volume(0.6).play(); return; }
+      if ( isSound ) { await new Sequence().sound().file(path).volume(0.6).play({ local: true }); return; }
       const token = canvas.tokens?.controlled?.[0];
       if ( !token ) return ui.notifications?.warn("Control a token to preview on.");
       const targets = game.user.targets;
@@ -981,7 +981,7 @@ export class Picker extends ApplicationV2 {
       if ( ["projectile", "melee"].includes(kind) && tgt && tgt !== token ) e.atLocation(token).stretchTo(tgt);
       else e.atLocation(tgt ?? token).scaleToObject(1.5);
       if ( fam?.persistent || ["aura", "marker"].includes(kind) ) e.duration(4000).fadeIn(250).fadeOut(500);
-      await seq.play();
+      await seq.play({ local: true });
     } catch ( err ) {
       console.warn(`${MODULE_ID} | preview failed`, err);
       ui.notifications?.warn("That couldn't be previewed (see the console).");
