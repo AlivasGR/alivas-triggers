@@ -2670,7 +2670,10 @@ Hooks.once("init", () => {
     hint: "In combat, when a creature moves out of a hostile creature's reach, offer that creature an Opportunity Attack.",
     scope: "world", config: true, type: Boolean, default: true
   });
-  const saveModes = { off: "Off — dnd5e chat card", auto: "Automatic — saves rolled, damage and effects applied" };
+  const saveModes = { off: "Off — dnd5e chat card",
+    roll: "Saves rolled for you; you apply damage and effects from the chat cards",
+    apply: "You roll the saves (chat card); damage and effects applied as results come in",
+    auto: "Automatic — saves rolled, damage and effects applied" };
   game.settings.register(MODULE_ID, "wfSavePC", {
     name: "Save spells and abilities — used by players",
     hint: "When a player's creature (their character or summon) uses something that forces a save (Fireball, Toll the "
@@ -2684,6 +2687,7 @@ Hooks.once("init", () => {
     scope: "world", config: true, type: String, default: "auto", choices: saveModes
   });
   const attackModes = { off: "Off — dnd5e chat card", attack: "Roll the attack when used",
+    damage: "You roll the attack; damage on a hit is rolled and applied",
     full: "Roll the attack, then damage on a hit and apply it" };
   game.settings.register(MODULE_ID, "wfAttackPC", {
     name: "Attacks — used by players",

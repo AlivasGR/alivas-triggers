@@ -31,7 +31,7 @@ let deps = {};
  * @param {Function} d.runTriggerList  (triggers, effect, bearer, event, context, { key, onRemove }) → run triggers
  * @param {Function} d.findUsageMessage
  * @param {Function} d.setting
- * @param {Function} d.saveMode       actor → "auto" | "off" (the save workflow's mode for it)
+ * @param {Function} d.saveMode       actor → "auto" | "roll" | "apply" | "off" (the save workflow's mode for it)
  */
 export function initAreas(d) {
   deps = d;
@@ -143,7 +143,7 @@ function resolveOwner(system) {
 export function areaTriggersFor(activity) {
   const own = activity?.flags?.[MODULE_ID]?.area?.triggers;
   if ( Array.isArray(own) && own.length ) return own;
-  if ( (activity?.type === "save") && (deps.saveMode?.(activity.actor) === "auto") ) {
+  if ( (activity?.type === "save") && ["auto", "roll", "apply"].includes(deps.saveMode?.(activity.actor)) ) {
     const units = activity.duration?.units ?? activity.item?.system?.duration?.units;
     const instant = !units || (units === "inst");
     return [{ label: activity.item?.name, event: "areaCreated", action: { type: "useActivity", to: { who: "targets" } },

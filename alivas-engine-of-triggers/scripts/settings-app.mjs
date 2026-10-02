@@ -25,7 +25,7 @@ export class AutomationSettings extends ApplicationV2 {
   static DEFAULT_OPTIONS = {
     id: "aet-automation-settings", tag: "form", classes: ["aet-editor", "aet-settings-app"],
     window: { title: "Alivas's Engine — Automation settings", icon: "fa-solid fa-sliders", resizable: true },
-    position: { width: 620, height: "auto" },
+    position: { width: 620, height: Math.min(780, window.innerHeight - 80) },
     form: { handler: AutomationSettings.#onSubmit, closeOnSubmit: true }
   };
 

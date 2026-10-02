@@ -52,66 +52,136 @@ export function targetsOf() {
 /* -------------------------------------------- */
 
 /**
- * Resolve a save activity against creatures.
- * @param {Activity} activity   The (scaled) activity that was used.
+ * Resolve a save activity against creatures, as far as the save workflow mode (setting wfSave{PC,NPC}, by the user's
+ * side) says:
+ *   auto   saves rolled, damage rolled once and applied per result, effects on those who failed, a summary card
+ *   roll   saves rolled and the damage rolled (its card lists the creatures); applying damage and effects is left to the
+ *          chat cards (dnd5e's Apply buttons, with their ×½ / resistance options)
+ *   apply  nothing rolled for the creatures: they roll from the chat card's save button (or their sheet, linked to the
+ *          card); each result, as it comes in, gets its damage (rolled once, now) and effects — see pending saves below
+ *   off    (callers outside the activity workflow — triggers, attack riders) behave as auto
+ * @param {Activity} activity
  * @param {Actor5e[]} targets
- * @param {object} [options]
- * @param {ChatMessage5e} [options.usage]    Its usage card (for effects).
- * @param {string} [options.label]
+ * @param {{usage?: ChatMessage, label?: string, origin?: string}} [options]
  */
 export async function resolveSave(activity, targets, { usage=null, label, origin }={}) {
   const ability = activity.save?.ability?.first?.() ?? [...(activity.save?.ability ?? [])][0];
   const dc = activity.save?.dc?.value;
   if ( !ability || !Number.isFinite(dc) || !targets.length ) return;
   label ??= activity.item.name;
+  const mode = modeFor("Save", activity.actor);
+  if ( (mode === "apply") && usage ) return pendSaves(activity, targets, { usage, label, origin, ability, dc });
 
   // Saves, all at once.
   const statuses = (activity.effects ?? []).flatMap(p => Array.from(p.effect?.statuses ?? []));
   const results = await Promise.all(targets.map(async actor => ({ actor,
     ...(await rollSaveOutcome(actor, { ability, dc, advantage: hasSaveAdvantage(actor, statuses) }, label)) })));
+  const rolled = results.filter(r => r.total !== null);
 
-  // Damage: one roll for everyone.
-  let damages = null;
-  let message = null;
-  if ( activity.damage?.parts?.length ) {
-    const onSave = activity.damage.onSave ?? "half";
-    const hurt = results.filter(r => (r.total !== null) && (!r.success || (onSave !== "none")));
-    if ( hurt.length ) {
-      const rolls = await activity.rollDamage({}, { configure: false }, { data: {
-        flavor: `${label} — damage`, system: { targets: hurt.flatMap(r => descriptors(r.actor)), ...(origin ? { origin } : {}) }
-      } });
-      message = game.messages.contents.at(-1);
-      if ( rolls?.length ) damages = dnd5e.dice.aggregateDamageRolls(rolls, { respectProperties: true }).map(roll => ({
-        value: Math.max(0, roll.total),
-        type: roll.options.type, properties: Array.from(roll.options.properties ?? [])
-      }));
-    }
-    const auto = deps.setting("triggerDamage") === "auto";
-    for ( const r of results ) {
-      if ( !damages || (r.total === null) ) continue;
-      let mult = r.success ? ({ half: 0.5, none: 0, full: 1 }[onSave] ?? 0.5) : 1;
-      if ( (onSave === "half") && hasEvasion(r.actor, ability) ) mult = r.success ? 0 : 0.5;
-      r.multiplier = mult;
-      if ( !mult || !auto ) continue;
-      const scaled = damages.map(d => ({ ...d, value: Math.floor(d.value * mult) }));
-      await deps.applyDamageAs(r.actor, scaled, activity, { messageId: message?.id });
-    }
-  }
+  // Damage: one roll for everyone it can hurt.
+  const onSave = activity.damage?.onSave ?? "half";
+  const hurt = rolled.filter(r => !r.success || (onSave !== "none"));
+  const { damages, message } = await rollSaveDamage(activity, hurt.map(r => r.actor), { label, origin });
+  for ( const r of rolled ) r.multiplier = damages ? saveMultiplier(r.actor, r.success, onSave, ability) : undefined;
 
-  // Effects: on a failure; on a success only those marked "also on a successful save". With chooseEffects the user
-  // picks which ones first (Command's order).
-  if ( deps.setting("autoApplyEffects") && activity.effects?.length && usage ) {
-    const chosen = (activity.flags?.[MODULE_ID]?.chooseEffects && results.some(r => (r.total !== null) && !r.success))
+  if ( mode !== "roll" ) {
+    const chosen = (activity.flags?.[MODULE_ID]?.chooseEffects && rolled.some(r => !r.success))
       ? await deps.chooseProfiles(activity) : activity.effects;
-    for ( const r of results ) {
-      if ( r.total === null ) continue;
-      const profiles = chosen.filter(p => !r.success || p.onSave);
-      if ( profiles.length ) await deps.autoApply(activity, r.actor, profiles, usage);
-    }
+    for ( const r of rolled ) await applySaveOutcome(activity, r.actor, r.success, { damages, message, usage, chosen, onSave, ability });
   }
-
-  await summary(activity, label, ability, dc, results);
+  await summary(activity, label, ability, dc, results, mode === "roll");
 }
+
+/** Roll a save activity's damage once, its card targeting those creatures. → { damages, message } */
+async function rollSaveDamage(activity, actors, { label, origin }={}) {
+  if ( !activity.damage?.parts?.length || !actors.length ) return { damages: null, message: null };
+  const rolls = await activity.rollDamage({}, { configure: false }, { data: {
+    flavor: `${label ?? activity.item.name} — damage`,
+    system: { targets: actors.flatMap(descriptors), ...(origin ? { origin } : {}) }
+  } });
+  const message = game.messages.contents.at(-1);
+  const damages = rolls?.length ? dnd5e.dice.aggregateDamageRolls(rolls, { respectProperties: true }).map(roll => ({
+    value: Math.max(0, roll.total), type: roll.options.type, properties: Array.from(roll.options.properties ?? [])
+  })) : null;
+  return { damages, message };
+}
+
+/** The share of the damage a creature takes: by the save's result, the activity's "on a save", and Evasion. */
+function saveMultiplier(actor, success, onSave, ability) {
+  let mult = success ? ({ half: 0.5, none: 0, full: 1 }[onSave] ?? 0.5) : 1;
+  if ( (onSave === "half") && hasEvasion(actor, ability) ) mult = success ? 0 : 0.5;
+  return mult;
+}
+
+/**
+ * Apply one creature's save outcome: its share of the damage (setting triggerDamage "auto"), and the effects — on a
+ * failure all of them, on a success only those marked "also on a successful save".
+ */
+async function applySaveOutcome(activity, actor, success, { damages, message, usage, chosen, onSave, ability }) {
+  if ( damages && (deps.setting("triggerDamage") === "auto") ) {
+    const mult = saveMultiplier(actor, success, onSave ?? activity.damage?.onSave ?? "half", ability);
+    if ( mult ) await deps.applyDamageAs(actor, damages.map(d => ({ ...d, value: Math.floor(d.value * mult) })), activity,
+      { messageId: message?.id });
+  }
+  if ( deps.setting("autoApplyEffects") && activity.effects?.length && usage ) {
+    const profiles = (chosen ?? activity.effects).filter(p => !success || p.onSave);
+    if ( profiles.length ) await deps.autoApply(activity, actor, profiles, usage);
+  }
+}
+
+/* -------------------------------------------- */
+/*  Pending saves (mode "apply")                */
+/* -------------------------------------------- */
+
+/**
+ * Mode "apply": roll the damage now, and remember on the usage card who still owes a save. The lead GM applies each
+ * result as the save roll comes in (a save message whose system.origin is the usage card — dnd5e's save button does
+ * that). The first result per creature counts.
+ *   flags.alivas-engine-of-triggers.pendingSave = { activity, targets: [actorUuid], done: [actorUuid], ability, dc,
+ *     onSave, damages, damageMessage, chosen: [effect profile ids] | null, label }
+ */
+async function pendSaves(activity, targets, { usage, label, origin, ability, dc }) {
+  const onSave = activity.damage?.onSave ?? "half";
+  const { damages, message } = await rollSaveDamage(activity, targets, { label, origin });
+  const chosen = activity.flags?.[MODULE_ID]?.chooseEffects ? (await deps.chooseProfiles(activity)).map(p => p._id ?? p.id) : null;
+  const pending = { activity: activity.uuid, targets: targets.map(a => a.uuid), done: [], ability, dc, onSave, damages,
+    damageMessage: message?.id ?? null, chosen, label };
+  await usage.setFlag(MODULE_ID, "pendingSave", pending);
+  const names = targets.map(a => foundry.utils.escapeHTML(Creatures.tokenFor(a)?.name ?? a.name)).join(", ");
+  const abilityLabel = CONFIG.DND5E.abilities[ability]?.label ?? ability;
+  await ChatMessage.implementation.create({
+    speaker: ChatMessage.implementation.getSpeaker({ actor: activity.actor }),
+    content: `<div class="aet-summary"><p><strong>${foundry.utils.escapeHTML(label)}</strong> — ${abilityLabel} save, DC ${dc}</p>
+      <p>Waiting for saves from: ${names}. Roll them from the spell's card; damage and effects apply as each result comes in.</p></div>`
+  });
+}
+
+/** A save roll arrived (lead GM): if it answers a pending save, apply that creature's outcome. */
+async function onSaveMessage(message) {
+  if ( !Creatures.isLeadGM() ) return;
+  const roll = message.rolls?.[0];
+  // dnd5e resolves system.origin to the message document; older cards use a flag with its id.
+  const origin = message.system?.origin ?? message.flags?.dnd5e?.originatingMessage;
+  const originId = typeof origin === "string" ? origin : (origin?.id ?? null);
+  const isSave = (message.type === "save") || (message.flags?.dnd5e?.roll?.type === "save");
+  if ( !roll || !originId || !isSave ) return;
+  const usage = game.messages.get(originId);
+  const pending = usage?.getFlag(MODULE_ID, "pendingSave");
+  if ( !pending ) return;
+  const actor = ChatMessage.implementation.getSpeakerActor(message.speaker);
+  if ( !actor || !pending.targets.includes(actor.uuid) || pending.done.includes(actor.uuid) ) return;
+  const ability = message.system?.ability ?? message.flags?.dnd5e?.roll?.ability;
+  if ( ability && (ability !== pending.ability) ) return;
+  await usage.setFlag(MODULE_ID, "pendingSave.done", [...pending.done, actor.uuid]);
+  const activity = await fromUuid(pending.activity);
+  if ( !activity ) return;
+  const success = roll.isSuccess ?? (roll.total >= pending.dc);
+  const chosen = pending.chosen ? activity.effects.filter(p => pending.chosen.includes(p._id ?? p.id)) : activity.effects;
+  await applySaveOutcome(activity, actor, success, { damages: pending.damages, message: game.messages.get(pending.damageMessage),
+    usage, chosen, onSave: pending.onSave, ability: pending.ability });
+}
+
+Hooks.on("createChatMessage", message => { onSaveMessage(message); });
 
 /**
  * Effect rule `evasion: [abilities]` (Evasion): against those saves that halve damage, the bearer takes none on a
@@ -217,7 +287,7 @@ Creatures.HANDLERS.rollSavePrompt = async function({ actorUuid, spec, label }) {
 };
 
 /** One chat card listing each creature's result (NPC totals are not shown to players). */
-async function summary(activity, label, ability, dc, results) {
+async function summary(activity, label, ability, dc, results, manual=false) {
   const abilityLabel = CONFIG.DND5E.abilities[ability]?.label ?? ability;
   const rows = results.map(r => {
     const mark = r.total === null ? "—" : (r.success ? "✔ saved" : "✘ failed");
@@ -226,7 +296,7 @@ async function summary(activity, label, ability, dc, results) {
   }).join("");
   await ChatMessage.implementation.create({
     speaker: ChatMessage.implementation.getSpeaker({ actor: activity.actor }),
-    content: `<div class="aet-summary"><p><strong>${foundry.utils.escapeHTML(label)}</strong> — ${abilityLabel} save, DC ${dc}</p><ul>${rows}</ul></div>`
+    content: `<div class="aet-summary"><p><strong>${foundry.utils.escapeHTML(label)}</strong> — ${abilityLabel} save, DC ${dc}</p><ul>${rows}</ul>${manual ? "<p>Apply the damage and effects from the cards.</p>" : ""}</div>`
   });
 }
 
@@ -301,7 +371,7 @@ Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
   const actor = activity?.actor;
   if ( !actor?.isOwner || usageConfig?.[MODULE_ID]?.noWorkflow ) return;
   const origin = results?.message?.id;
-  if ( (activity.type === "save") && (modeFor("Save", actor) === "auto") ) {
+  if ( (activity.type === "save") && (modeFor("Save", actor) !== "off") ) {
     const regions = results?.templates ?? [];
     // A placed area resolves itself (areas.mjs: "when it appears"); only targeted saves are handled here.
     if ( regions.length && wantsArea(activity) ) {
@@ -321,21 +391,22 @@ Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
     applyHealing(activity, targets.length ? targets : [actor], origin);
     return;
   }
-  if ( (activity.type === "attack") && (modeFor("Attack", actor) !== "off") && game.user.targets?.size ) {
+  // Modes "attack" and "full" roll the attack themselves; "damage" leaves the attack roll to the player (dnd5e as usual).
+  if ( (activity.type === "attack") && ["attack", "full"].includes(modeFor("Attack", actor)) && game.user.targets?.size ) {
     usageConfig.subsequentActions = false;
     activity.rollAttack({}, { configure: false }, { data: { system: { origin } } });
   }
 });
 
 /**
- * Attack workflow "full": after the engine has resolved which targets were hit (reactions included), roll damage once
+ * Attack workflow "full" / "damage": after the engine has resolved which targets were hit (reactions included), roll damage once
  * and apply it to them. Called by the engine's attack handler.
  * @param {Activity} activity
  * @param {Actor5e[]} hit
  * @param {D20Roll} roll
  */
 export async function attackLanded(activity, hit, roll) {
-  if ( !hit.length || (modeFor("Attack", activity.actor) !== "full") ) return;
+  if ( !hit.length || !rollsDamageOnHit(activity) ) return;
   await rollHitDamage(activity, hit, roll);
   // Riders: the item's save activities with no activation of their own ("…it must make a DC 10 Con save") run
   // against each creature hit.
@@ -375,5 +446,5 @@ async function applyHealing(activity, recipients, origin) {
 
 /** Does this attack's damage get rolled by the workflow (so other code shouldn't roll it too)? */
 export function rollsDamageOnHit(activity) {
-  return modeFor("Attack", activity?.actor) === "full";
+  return ["full", "damage"].includes(modeFor("Attack", activity?.actor));
 }
