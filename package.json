@@ -6,7 +6,8 @@
     "pack:fixed-items": "fvtt package pack -n fixed-items --in alivas-box-of-triggers/packs/_source/fixed-items --out alivas-box-of-triggers/packs",
     "pack:weapon-options": "fvtt package pack -n weapon-options --in alivas-box-of-triggers/packs/_source/weapon-options --out alivas-box-of-triggers/packs",
     "release": "node scripts/release.cjs",
-    "strip-rules-text": "node scripts/strip-rules-text.cjs"
+    "strip-rules-text": "node scripts/strip-rules-text.cjs",
+    "contrib": "node scripts/contrib.cjs"
   },
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "^3.0.4"

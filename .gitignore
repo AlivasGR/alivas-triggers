@@ -11,3 +11,6 @@ alivas-box-of-triggers/packs/*/
 
 # Release builds
 dist/
+
+# Offline contributions: baseline copy and packed bundles (scripts/contrib.cjs)
+.contrib/

@@ -52,10 +52,10 @@ Never ship rules text: patches keep the user's own item description (see §5).
 ```
 AGENTS.md / CLAUDE.md      this guide (CLAUDE.md imports it)
 tasks/                     open work, handoffs, work logs — one file per task (tasks/README.md = index + template)
-.claude/skills/            recipes for repeated jobs (new-patch, live-test, handoff, character-pass)
+.claude/skills/            recipes for repeated jobs (new-patch, live-test, handoff, character-pass, offline-contribution)
 README.md, LICENSE         user docs (MIT)
-package.json               npm scripts: pack, release, strip-rules-text
-scripts/                   set-version.cjs, strip-rules-text.cjs, release.cjs (maintainer)
+package.json               npm scripts: pack, release, strip-rules-text, contrib
+scripts/                   set-version.cjs, strip-rules-text.cjs, release.cjs (maintainer), contrib.cjs (offline bundles)
 alivas-engine-of-triggers/
   module.json              also declares documentTypes.RegionBehavior.area
   scripts/main.mjs         events, trigger runner, ACTIONS, effect rules, damage pipeline, masteries, settings, api
@@ -199,3 +199,13 @@ starts from that file alone. Statuses: `open`, `in-progress`, `needs-live-test`,
   task file.
 * Don't change module versions — releases are cut by the maintainer (`npm run release -- X.Y.Z`).
 * Keep personal data out: no world dumps, player names, local paths or credentials in commits.
+
+**Without git or a GitHub account** (skill: `offline-contribution`):
+1. Download https://github.com/AlivasGR/alivas-triggers/archive/refs/heads/main.zip.
+2. Run `npm run contrib -- start` before editing anything.
+3. Work and update the task file, as above.
+4. Run `npm run contrib -- pack --name "…" --title "T-<nnn>: …"`.
+5. Send the maintainer the single file it writes to `.contrib/out/`.
+
+The maintainer runs `npm run contrib -- intake <file>`, which applies the bundle as a 3-way merge on a branch, with
+you as the commit author. If the repo you're in has no `.git` folder, this is your route.
