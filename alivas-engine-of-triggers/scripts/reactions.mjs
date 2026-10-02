@@ -878,6 +878,12 @@ export async function leavesReach(tokenDoc, movement) {
       id: `${item.id}.${activity.id}`, label: `Opportunity Attack — ${item.name}${activity.name ? ` (${activity.name})` : ""}`,
       itemId: item.id, activityId: activity.id, targetUuid: tokenDoc.uuid, rollAttack: true
     }));
+    // 2024: an Opportunity Attack can be an Unarmed Strike, and an Unarmed Strike can Grapple or Shove instead of damage.
+    const unarmed = reactor.items.find(i => (i.type === "weapon") && ((i.system.identifier === "unarmed-strike") || /unarmed strike/i.test(i.name)));
+    for ( const activity of unarmed?.system.activities?.filter(a => (a.type === "save") && /grapple|shove/i.test(a.name)) ?? [] ) {
+      options.push({ id: `${unarmed.id}.${activity.id}`, label: `Opportunity Attack — ${activity.name} (Unarmed Strike)`,
+        itemId: unarmed.id, activityId: activity.id, targetUuid: tokenDoc.uuid, rollAttack: false });
+    }
     await ask(reactor, `<strong>${mover.name}</strong> leaves <strong>${reactor.name}</strong>'s reach.`, options);
   }
 }

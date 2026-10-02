@@ -416,7 +416,7 @@ async function moveOrUpdate(token, update) {
 }
 
 /** Move a token straight to a point (forced movement / teleport: no movement cost), here or through the lead GM. */
-async function displaceToken(token, { x, y }, kind="move") {
+export async function displaceToken(token, { x, y }, kind="move") {
   // Forced movement and teleports, announced where they start (e.g. for animations): alivasTriggers.move.
   if ( kind !== "relay" ) Hooks.callAll("alivasTriggers.move", { token, from: { x: token.x, y: token.y }, to: { x, y }, kind });
   if ( !token.isOwner ) return game.socket.emit(SOCKET, { type: "displaceToken", uuid: token.uuid, x, y });
@@ -425,7 +425,7 @@ async function displaceToken(token, { x, y }, kind="move") {
 }
 
 /** Is a grid space free of other creatures' tokens? */
-function spaceFree(token, x, y) {
+export function spaceFree(token, x, y) {
   const size = token.parent.grid.size;
   const w = token.width * size, h = token.height * size;
   return !token.parent.tokens.some(t => (t.id !== token.id) && t.actor && !t.hidden

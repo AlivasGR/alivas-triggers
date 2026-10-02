@@ -81,7 +81,8 @@
  *   reduceDamage { formula, types, oncePerTurn }   incoming damage of those types reduced by the roll (Resistance)
  *   damageDice { min, filter }                     the bearer's damage dice count below `min` as `min` (Great Weapon
  *                                                  Fighting); filter on the damage roll data (roll.attack.type…)
- *   attackedWith { mode, once, by, attacker }      by: uuid or "source"; attacker: filter on the attacker's roll data
+ *   attackedWith { mode, once, by, attacker }      by: uuid, "source", or "allyOfSource" (Help); attacker: roll-data filter
+ *   checksWith   { mode, once, skills, tools, abilities }  the bearer's checks (Help's ability-check form)
  *   attacksWith { mode, once, unlessTarget }       unlessTarget "source": not against the effect's source (Compelled Duel)
  *   light { bright, dim, color }                   the bearer's token sheds this light while the effect lasts
  *   noSpells                                       the bearer can't cast spells; concentration ends when it's applied
@@ -130,6 +131,7 @@ import * as Areas from "./areas.mjs";
 import * as Delay from "./delay.mjs";
 import { registerSettingsMenu } from "./settings-app.mjs";
 import { TriggerEditor, describeTrigger, describeReaction, registerActionType, registerEditorSection } from "./editor.mjs";
+import * as Maneuvers from "./maneuvers.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const SOCKET = `module.${MODULE_ID}`;
@@ -464,6 +466,11 @@ Hooks.on("updateWorldTime", async (worldTime, delta) => {
 function attackedRuleApplies(rule, effect, attacker) {
   if ( !rule?.mode ) return false;
   if ( rule.by === "source" ) { if ( effect.getSourceActor?.()?.uuid !== attacker?.uuid ) return false; }
+  else if ( rule.by === "allyOfSource" ) {
+    // Help: an ally of whoever applied it (not that creature itself).
+    const source = effect.getSourceActor?.();
+    if ( !source || !attacker || (source.uuid === attacker.uuid) || (Creatures.relation(source, attacker) !== "ally") ) return false;
+  }
   else if ( rule.by && (rule.by !== attacker?.uuid) ) return false;
   if ( rule.attacker?.length && !dnd5e.Filter.performCheck(attacker?.getRollData?.() ?? {}, rule.attacker) ) return false;
   return true;
@@ -514,6 +521,38 @@ Hooks.on("dnd5e.rollAttackV2", (rolls, { subject }={}) => {
     if ( rule?.once && attacksRuleApplies(rule, effect, targets) ) deleteEffectAs(effect);
   }
 });
+
+/**
+ * Effect rule `checksWith: { mode: "advantage"|"disadvantage", once, skills, tools, abilities }` (Help's ability-check
+ * form): the bearer's ability checks — limited to those skills / tools / abilities if given — have that mode; `once`:
+ * the effect ends after the first such check.
+ */
+function checksRuleApplies(rule, { skill, tool, ability }) {
+  if ( !rule?.mode ) return false;
+  const lists = [rule.skills, rule.tools, rule.abilities].filter(l => l?.length);
+  if ( !lists.length ) return true;
+  return (rule.skills ?? []).includes(skill) || (rule.tools ?? []).includes(tool) || (rule.abilities ?? []).includes(ability);
+}
+const checkKind = config => ({ skill: config.skill ?? null, tool: config.tool ?? null, ability: config.ability ?? null });
+for ( const name of ["AbilityCheck", "Skill", "ToolCheck"] ) {
+  Hooks.on(`dnd5e.preRoll${name}V2`, config => {
+    const actor = config.subject;
+    for ( const effect of actor?.appliedEffects ?? [] ) {
+      const rule = effect.getFlag(MODULE_ID, "checksWith");
+      if ( !checksRuleApplies(rule, checkKind(config)) ) continue;
+      if ( rule.mode === "advantage" ) config.advantage = true;
+      if ( rule.mode === "disadvantage" ) config.disadvantage = true;
+    }
+  });
+  Hooks.on(`dnd5e.roll${name}`, (rolls, data) => {
+    const actor = data?.subject;
+    const kind = { skill: data?.skill ?? null, tool: data?.tool ?? null, ability: data?.ability ?? null };
+    for ( const effect of actor?.appliedEffects ?? [] ) {
+      const rule = effect.getFlag(MODULE_ID, "checksWith");
+      if ( rule?.once && checksRuleApplies(rule, kind) ) deleteEffectAs(effect);
+    }
+  });
+}
 
 /**
  * Effect rule `light: { bright, dim, color, animation }` (Inner Radiance, Sacred Weapon): the bearer's token sheds that
@@ -1176,6 +1215,7 @@ async function reduceDamage(actor, damages) {
  */
 Hooks.once("setup", () => {
   Delay.patchExpiry();
+  Maneuvers.patchMovementCost();
   // Concentration: dnd5e posts a prompt when a concentrating creature takes damage. Roll it straight away instead
   // (setting "autoConcentration"), except for a PC whose player is connected in "auto" mode.
   const actorProto = CONFIG.Actor.documentClass.prototype;
@@ -1668,6 +1708,7 @@ async function applyEffects(usage, actor, effectIds) {
     if ( !effect ) continue;
     try {
       const { action, data } = await prepare.call({ chatMessage: usage }, effect, actor);
+      Maneuvers.stampTether(data, activity);
       if ( action === "create" ) await actor.createEmbeddedDocuments("ActiveEffect", [data]);
       else await actor.updateEmbeddedDocuments("ActiveEffect", [data]);
     } catch(err) {
@@ -2617,6 +2658,29 @@ function registerAction(type, def) {
 const EXT_TYPES = new Set();
 
 /**
+ * A number or a formula on the bearer's roll data, with the other creature's under @target (8 + @target.abilities.dex.mod
+ * + @target.prof). Non-formulas pass through.
+ */
+function resolveFormula(value, bearer, target=null) {
+  if ( Number.isFinite(Number(value)) ) return Number(value);
+  if ( typeof value !== "string" ) return NaN;
+  const data = { ...(bearer?.getRollData?.() ?? {}), target: target?.getRollData?.() ?? {} };
+  try { return Math.floor(new Roll(CONFIG.Dice.BasicRoll.replaceFormulaData(value, data, { missing: 0 })).evaluateSync({ strict: false }).total); }
+  catch(err) { return NaN; }
+}
+
+/** Run a list of actions as follow-up steps (a check's onSuccess / onFailure), announcing each like any action. */
+async function runSteps(steps, { label }, effect, bearer, event, context) {
+  for ( const action of steps ?? [] ) {
+    const handler = ACTIONS[action?.type];
+    if ( !handler ) continue;
+    const step = { label, action };
+    const { result, moves } = await withMoves(() => handler(step, effect, bearer, event, context));
+    emitAction({ origin: "step", action, trigger: step, effect, bearer, event, context, result, moves });
+  }
+}
+
+/**
  * Dispatch a trigger's action.
  */
 async function runAction(trigger, effect, bearer, event, context) {
@@ -2745,11 +2809,13 @@ Hooks.once("ready", () => {
   Workflow.initWorkflow({ autoApply, rollSave, applyDamageAs, setting, findUsageMessage, chooseProfiles,
     saveSucceeded: args => Reactions.saveSucceeded(args) });
   Areas.initAreas({ runTriggerList, findUsageMessage, setting, saveMode: actor => Workflow.modeFor("Save", actor) });
+  Maneuvers.initManeuvers({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
+  Maneuvers.registerManeuverHooks();
   game.modules.get(MODULE_ID).api = {
     ACTIONS, fire, autoApply, findUsageMessage,
     openEditor: doc => TriggerEditor.open(doc), describeTrigger, describeReaction,
     creatures: Creatures, workflow: Workflow, areas: Areas,
-    registerAction, registerEditorSection
+    registerAction, registerEditorSection, maneuvers: Maneuvers
   };
   Hooks.callAll("alivasTriggers.ready", game.modules.get(MODULE_ID).api);
   console.log(`${MODULE_ID} | Ready`);
