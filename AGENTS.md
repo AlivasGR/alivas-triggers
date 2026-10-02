@@ -11,9 +11,8 @@ Read this before changing anything. It tells you what the two modules are, where
 > 3. Work as this guide says.
 > 4. Run `npm run contrib -- pack --title "…"`.
 > 5. End with the skill's hand-off message: the path of the file in `send-to-alivas/`, and that it goes to Alivas.
-> Run setup at the start of every
-> session; it's safe to repeat. If you were only given the GitHub link, the skill's step 1 downloads the code (no
-> account needed).
+> Run setup at the start of every session; it's safe to repeat. If you were only given the GitHub link, the skill's
+> step 1 downloads the code (no account needed).
 
 Quick links: [tasks/](tasks/README.md) (open work, handoffs) · [.claude/skills/](.claude/skills/) (step-by-step
 recipes for repeated jobs) · [README.md](README.md) (user docs).
