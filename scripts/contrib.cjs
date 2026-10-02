@@ -4,13 +4,16 @@
  *
  * Contributor (an agent runs these; skill: offline-contribution)
  *   npm run contrib -- setup --name "Your Name"   once, before any edit: records the baseline (.contrib/base/) and the
- *                                                  name; safe to re-run (reports the state instead)
+ *                                                  name, then recommends tasks; safe to re-run (reports the state)
+ *   npm run contrib -- tasks [--foundry]           recommended tasks: yours first, then open ones without an owner,
+ *                                                  fully-offline before offline-then-live-test (--foundry: all)
+ *   npm run contrib -- claim T-013                 owner = you, status in-progress (task file + tasks/README.md)
  *   …work…  (tasks/ file updated, as in AGENTS.md §8)
  *   npm run contrib -- status                      setup state and what changed since the baseline
  *   npm run contrib -- pack --title "T-004: Push mastery"
- *                                                  checks, writes .contrib/out/contrib-<name>-<nn>-<stamp>.json (nn =
- *                                                  bundle number), then re-baselines so the next bundle holds only
- *                                                  newer work
+ *                                                  checks, writes send-to-alivas/contrib-<name>-<nn>-<stamp>.json (nn =
+ *                                                  bundle number) + send-to-alivas/README.txt, opens that folder,
+ *                                                  then re-baselines so the next bundle holds only newer work
  *   → send that file to the maintainer (email, chat, USB…)
  *   (start [--force] re-records the baseline by hand)
  *
@@ -31,7 +34,7 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const WORK = path.join(ROOT, ".contrib");
 const BASE = path.join(WORK, "base");
-const OUT = path.join(WORK, "out");
+const OUTBOX = path.join(ROOT, "send-to-alivas");
 const FORMAT = "alivas-triggers-contribution/1";
 
 /* -------------------------------------------- */
@@ -40,7 +43,7 @@ const FORMAT = "alivas-triggers-contribution/1";
 
 /** Paths that are never part of a contribution (generated, private or local). */
 function excluded(rel) {
-  if ( /^(\.git|\.contrib|node_modules|private|dist|work)(\/|$)/.test(rel) ) return true;
+  if ( /^(\.git|\.contrib|send-to-alivas|node_modules|private|dist|work)(\/|$)/.test(rel) ) return true;
   if ( /^alivas-box-of-triggers\/packs\/(?!_source(\/|$))[^/]+/.test(rel) ) return true;   // built compendia
   if ( /(^|\/)(CLAUDE\.local\.md|\.DS_Store|Thumbs\.db)$/.test(rel) || rel.endsWith(".log") ) return true;
   return false;
@@ -96,6 +99,80 @@ function changes() {
 }
 
 /* -------------------------------------------- */
+/*  Tasks                                       */
+/* -------------------------------------------- */
+
+const TASKS = path.join(ROOT, "tasks");
+const FOUNDRY_NEED = { no: "fully offline", test: "offline work; someone with Foundry does the final check", yes: "needs Foundry throughout" };
+
+/** Every task file's header fields and goal. */
+function readTasks() {
+  if ( !fs.existsSync(TASKS) ) return [];
+  return fs.readdirSync(TASKS).filter(n => /^T-\d+.*\.md$/.test(n)).sort().map(n => {
+    const text = fs.readFileSync(path.join(TASKS, n), "utf8").replace(/\r\n/g, "\n");
+    const field = key => (text.match(new RegExp(`^- \\*\\*${key}:\\*\\*[ \\t]*(.*)$`, "m"))?.[1] ?? "").trim();
+    // First sentence of the Goal section.
+    const section = text.split(/^## Goal[ \t]*$/m)[1]?.split(/^## /m)[0] ?? "";
+    const goal = (section.replace(/\s+/g, " ").trim().match(/^.*?[.!?](?=\s|$)/)?.[0] ?? section.replace(/\s+/g, " ").trim());
+    return { file: n, id: n.match(/^T-\d+/)[0], title: (text.match(/^# T-\d+\s*[—-]\s*(.*)$/m)?.[1] ?? n).trim(),
+      status: field("Status").split(/[\s(]/)[0], foundry: field("Foundry").split(/[\s(]/)[0], owner: field("Owner"),
+      area: field("Area"), goal };
+  });
+}
+
+/** Print the tasks worth picking: the contributor's own first, then open unowned ones, most offline-friendly first. */
+function recommend({ foundry=false }={}) {
+  const me = String(readConfig().name ?? "").toLowerCase();
+  const tasks = readTasks();
+  const mine = tasks.filter(t => me && (t.owner.toLowerCase() === me) && (t.status !== "done"));
+  const rank = { no: 0, test: 1, yes: 2 };
+  const open = tasks.filter(t => !t.owner && ((t.status === "open") || (foundry && (t.status === "needs-live-test"))))
+    .filter(t => foundry || (t.foundry !== "yes"))
+    .sort((a, b) => (rank[a.foundry] ?? 3) - (rank[b.foundry] ?? 3));
+  const line = t => {
+    const goal = t.goal.length > 220 ? `${t.goal.slice(0, 217)}…` : t.goal;
+    return `  ${t.id}  ${t.title}\n        ${FOUNDRY_NEED[t.foundry] ?? t.foundry}${t.area ? ` · ${t.area}` : ""}${t.status !== "open" ? ` · ${t.status}` : ""}\n        ${goal}`;
+  };
+  if ( mine.length ) console.log(`\nYour tasks (continue these first):\n${mine.map(line).join("\n")}`);
+  if ( open.length ) console.log(`\nRecommended tasks${foundry ? "" : " (no Foundry needed to do the work)"}:\n${open.map(line).join("\n")}`);
+  if ( !mine.length && !open.length ) console.log("\nNo open tasks without an owner. Propose one: copy the template in tasks/README.md.");
+  else console.log('\nTake one with: npm run contrib -- claim T-<nnn>');
+}
+
+function tasks(args) {
+  recommend({ foundry: !!args.foundry });
+}
+
+/** Take a task: Owner = the contributor, Status in-progress, in the task file and the tasks/README.md index. */
+function claim(args) {
+  const name = String(readConfig().name ?? "").trim();
+  if ( !name ) fail('Set your name first: npm run contrib -- setup --name "Your Name"');
+  const id = String(args._[0] ?? "").toUpperCase();
+  const task = readTasks().find(t => t.id === id);
+  if ( !task ) fail(`No task ${id || "(none given)"}. See: npm run contrib -- tasks`);
+  if ( task.owner && (task.owner.toLowerCase() !== name.toLowerCase()) && !args.force ) {
+    fail(`${id} is owned by ${task.owner}. Pick another (or claim --force if they handed it to you).`);
+  }
+  const status = ["open", "blocked", ""].includes(task.status) ? "in-progress" : task.status;
+  const file = path.join(TASKS, task.file);
+  const text = fs.readFileSync(file, "utf8");
+  fs.writeFileSync(file, text
+    .replace(/^(- \*\*Owner:\*\*)[ \t]*.*$/m, `$1 ${name}`)
+    .replace(/^(- \*\*Status:\*\*)[ \t]*.*$/m, `$1 ${status}`));
+  const index = path.join(TASKS, "README.md");
+  if ( fs.existsSync(index) ) {
+    const lines = fs.readFileSync(index, "utf8").split("\n").map(l => {
+      if ( !l.startsWith(`| [${id}]`) ) return l;
+      const cells = l.split("|");
+      if ( cells.length > 4 ) cells[3] = ` ${status} `;
+      return cells.join("|");
+    });
+    fs.writeFileSync(index, lines.join("\n"));
+  }
+  console.log(`Claimed ${id} — ${task.title}. Owner: ${name}, status: ${status}.\nRead tasks/${task.file} and start; log progress there.`);
+}
+
+/* -------------------------------------------- */
 /*  Commands                                    */
 /* -------------------------------------------- */
 
@@ -128,11 +205,13 @@ function setup(args) {
   if ( fs.existsSync(BASE) ) {
     const from = JSON.parse(fs.readFileSync(path.join(WORK, "baseline.json"), "utf8")).version;
     console.log(`Already set up (baseline from version ${from}, ${changes().length} file(s) changed since). Contributor: ${who}.`);
+    recommend({ foundry: !!args.foundry });
     return;
   }
   recordBaseline();
   console.log(`Set up for offline contribution (version ${version()}). Contributor: ${who}.`
     + '\nEdit freely now; when done: npm run contrib -- pack --title "T-<nnn>: …"');
+  recommend({ foundry: !!args.foundry });
 }
 
 function status() {
@@ -180,15 +259,55 @@ function pack(args) {
   const bundle = { format: FORMAT, name, seq, title, created: new Date().toISOString(), baseVersion: baseline.version, files };
   bundle.checksum = hash(JSON.stringify(files));
   const stamp = bundle.created.replace(/[-:]/g, "").replace("T", "-").slice(0, 13);
-  fs.mkdirSync(OUT, { recursive: true });
-  const file = path.join(OUT, `contrib-${slugOf(name)}-${String(seq).padStart(2, "0")}-${stamp}.json`);
+  fs.mkdirSync(OUTBOX, { recursive: true });
+  const file = path.join(OUTBOX, `contrib-${slugOf(name)}-${String(seq).padStart(2, "0")}-${stamp}.json`);
   fs.writeFileSync(file, JSON.stringify(bundle, null, 1));
   writeConfig({ seq });
   // The next bundle holds only work done after this one.
   recordBaseline();
   console.log(`Packed ${files.length} file(s):`);
   for ( const c of list ) console.log(`  ${{ add: "A", modify: "M", delete: "D" }[c.op]}  ${c.path}`);
-  console.log(`\nBundle #${seq}. Send this file to the maintainer:\n  ${file}\n\nKeep working here as usual; the next pack holds only newer changes.`);
+  const others = writeOutboxReadme(path.basename(file));
+  const rule = "=".repeat(78);
+  console.log(`\n${rule}\n  READY TO SEND: bundle #${seq}, "${title}"\n\n  ${file}\n\n`
+    + "  Send this one file to Alivas, as an attachment (email, Discord, chat, USB stick…).\n"
+    + "  Don't rename, unzip or edit it. It's in the folder \"send-to-alivas\" at the top of your copy"
+    + (args["no-open"] ? ".\n" : ", which is opening now.\n")
+    + (others ? `  That folder also holds ${others} earlier bundle(s): send any you haven't yet, lowest number first.\n` : "")
+    + `${rule}\nKeep working here as usual; the next pack holds only newer changes.`);
+  if ( !args["no-open"] ) reveal(file);
+}
+
+/** (Re)write send-to-alivas/README.txt listing the bundles, newest first. Returns how many older ones there are. */
+function writeOutboxReadme(newest) {
+  const bundles = fs.readdirSync(OUTBOX).filter(n => /^contrib-.*\.json$/.test(n)).map(n => {
+    try {
+      const b = JSON.parse(fs.readFileSync(path.join(OUTBOX, n), "utf8"));
+      return { n, seq: b.seq ?? 0, title: b.title, created: String(b.created).slice(0, 16).replace("T", " ") };
+    } catch { return { n, seq: 0, title: "(unreadable)", created: "" }; }
+  }).sort((a, b) => b.seq - a.seq);
+  const text = [
+    "SEND THESE FILES TO ALIVAS (the maintainer of Alivas's Triggers)",
+    "",
+    "Attach them to an email, a Discord or chat message, or copy them to a USB stick: any way works.",
+    "Don't rename, unzip or edit them; a checksum inside detects changes.",
+    "Send them in number order. Sending one twice is harmless.",
+    "",
+    ...bundles.map(b => `  #${String(b.seq).padStart(2, "0")}  ${b.n}\n       ${b.title} · packed ${b.created} UTC${b.n === newest ? "   <- newest" : ""}`),
+    ""
+  ].join("\n");
+  fs.writeFileSync(path.join(OUTBOX, "README.txt"), text);
+  return bundles.length - 1;
+}
+
+/** Show the file in the system file manager (best effort; never fails the pack). */
+function reveal(file) {
+  try {
+    const { spawn } = require("child_process");
+    const [cmd, argv] = process.platform === "win32" ? ["explorer.exe", [`/select,${file}`]]
+      : process.platform === "darwin" ? ["open", ["-R", file]] : ["xdg-open", [path.dirname(file)]];
+    spawn(cmd, argv, { detached: true, stdio: "ignore" }).on("error", () => {}).unref();
+  } catch {}
 }
 
 function intake(args) {
@@ -292,6 +411,6 @@ function parseArgs(argv) {
 
 const [command, ...rest] = process.argv.slice(2);
 const args = parseArgs(rest);
-const COMMANDS = { setup, start, status, pack, intake };
-if ( !COMMANDS[command] ) fail('Usage: npm run contrib -- setup --name "…" | status | pack --title "…" | intake <bundle.json>');
+const COMMANDS = { setup, tasks, claim, start, status, pack, intake };
+if ( !COMMANDS[command] ) fail('Usage: npm run contrib -- setup --name "…" | tasks | claim T-<nnn> | status | pack --title "…" | intake <bundle.json>');
 COMMANDS[command](args);

@@ -5,8 +5,13 @@ Read this before changing anything. It tells you what the two modules are, where
 
 > **First, check for a `.git` folder in the repo root.** If there isn't one, or the user can't use GitHub, this is an
 > offline contribution. Follow [.claude/skills/offline-contribution/SKILL.md](.claude/skills/offline-contribution/SKILL.md)
-> yourself, end to end: run `npm run contrib -- setup --name "<their name>"` **before your first edit**, work as this
-> guide says, then `npm run contrib -- pack --title "…"` and hand the user the one file to send. Run setup at the start of every
+> yourself, end to end:
+> 1. Run `npm run contrib -- setup --name "<their name>"` **before your first edit**.
+> 2. Recommend 3 to 5 tasks from the list it prints, then `claim` the one the user picks.
+> 3. Work as this guide says.
+> 4. Run `npm run contrib -- pack --title "…"`.
+> 5. End with the skill's hand-off message: the path of the file in `send-to-alivas/`, and that it goes to Alivas.
+> Run setup at the start of every
 > session; it's safe to repeat. If you were only given the GitHub link, the skill's step 1 downloads the code (no
 > account needed).
 
@@ -209,10 +214,10 @@ starts from that file alone. Statuses: `open`, `in-progress`, `needs-live-test`,
 
 **Without git or a GitHub account**: the agent handles everything (skill: `offline-contribution`).
 1. Download https://github.com/AlivasGR/alivas-triggers/archive/refs/heads/main.zip.
-2. Run `npm run contrib -- setup --name "…"` before the first edit.
+2. Run `npm run contrib -- setup --name "…"` before the first edit. It recommends tasks; `claim T-<nnn>` takes one.
 3. Work and update the task file, as above.
 4. Run `npm run contrib -- pack --title "T-<nnn>: …"`.
-5. The user sends the maintainer the single numbered file it writes to `.contrib/out/`.
+5. The user sends the maintainer the single numbered file it writes to `send-to-alivas/` (the folder opens by itself).
 
 The maintainer runs `npm run contrib -- intake <file>`, which applies the bundle as a 3-way merge on a branch, with
 you as the commit author. If the repo you're in has no `.git` folder, this is your route.

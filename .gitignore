@@ -14,3 +14,6 @@ dist/
 
 # Offline contributions: baseline copy and packed bundles (scripts/contrib.cjs)
 .contrib/
+
+# Offline contributions: packed bundles to send
+send-to-alivas/
