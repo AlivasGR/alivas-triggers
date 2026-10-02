@@ -47,6 +47,12 @@ The Box contains **no rules text** — each patch keeps your own item's descript
 
 `npm install`, then `npm run pack` builds the compendia (Foundry must be closed). `npm run release -- X.Y.Z` stamps the version, checks for rules text, packs, zips both modules and publishes a GitHub release.
 
+## Contributing
+
+Pull requests are welcome; see [AGENTS.md](AGENTS.md). **No GitHub account?** Point your AI coding agent at this repo
+(the link is enough) and ask it to set you up for an offline contribution. It downloads the code, does the work, and
+gives you one file to send to the maintainer.
+
 ## License
 
 MIT. Dungeons & Dragons and its rules are © Wizards of the Coast; this project contains no rules text.

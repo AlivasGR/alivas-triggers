@@ -3,6 +3,13 @@
 Read this before changing anything. It tells you what the two modules are, where the rules come from, how to work
 **with or without a Foundry VTT install**, and how to leave work for the next person.
 
+> **First, check for a `.git` folder in the repo root.** If there isn't one, or the user can't use GitHub, this is an
+> offline contribution. Follow [.claude/skills/offline-contribution/SKILL.md](.claude/skills/offline-contribution/SKILL.md)
+> yourself, end to end: run `npm run contrib -- setup --name "<their name>"` **before your first edit**, work as this
+> guide says, then `npm run contrib -- pack --title "…"` and hand the user the one file to send. Run setup at the start of every
+> session; it's safe to repeat. If you were only given the GitHub link, the skill's step 1 downloads the code (no
+> account needed).
+
 Quick links: [tasks/](tasks/README.md) (open work, handoffs) · [.claude/skills/](.claude/skills/) (step-by-step
 recipes for repeated jobs) · [README.md](README.md) (user docs).
 
@@ -200,12 +207,12 @@ starts from that file alone. Statuses: `open`, `in-progress`, `needs-live-test`,
 * Don't change module versions — releases are cut by the maintainer (`npm run release -- X.Y.Z`).
 * Keep personal data out: no world dumps, player names, local paths or credentials in commits.
 
-**Without git or a GitHub account** (skill: `offline-contribution`):
+**Without git or a GitHub account**: the agent handles everything (skill: `offline-contribution`).
 1. Download https://github.com/AlivasGR/alivas-triggers/archive/refs/heads/main.zip.
-2. Run `npm run contrib -- start` before editing anything.
+2. Run `npm run contrib -- setup --name "…"` before the first edit.
 3. Work and update the task file, as above.
-4. Run `npm run contrib -- pack --name "…" --title "T-<nnn>: …"`.
-5. Send the maintainer the single file it writes to `.contrib/out/`.
+4. Run `npm run contrib -- pack --title "T-<nnn>: …"`.
+5. The user sends the maintainer the single numbered file it writes to `.contrib/out/`.
 
 The maintainer runs `npm run contrib -- intake <file>`, which applies the bundle as a 3-way merge on a branch, with
 you as the commit author. If the repo you're in has no `.git` folder, this is your route.

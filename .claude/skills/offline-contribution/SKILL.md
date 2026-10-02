@@ -1,59 +1,84 @@
 ---
 name: offline-contribution
-description: Contribute without git or a GitHub account — work on a downloaded copy and send the maintainer one bundle file. Use when the repo has no .git folder, when the user can't push or open pull requests, or when they ask to "send my work" / "make a bundle".
+description: Set up and run contributions to this repo without git or a GitHub account. The agent does all of it: gets the code, sets up, works, packs one bundle file for the user to send to the maintainer. Use when the repo has no .git folder, when the user is pointed at github.com/AlivasGR/alivas-triggers but can't use GitHub, or when they ask to set up, "send my work" or "make a bundle".
 ---
 
-# Offline contribution
+# Offline contribution (no git, no GitHub account)
 
-For contributors who can't use GitHub. Your work leaves as **one JSON file** that the maintainer merges. You don't
-need git. You do need Node.js 18+; `npm install` is not needed for this.
+**You do everything.** The user only does three things:
+- tells you their name once;
+- installs Node.js, and only if it's missing;
+- sends the finished file to the maintainer (Alivas) by email, chat, or any other channel.
 
-## Before any work
+Don't ask the user to run commands. Tell them what you did in plain language.
 
-1. Get a fresh copy. Use https://github.com/AlivasGR/alivas-triggers/archive/refs/heads/main.zip (no account needed),
-   or a zip the maintainer sends you. Unzip it.
-2. In the repo root, run `npm run contrib -- start`. This records the baseline: a copy in `.contrib/base/`. Every
-   change is measured against it, so **run it before editing anything**. Running it after edits hides those edits.
-3. Pick a task from `tasks/README.md` and set its **Owner** to your name. If no task fits, create one (skill:
-   `handoff`) and use the next free number. Another offline contributor may take the same number; the maintainer
-   renumbers on intake.
+## 1. Get the code (only if there's no local copy yet)
 
-## While working
+If you were given the GitHub link but there's no copy of the repo on disk, download it. No account is needed.
 
-- Follow AGENTS.md §7 exactly as an online contributor would.
-- `npm run contrib -- status` lists what you've changed.
-- Never edit `module.json` versions. Never add files under `private/`, `dist/`, `node_modules/` or the built
-  compendia; they aren't sent.
-- One task per bundle. If you finish more than one, make a bundle for each (see "Several bundles").
+- Windows (PowerShell):
+  `Invoke-WebRequest https://github.com/AlivasGR/alivas-triggers/archive/refs/heads/main.zip -OutFile alivas-triggers.zip; Expand-Archive alivas-triggers.zip .`
+- macOS / Linux: `curl -L -o alivas-triggers.zip https://github.com/AlivasGR/alivas-triggers/archive/refs/heads/main.zip && unzip -q alivas-triggers.zip`
 
-## Sending
+The repo is the extracted folder `alivas-triggers-main/`. Work there from now on.
 
-1. Update the task file: **Status**, **Done**, **Left**, and a dated **Log** line (skill: `handoff`). Write as if
-   the maintainer will read nothing else. Say what you verified and how: (offline) or (live).
-2. `npm run contrib -- pack --name "<your name>" --title "T-<nnn>: <what it does>"`
-3. Before writing the bundle, pack checks that:
-   - a `tasks/` file changed;
-   - no `module.json` version changed;
-   - every changed `.mjs`/`.cjs` passes `node --check`;
-   - every changed `.json` parses;
-   - `strip-rules-text --check` passes (if not, run `npm run strip-rules-text`).
+If a `.git` folder exists, this is a normal git checkout and this skill doesn't apply. Follow AGENTS.md §9.
 
-   Fix whatever it reports, then pack again.
-4. Send `.contrib/out/contrib-<name>-<stamp>.json` to the maintainer by email, chat, or any other channel. Don't edit
-   the file: a checksum detects changes and corruption in transit.
+## 2. Check Node.js
 
-## Several bundles / continuing
+Run `node --version`. You need v18 or later. If it's missing or older, ask the user to install the LTS from
+https://nodejs.org. Don't install system software yourself unless the user says to. `npm install` is not needed.
 
-- **After packing:** to keep working on top of what you sent, run `npm run contrib -- start --force`. The next
-  bundle then holds only the newer changes. The maintainer applies bundles in the order you made them, so tell them
-  that order.
-- **To start fresh from the maintainer's latest version instead:** download a new copy and run `start` in it. Bundles
-  merge 3-way, so a bundle made from an older copy still applies. Where you and the maintainer changed the same lines,
-  the maintainer resolves it.
+## 3. Set up (before any edit)
+
+1. Ask the user for the name they want credited (once).
+2. Run `npm run contrib -- setup --name "<name>"`.
+
+Setup records a baseline (`.contrib/base/`): every change is measured against it. That's why it must run **before
+the first edit**. Running it again is safe: it only reports the state. Run it at the start of every session.
+
+- If it reports "Already set up" with changed files, that's earlier unsent work. Carry on with it.
+- Never delete `.contrib/`. It holds the baseline, the name and the bundle count.
+
+## 4. Work
+
+- Read AGENTS.md and follow it like any contributor: rules from 5etools, generic engine code, the §7 checklist.
+- Pick a task from `tasks/README.md` and set its **Owner** to the user's name. If no task fits, create one (skill:
+  `handoff`) with the next free number. Number clashes with other offline contributors are fine; the maintainer
+  renumbers them.
+- Never change `module.json` versions. Never put anything in `private/`, `dist/` or `node_modules/`; those aren't
+  sent.
+- `npm run contrib -- status` shows what has changed so far.
+
+## 5. Pack and hand over
+
+1. Update the task file: **Status**, **Done**, **Left**, and a dated **Log** line (skill: `handoff`). Mark each check
+   (offline) or (live). Without Foundry, the status is `needs-live-test` and **Left** holds the exact test checklist.
+2. Run `npm run contrib -- pack --title "T-<nnn>: <what it does>"`. One task per bundle.
+3. If pack refuses, fix what it lists and pack again:
+   - no task file changed;
+   - a version number changed;
+   - a syntax error, or JSON that doesn't parse;
+   - rules text left in a patch (run `npm run strip-rules-text`).
+4. Tell the user:
+   - the full path of the file it wrote (`.contrib/out/contrib-<name>-<nn>-<stamp>.json`);
+   - to send that file, unchanged, to the maintainer;
+   - one or two lines on what's in it and what still needs a live test.
+
+Pack numbers the bundle and re-baselines, so the user can keep working in the same folder. The next pack holds only
+newer work. Bundles are applied in number order; the maintainer's tool refuses to skip one.
+
+## 6. Getting the maintainer's newer version
+
+Pack first, so nothing is left unsent. Then download a fresh copy (step 1) into a new folder, copy the old
+`.contrib/config.json` into the new `.contrib/` so the name and bundle count carry over, and run setup there. Bundles
+merge 3-way, so a bundle made from an older copy still applies.
 
 ## What the maintainer does (for reference)
 
-`npm run contrib -- intake <file>` runs on the maintainer's side. It verifies the checksum, refuses unsafe paths and
-applies each file on a new branch `contrib/<name>-<stamp>` with a 3-way merge. If nothing conflicts it commits with
-you as the author. It never pushes. The maintainer reviews it, live-tests it or leaves it `needs-live-test`, and
-merges it.
+The maintainer runs `npm run contrib -- intake <file>`:
+- it verifies the checksum and refuses unsafe paths;
+- it applies the bundle on the branch `contrib/<name>-<nn>-<stamp>` as a 3-way merge;
+- if there are no conflicts, it commits with the user as the author. It never pushes.
+
+The maintainer then reviews the work, live-tests it, and merges it.

@@ -2,19 +2,23 @@
  * Offline contributions: work on a plain copy of this repository (no git, no GitHub account) and send the result to
  * the maintainer as ONE file. Node only, no dependencies.
  *
- * Contributor
- *   npm run contrib -- start                       records the baseline (copies the repo into .contrib/base/)
+ * Contributor (an agent runs these; skill: offline-contribution)
+ *   npm run contrib -- setup --name "Your Name"   once, before any edit: records the baseline (.contrib/base/) and the
+ *                                                  name; safe to re-run (reports the state instead)
  *   …work…  (tasks/ file updated, as in AGENTS.md §8)
- *   npm run contrib -- status                      what changed since the baseline
- *   npm run contrib -- pack --name "Your Name" --title "T-004: Push mastery"
- *                                                  checks, then writes .contrib/out/contrib-<name>-<stamp>.json
+ *   npm run contrib -- status                      setup state and what changed since the baseline
+ *   npm run contrib -- pack --title "T-004: Push mastery"
+ *                                                  checks, writes .contrib/out/contrib-<name>-<nn>-<stamp>.json (nn =
+ *                                                  bundle number), then re-baselines so the next bundle holds only
+ *                                                  newer work
  *   → send that file to the maintainer (email, chat, USB…)
+ *   (start [--force] re-records the baseline by hand)
  *
  * Maintainer (needs git)
  *   npm run contrib -- intake <bundle.json>        verifies it, applies it on a new branch contrib/<name>-<stamp>
  *                                                  with a 3-way merge per file; commits if clean, never pushes
  *
- * Bundle (JSON): { format, name, title, created, baseVersion, files: [{ path, op: add|modify|delete, base?, new? }],
+ * Bundle (JSON): { format, name, seq, title, created, baseVersion, files: [{ path, op: add|modify|delete, base?, new? }],
  * checksum }. File contents are { encoding: "utf8" | "base64", data }. `base` (the file as it was at the baseline)
  * makes the merge 3-way, so a bundle made from an older copy still applies onto newer work.
  */
@@ -67,6 +71,10 @@ const same = (a, b) => !!a && !!b && (hash(lf(a)) === hash(lf(b)));
 /** Write text in the line-ending style of the file it replaces. */
 const styled = (buf, like) => (like && !buf.includes(0) && like.includes("\r\n"))
   ? Buffer.from(lf(buf).toString("utf8").replace(/\n/g, "\r\n"), "utf8") : buf;
+const CONFIG = path.join(WORK, "config.json");
+const readConfig = () => fs.existsSync(CONFIG) ? JSON.parse(fs.readFileSync(CONFIG, "utf8")) : {};
+const writeConfig = data => { fs.mkdirSync(WORK, { recursive: true }); fs.writeFileSync(CONFIG, JSON.stringify({ ...readConfig(), ...data }, null, 2)); };
+const slugOf = name => String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "contributor";
 const version = () => JSON.parse(fs.readFileSync(path.join(ROOT, "alivas-engine-of-triggers", "module.json"), "utf8")).version;
 
 /** Changes from the baseline to the working copy. */
@@ -91,29 +99,55 @@ function changes() {
 /*  Commands                                    */
 /* -------------------------------------------- */
 
-function start(args) {
-  if ( fs.existsSync(BASE) && !args.force ) {
-    fail("A baseline already exists (.contrib/base). Pack or discard your work first; `start --force` replaces it.");
-  }
+function recordBaseline() {
   fs.rmSync(BASE, { recursive: true, force: true });
   for ( const [rel, abs] of listFiles(ROOT) ) {
     fs.mkdirSync(path.dirname(path.join(BASE, rel)), { recursive: true });
     fs.copyFileSync(abs, path.join(BASE, rel));
   }
   fs.writeFileSync(path.join(WORK, "baseline.json"), JSON.stringify({ version: version(), created: new Date().toISOString() }, null, 2));
-  console.log(`Baseline recorded (version ${version()}). Work as usual; then \`npm run contrib -- pack --name … --title …\`.`);
+}
+
+function start(args) {
+  if ( fs.existsSync(BASE) && !args.force ) {
+    fail("A baseline already exists (.contrib/base). Pack or discard your work first; `start --force` replaces it.");
+  }
+  recordBaseline();
+  console.log(`Baseline recorded (version ${version()}).`);
+}
+
+/** One-shot and idempotent: baseline + contributor name. Re-running reports the state. */
+function setup(args) {
+  if ( fs.existsSync(path.join(ROOT, ".git")) && !args.force ) {
+    console.log("This is a git checkout: contribute with branches and pull requests (AGENTS.md §9). "
+      + "Use `setup --force` only if you really can't use git here.");
+    return;
+  }
+  if ( (typeof args.name === "string") && args.name.trim() ) writeConfig({ name: args.name.trim() });
+  const who = readConfig().name ?? 'not set — run setup --name "Your Name"';
+  if ( fs.existsSync(BASE) ) {
+    const from = JSON.parse(fs.readFileSync(path.join(WORK, "baseline.json"), "utf8")).version;
+    console.log(`Already set up (baseline from version ${from}, ${changes().length} file(s) changed since). Contributor: ${who}.`);
+    return;
+  }
+  recordBaseline();
+  console.log(`Set up for offline contribution (version ${version()}). Contributor: ${who}.`
+    + '\nEdit freely now; when done: npm run contrib -- pack --title "T-<nnn>: …"');
 }
 
 function status() {
+  const config = readConfig();
+  console.log(`Contributor: ${config.name ?? "(not set)"} · bundles packed: ${config.seq ?? 0}`);
   const list = changes();
   if ( !list.length ) return console.log("No changes since the baseline.");
   for ( const c of list ) console.log(`${{ add: "A", modify: "M", delete: "D" }[c.op]}  ${c.path}`);
 }
 
 function pack(args) {
-  const name = String(args.name ?? "").trim();
+  if ( (typeof args.name === "string") && args.name.trim() ) writeConfig({ name: args.name.trim() });
+  const name = String(readConfig().name ?? "").trim();
   const title = String(args.title ?? "").trim();
-  if ( !name || !title ) fail('Usage: npm run contrib -- pack --name "Your Name" --title "T-<nnn>: what this does"');
+  if ( !name || !title ) fail('Usage: npm run contrib -- pack --title "T-<nnn>: what this does"  (name: setup --name "Your Name")');
   const list = changes();
   if ( !list.length ) fail("Nothing changed since the baseline.");
   const problems = [];
@@ -142,16 +176,19 @@ function pack(args) {
   const baseline = JSON.parse(fs.readFileSync(path.join(WORK, "baseline.json"), "utf8"));
   const files = list.map(c => ({ path: c.path, op: c.op,
     ...(c.old ? { base: encode(c.old) } : {}), ...(c.buf ? { new: encode(c.buf) } : {}) }));
-  const bundle = { format: FORMAT, name, title, created: new Date().toISOString(), baseVersion: baseline.version, files };
+  const seq = (readConfig().seq ?? 0) + 1;
+  const bundle = { format: FORMAT, name, seq, title, created: new Date().toISOString(), baseVersion: baseline.version, files };
   bundle.checksum = hash(JSON.stringify(files));
   const stamp = bundle.created.replace(/[-:]/g, "").replace("T", "-").slice(0, 13);
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "contributor";
   fs.mkdirSync(OUT, { recursive: true });
-  const file = path.join(OUT, `contrib-${slug}-${stamp}.json`);
+  const file = path.join(OUT, `contrib-${slugOf(name)}-${String(seq).padStart(2, "0")}-${stamp}.json`);
   fs.writeFileSync(file, JSON.stringify(bundle, null, 1));
+  writeConfig({ seq });
+  // The next bundle holds only work done after this one.
+  recordBaseline();
   console.log(`Packed ${files.length} file(s):`);
   for ( const c of list ) console.log(`  ${{ add: "A", modify: "M", delete: "D" }[c.op]}  ${c.path}`);
-  console.log(`\nSend this file to the maintainer:\n  ${file}\n\nTo keep working on top of it, run \`npm run contrib -- start --force\` (the next bundle then holds only newer changes).`);
+  console.log(`\nBundle #${seq}. Send this file to the maintainer:\n  ${file}\n\nKeep working here as usual; the next pack holds only newer changes.`);
 }
 
 function intake(args) {
@@ -167,8 +204,14 @@ function intake(args) {
   }
   const git = (...a) => execFileSync("git", a, { cwd: ROOT, encoding: "utf8" }).trim();
   if ( git("status", "--porcelain") ) fail("Working tree not clean — commit or stash first.");
-  const slug = bundle.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "contributor";
-  const branch = `contrib/${slug}-${bundle.created.replace(/[-:]/g, "").replace("T", "-").slice(0, 13)}`;
+  const slug = slugOf(bundle.name);
+  const seq = bundle.seq ?? 1;
+  if ( (seq > 1) && !args.force
+    && !git("log", "--all", "--fixed-strings", `--grep=bundle #${seq - 1} from ${bundle.name},`, "--format=%h") ) {
+    fail(`Bundle #${seq - 1} from ${bundle.name} has not been taken in yet: bundles apply in order. Take that one in first `
+      + "(or `intake <file> --force` if it was lost and you accept the conflicts).");
+  }
+  const branch = `contrib/${slug}-${String(seq).padStart(2, "0")}-${bundle.created.replace(/[-:]/g, "").replace("T", "-").slice(0, 13)}`;
   if ( git("branch", "--list", branch) ) fail(`Branch ${branch} exists: this bundle was taken in already (delete the branch to redo it).`);
   git("switch", "-c", branch);
 
@@ -210,19 +253,21 @@ function intake(args) {
   for ( const [abs, like] of restyle ) fs.writeFileSync(abs, styled(fs.readFileSync(abs), like));
   fs.rmSync(tmp, { recursive: true, force: true });
 
-  console.log(`${bundle.title} — by ${bundle.name}, made from ${bundle.baseVersion}, ${bundle.created}`);
+  console.log(`${bundle.title} — bundle #${seq} by ${bundle.name}, made from ${bundle.baseVersion}, ${bundle.created}`);
   console.log(`Branch: ${branch}`);
   for ( const line of report.applied ) console.log(`  ${line}`);
   for ( const p of report.merged ) console.log(`  merged  ${p}`);
   for ( const p of report.same ) console.log(`  already here  ${p}`);
+  const author = `${bundle.name} <${slug}@contributors.invalid>`;
+  const body = `Offline contribution: bundle #${seq} from ${bundle.name}, made from ${bundle.baseVersion}.`;
   if ( report.conflicts.length ) {
-    console.log(`\nConflicts (resolve, then commit):\n  ${report.conflicts.join("\n  ")}`);
+    // The commit message carries "bundle #N from <name>," — the next bundle's order check looks for it.
+    console.log(`\nConflicts (resolve, then commit with exactly this — the next bundle's order check needs the message):\n  `
+      + `${report.conflicts.join("\n  ")}\n\n  git add -A && git commit --author "${author}" -m "${bundle.title.replace(/"/g, "'")}" -m "${body}"`);
     return;
   }
   git("add", "-A");
-  const author = `${bundle.name} <${slug}@contributors.invalid>`;
-  execFileSync("git", ["commit", "-q", "--author", author, "-m", `${bundle.title}\n\nOffline contribution by ${bundle.name}, made from ${bundle.baseVersion}.`],
-    { cwd: ROOT, stdio: "inherit" });
+  execFileSync("git", ["commit", "-q", "--author", author, "-m", `${bundle.title}\n\n${body}`], { cwd: ROOT, stdio: "inherit" });
   console.log(`\nCommitted on ${branch}. Review with \`git diff main...${branch}\`, then merge (or delete the branch).`);
 }
 
@@ -247,6 +292,6 @@ function parseArgs(argv) {
 
 const [command, ...rest] = process.argv.slice(2);
 const args = parseArgs(rest);
-const COMMANDS = { start, status, pack, intake };
-if ( !COMMANDS[command] ) fail("Usage: npm run contrib -- start | status | pack --name … --title … | intake <bundle.json>");
+const COMMANDS = { setup, start, status, pack, intake };
+if ( !COMMANDS[command] ) fail('Usage: npm run contrib -- setup --name "…" | status | pack --title "…" | intake <bundle.json>');
 COMMANDS[command](args);
