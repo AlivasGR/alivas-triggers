@@ -11,9 +11,18 @@
  *   Effect         flags.alivas-stage-of-triggers.cue = { start, active, end }
  *                    start   when it's applied · active  shown while it lasts (persist) · end  when it ends
  *   Engine action  action.animation (any trigger or activity step of Alivas's Engine), or the "animate" action
- *   Presets        presets/*.json, matched like the Box matches items (name + type), when the item or effect has
+ *   Presets        presets/box.json (Box items), then presets/items.json (general: spells, weapons, features…),
+ *                  merged per moment (box.json wins where both define one); "baseItem": "longsword" also covers every
+ *                  longsword (magic, enspelled, renamed) by its base weapon;
+ *                  matched like the Box matches items (name + type, aliases too), when the item or effect has
  *                  none of its own: { name, type, activities: { "*" | activity name: {phase: cue} },
- *                  effects: { effect name: { start, active, end } }, actions: { action type: cue } }
+ *                  effects: { effect name: { start, active, end } }, actions: { key: cue } }
+ *                  Action keys, most specific first (see presetAction):
+ *                    "<effect name>|<event>|<action type>"   e.g. "Seared|turnStart|damage", "Vengeful Blade|onHit|damage"
+ *                    "<effect name>|<action type>"           e.g. "Flaming Sphere|damage"
+ *                    "<event>|<action type>"                 e.g. "areaTurnEnd|damage"
+ *                    "<action type>"                         e.g. "teleport"
+ *                  An activity step (onUse / onHit) counts as an effect named like its item, with that event.
  *   Conditions     world setting (statusCues) or presets/statuses.json: { statusId: { start, active, end } }
  *   Moves          world setting (moveCues): { teleport, push } for engine moves with no animation of their own
  */
@@ -35,13 +44,15 @@ export async function loadPresets() {
   PRESETS.items.clear();
   PRESETS.statuses = {};
   if ( !setting("presets") ) return;
-  for ( const file of ["box", "statuses"] ) {
+  // box.json (the Box of Triggers' items) wins over items.json (general spells, weapons and features).
+  for ( const file of ["box", "items", "statuses"] ) {
     try {
       const data = await foundry.utils.fetchJsonWithTimeout(`modules/${MODULE_ID}/presets/${file}.json`);
       if ( file === "statuses" ) Object.assign(PRESETS.statuses, data);
       else for ( const p of data ) {
-        PRESETS.items.set(keyOf(p.name, p.type), p);
-        for ( const alias of p.aliases ?? [] ) PRESETS.items.set(keyOf(alias, p.type), p);
+        const keys = [p.name, ...(p.aliases ?? [])].filter(Boolean).map(n => keyOf(n, p.type));
+        if ( p.baseItem ) keys.push(keyOf(`base:${p.baseItem}`, p.type ?? "weapon"));
+        for ( const key of keys ) PRESETS.items.set(key, mergePreset(PRESETS.items.get(key), p));
       }
     } catch(err) {
       if ( !String(err).includes("404") ) console.warn(`${MODULE_ID} | presets/${file}.json`, err);
@@ -49,11 +60,33 @@ export async function loadPresets() {
   }
 }
 
-/** The preset for an item (by name and type, falling back to name only). */
+/**
+ * Merge a later preset into an earlier one for the same item: the earlier (box.json) wins wherever it defines a moment;
+ * the later (items.json) fills in the rest — activity phases, effects' start / active / end, action keys.
+ */
+function mergePreset(first, next) {
+  if ( !first ) return next;
+  const out = { ...first };
+  for ( const part of ["activities", "effects"] ) {
+    const a = first[part] ?? {};
+    const merged = { ...a };
+    for ( const [k, v] of Object.entries(next[part] ?? {}) ) merged[k] = { ...v, ...(a[k] ?? {}) };
+    if ( Object.keys(merged).length ) out[part] = merged;
+  }
+  if ( first.actions || next.actions ) out.actions = { ...(next.actions ?? {}), ...(first.actions ?? {}) };
+  return out;
+}
+
+/**
+ * The preset for an item: by name and type; by name only; by name without a trailing "(…)"; then, for weapons, by base
+ * weapon (a preset with "baseItem": "longsword" covers every longsword — magic, enspelled or renamed).
+ */
 export function presetFor(item) {
   if ( !item ) return null;
+  const base = item.system?.type?.baseItem;
   return PRESETS.items.get(keyOf(item.name, item.type)) ?? PRESETS.items.get(keyOf(item.name, ""))
-    ?? PRESETS.items.get(keyOf(item.name?.replace(/\s*\(.*\)\s*$/, ""), item.type)) ?? null;
+    ?? PRESETS.items.get(keyOf(item.name?.replace(/\s*\(.*\)\s*$/, ""), item.type))
+    ?? (base ? PRESETS.items.get(keyOf(`base:${base}`, item.type)) : null) ?? null;
 }
 
 /* -------------------------------------------- */
@@ -267,7 +300,7 @@ export function registerEngineHooks() {
     let cue = normalizeCue(action?.animation);
     if ( !cue ) {
       const item = effect?.parent?.documentName === "Item" ? effect.parent : effectItem(effect);
-      cue = normalizeCue(presetFor(item)?.actions?.[action?.type]);
+      cue = normalizeCue(presetAction(presetFor(item)?.actions, payload));
     }
     if ( !cue && moves.length ) cue = normalizeCue(setting("moveCues")?.[moves[0].kind === "teleport" ? "teleport" : "push"]);
     if ( !cue ) return;
@@ -275,12 +308,31 @@ export function registerEngineHooks() {
   });
 }
 
+/**
+ * A preset's cue for an engine action, most specific key first: effect|event|type, effect|type, event|type, type.
+ * @param {object} actions   preset.actions
+ * @param {object} payload   the alivasTriggers.action payload
+ */
+export function presetAction(actions, { action, effect, event }={}) {
+  if ( !actions || !action?.type ) return null;
+  const name = effect?.name ?? "";
+  for ( const key of [`${name}|${event}|${action.type}`, `${name}|${action.type}`, `${event}|${action.type}`, action.type] ) {
+    if ( actions[key] ) return actions[key];
+  }
+  return null;
+}
+
 /** Play context for an engine action. */
 export function actionContext({ effect, bearer, context = {}, moves = [] }) {
   const b = tokenOf(bearer);
-  const targets = tokensOf(context.targets?.length ? context.targets : [context.subject].filter(Boolean));
+  // The creatures concerned: the action's targets, else the other creature involved, else the bearer itself (a burn at
+  // the start of its turn, a repeat save) — effects on a creature play on that creature.
+  let targets = tokensOf(context.targets?.length ? context.targets : [context.subject].filter(Boolean));
+  if ( !targets.length && b ) targets = [b];
   const region = context.region ? regionInfo(context.region) : null;
-  return { source: b, bearer: b, targets, subject: tokenOf(context.subject) ?? targets[0] ?? null, region, moves,
+  // "source": whoever applied the effect (the caster of a smite's burn on its target); the bearer when it's its own.
+  const source = tokenOf(effect?.getSourceActor?.()) ?? b;
+  return { source, bearer: b, targets, subject: tokenOf(context.subject) ?? targets[0] ?? null, region, moves,
     radius: effect ? areaRadius(effect) : 0, origin: null };
 }
 

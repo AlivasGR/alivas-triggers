@@ -78,6 +78,36 @@
           ]
         }
       }
+    },
+    "actions": {
+      "After Image|hit|duplicates": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.impact.005.purple",
+            "at": "bearer",
+            "scale": 1.4,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.generic",
+              "volume": 0.5
+            }
+          }
+        ]
+      },
+      "After Image|restoreDuplicates": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.misty_step.01.purple",
+            "at": "bearer",
+            "scale": 1.4,
+            "sound": {
+              "file": "psfx.conditions.boon.004",
+              "volume": 0.4
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -189,6 +219,22 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "rest|recoverSlots": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.healing_generic.burst.bluewhite",
+            "at": "bearer",
+            "scale": 1.3,
+            "sound": {
+              "file": "psfx.conditions.boon.003",
+              "volume": 0.5
+            }
+          }
+        ]
       }
     }
   },
@@ -515,6 +561,85 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Heavenly Wings|dealt|damage": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.011.yellow",
+            "at": "subject",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.generic",
+              "volume": 0.4
+            }
+          }
+        ]
+      },
+      "Necrotic Shroud|dealt|damage": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.011.dark_purple",
+            "at": "subject",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.necrotic",
+              "volume": 0.4
+            }
+          }
+        ]
+      },
+      "Inner Radiance|dealt|damage": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.011.yellow",
+            "at": "subject",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.generic",
+              "volume": 0.4
+            }
+          }
+        ]
+      },
+      "Inner Radiance|turnEnd|damage": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.template_circle.out_pulse.01.burst.yellowwhite",
+            "at": "bearer",
+            "scale": 3,
+            "sound": {
+              "file": "psfx.cantrips.sacred-flame.v1",
+              "volume": 0.4
+            }
+          },
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.011.yellow",
+            "at": "targets",
+            "scale": 1.2,
+            "delay": 300
+          }
+        ]
+      },
+      "Celestial Revelation|onUse|save": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.markers.fear.dark_purple.01",
+            "at": "targets",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.necrotic",
+              "volume": 0.5
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -565,6 +690,23 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Chromatic Orb|damageRolled|repeatActivity": {
+        "steps": [
+          {
+            "kind": "projectile",
+            "file": "jb2a.eldritch_blast.rainbow",
+            "from": "subject",
+            "to": "targets",
+            "wait": "finish",
+            "sound": {
+              "file": "psfx.ranged-magic.generic.projectile",
+              "volume": 0.5
+            }
+          }
+        ]
       }
     }
   },
@@ -1004,6 +1146,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Drone|turnEnd|save": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.sleep.symbol.blue",
+            "at": "bearer",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.1st-level-spells.sleep.v1",
+              "volume": 0.3
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -1156,6 +1314,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Festering Aura (aura)|areaTurnStart|useActivity": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.impact_themed.poison.greenyellow",
+            "at": "subject",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.cantrips.poison-spray.v1",
+              "volume": 0.4
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -1235,6 +1409,47 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Flaming Sphere|areaTurnEnd|save": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.fire.01.orange",
+            "at": "subject",
+            "scale": 1.3,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.fire",
+              "volume": 0.5
+            }
+          }
+        ]
+      },
+      "Flaming Sphere|collided|save": {
+        "steps": [
+          {
+            "kind": "projectile",
+            "file": "jb2a.fire_bolt.orange",
+            "from": "bearer",
+            "to": "subject",
+            "wait": "finish",
+            "sound": {
+              "file": "psfx.cantrips.fire-bolt.v1",
+              "volume": 0.4
+            }
+          },
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.fire.01.orange",
+            "at": "subject",
+            "scale": 1.5,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.fire",
+              "volume": 0.6
+            }
+          }
+        ]
       }
     }
   },
@@ -1666,6 +1881,28 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Hand of Harm|hitting|damageNext": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.impact.003.dark_purple",
+            "at": "bearer",
+            "scale": 0.9
+          },
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.002.dark_purple",
+            "at": "targets",
+            "scale": 1.3,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.necrotic",
+              "volume": 0.5
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -1705,6 +1942,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Bravery|turnStart|tempHp": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.healing_generic.burst.yellowwhite",
+            "at": "bearer",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.conditions.boon.002",
+              "volume": 0.4
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -1738,6 +1991,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Paralyzed|turnEnd|save": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.markers.chain.standard.complete.02.blue",
+            "at": "bearer",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.conditions.generic-layer.002",
+              "volume": 0.4
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -1759,6 +2028,22 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Hungry Jaws|onHit|tempHp": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.healing_generic.burst.greenorange",
+            "at": "bearer",
+            "scale": 1.1,
+            "sound": {
+              "file": "psfx.conditions.boon.001",
+              "volume": 0.4
+            }
+          }
+        ]
       }
     }
   },
@@ -1814,6 +2099,22 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Hunter's Mark|hit|damage": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.hunters_mark.pulse.01.blue",
+            "at": "bearer",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.casting.on-token.001",
+              "volume": 0.4
+            }
+          }
+        ]
       }
     }
   },
@@ -2103,6 +2404,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Life Drain|dealt|drainMaxHp": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.011.dark_red",
+            "at": "subject",
+            "scale": 1.3,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.necrotic",
+              "volume": 0.5
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -2265,6 +2582,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Heightened Spell (next spell)|spell|giveEffect": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.markers.light.complete.purple",
+            "at": "targets",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.conditions.boon.006",
+              "volume": 0.4
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -2381,6 +2714,29 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Minor Lifesteal|dealt|tempHp": {
+        "steps": [
+          {
+            "kind": "projectile",
+            "file": "jb2a.magic_missile.dark_red",
+            "from": "subject",
+            "to": "bearer",
+            "wait": "finish",
+            "sound": {
+              "file": "psfx.ranged-magic.generic.energy-strands",
+              "volume": 0.4
+            }
+          },
+          {
+            "kind": "onToken",
+            "file": "jb2a.healing_generic.burst.purplepink",
+            "at": "bearer",
+            "scale": 1.1
+          }
+        ]
+      }
     }
   },
   {
@@ -2420,6 +2776,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Mirror Image|hit|duplicates": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.impact.005.blue",
+            "at": "bearer",
+            "scale": 1.4,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.generic",
+              "volume": 0.5
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -2441,6 +2813,22 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Encouraging Song|rest|inspire": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.bardic_inspiration.blueyellow",
+            "at": "targets",
+            "scale": 1.3,
+            "sound": {
+              "file": "psfx.class-features.bardic-inspiration.v1",
+              "volume": 0.5
+            }
+          }
+        ]
       }
     }
   },
@@ -2730,6 +3118,43 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Proto-Abjuration: Temporary HP|applied|tempHp": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.shield.01.intro.blue",
+            "at": "bearer",
+            "scale": 1.3,
+            "sound": {
+              "file": "psfx.1st-level-spells.shield-spell.intro",
+              "volume": 0.4
+            }
+          }
+        ]
+      },
+      "Arcane Thorns|hit|damage": {
+        "steps": [
+          {
+            "kind": "projectile",
+            "file": "jb2a.magic_missile.blue",
+            "from": "bearer",
+            "to": "subject",
+            "wait": "finish",
+            "sound": {
+              "file": "psfx.1st-level-spells.magic-missile.v1",
+              "volume": 0.4
+            }
+          },
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.005.blue",
+            "at": "subject",
+            "scale": 1.1
+          }
+        ]
       }
     }
   },
@@ -3400,6 +3825,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Cursed|interval|drainMaxHp": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.markers.skull.dark_green.01",
+            "at": "bearer",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.necrotic",
+              "volume": 0.5
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -3477,6 +3918,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Frightened|turnEnd|save": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.markers.fear.dark_purple.02",
+            "at": "bearer",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.incantations.whispers.masc",
+              "volume": 0.3
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -3529,6 +3986,22 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Seared|turnStart|damage": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.impact.fire.01.orange",
+            "at": "bearer",
+            "scale": 1.5,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.fire",
+              "volume": 0.6
+            }
+          }
+        ]
       }
     }
   },
@@ -3631,6 +4104,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Sneak Attack|hitting|damageNext": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.003.dark_red",
+            "at": "targets",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.impacts.slashing.v1",
+              "volume": 0.5
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -3701,6 +4190,22 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Spores|turnEnd|save": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.markers.poison.dark_green.03",
+            "at": "bearer",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.cantrips.poison-spray.v1",
+              "volume": 0.3
+            }
+          }
+        ]
       }
     }
   },
@@ -4053,6 +4558,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Thunderous Smite: Pushed|applied|push": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.thunderwave.center.blue",
+            "at": "bearer",
+            "scale": 0.8,
+            "sound": {
+              "file": "psfx.cantrips.thunderclap.v1",
+              "volume": 0.5
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -4169,6 +4690,22 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Trinket of the Raven Queen|onUse|save": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.markers.fear.dark_purple.01",
+            "at": "targets",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.necrotic",
+              "volume": 0.5
+            }
+          }
+        ]
       }
     }
   },
@@ -4341,6 +4878,22 @@
           ]
         }
       }
+    },
+    "actions": {
+      "Vengeful Aura|rollActivity": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.explosion.dark_purple",
+            "at": "bearer",
+            "scale": 0.6,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.necrotic",
+              "volume": 0.6
+            }
+          }
+        ]
+      }
     }
   },
   {
@@ -4411,6 +4964,29 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Vow of Enmity|damaged|giveEffect": {
+        "steps": [
+          {
+            "kind": "projectile",
+            "file": "jb2a.magic_missile.dark_red",
+            "from": "bearer",
+            "to": "targets",
+            "wait": "finish",
+            "sound": {
+              "file": "psfx.incantations.masculine.001.dry.harm.001",
+              "volume": 0.4
+            }
+          },
+          {
+            "kind": "onToken",
+            "file": "jb2a.markers.skull.dark_red.01",
+            "at": "targets",
+            "scale": 1.2
+          }
+        ]
       }
     }
   },
@@ -4822,6 +5398,55 @@
             }
           }
         ]
+      },
+      "Wild Surge: Shadowy Tendrils|applied|tempHp": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.shield.01.intro.blue",
+            "at": "bearer",
+            "scale": 1.3,
+            "sound": {
+              "file": "psfx.conditions.boon.001",
+              "volume": 0.4
+            }
+          }
+        ]
+      },
+      "Wild Surge: Retribution|hit|damage": {
+        "steps": [
+          {
+            "kind": "projectile",
+            "file": "jb2a.magic_missile.purple",
+            "from": "bearer",
+            "to": "subject",
+            "wait": "finish",
+            "sound": {
+              "file": "psfx.1st-level-spells.magic-missile.v1",
+              "volume": 0.4
+            }
+          },
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.005.purple",
+            "at": "subject",
+            "scale": 1.1
+          }
+        ]
+      },
+      "Wild Surge|statusGained|random": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.impact.003.pinkpurple",
+            "at": "bearer",
+            "scale": 1.8,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.generic",
+              "volume": 0.5
+            }
+          }
+        ]
       }
     }
   },
@@ -4862,6 +5487,69 @@
             }
           ]
         }
+      }
+    },
+    "actions": {
+      "Frightened|turnEnd|save": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.markers.fear.dark_red.02",
+            "at": "bearer",
+            "scale": 1.2,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.necrotic",
+              "volume": 0.3
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Potent Cantrip",
+    "type": "feat",
+    "actions": {
+      "Potent Cantrip|missed|activityDamage": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.005.white",
+            "at": "targets",
+            "scale": 1,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.generic",
+              "volume": 0.4
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Paladin's Smite",
+    "type": "feat",
+    "actions": {
+      "Paladin's Smite|hitting|damageNext": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.divine_smite.caster.yellowwhite",
+            "at": "bearer",
+            "scale": 1.1
+          },
+          {
+            "kind": "impact",
+            "file": "jb2a.divine_smite.target.yellowwhite",
+            "at": "targets",
+            "scale": 1.3,
+            "delay": 150,
+            "sound": {
+              "file": "psfx.impacts.magicaleffects.generic",
+              "volume": 0.6
+            }
+          }
+        ]
       }
     }
   }

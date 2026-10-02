@@ -205,7 +205,8 @@ function eligible(actor, window, ctx) {
           refund: decl.refundUnlessSuccess ?? null,
           quiet: ["damageNext", "damage"].includes(decl.outcome?.type),
           targetUuid: (decl.atTarget && ctx.target) ? (tokenFor(ctx.target, ctx.scene)?.uuid ?? null) : null,
-          after: decl.after ?? null, subjectUuid: ctx.subject?.uuid ?? null, reaction: decl.reaction !== false }
+          after: decl.after ?? null, subjectUuid: ctx.subject?.uuid ?? null, reaction: decl.reaction !== false,
+          window: decl.window ?? null }
       });
     }
   }
@@ -357,8 +358,31 @@ async function showPrompt(actorUuid, situation, options) {
  * @param {object} after
  * @param {string} [subjectUuid]  The triggering creature.
  */
+/**
+ * A reaction was used: announce it like an engine action (hook alivasTriggers.action, origin "reaction") so other
+ * modules (animations) can show it. effect = a stand-in named like the reaction's item; event = its window ("hitBy",
+ * "hitting", "damageIncoming", "spellCast"…); action = its outcome ({ type: "damageNext" | "damage" | "acBonus" | "reroll"
+ * | "counter" | … }); subject = the triggering creature; targets = the creature hit (hitting window), else the subject.
+ */
+function announceReaction(reactor, picked) {
+  try {
+    const option = picked?.option ?? {};
+    const item = reactor?.items?.get(option.itemId);
+    const toActor = uuid => { const d = uuid ? fromUuidSync(uuid) : null; return d?.actor ?? d ?? null; };
+    const subject = toActor(option.subjectUuid);
+    const hit = toActor(option.hitUuid);
+    const standIn = { name: item?.name ?? "", parent: item, getSourceActor: () => reactor, getFlag: () => undefined };
+    Hooks.callAll("alivasTriggers.action", { origin: "reaction", action: picked?.outcome ?? {}, trigger: null,
+      effect: standIn, bearer: reactor, event: option.window ?? "reaction",
+      context: { subject, targets: [hit ?? subject].filter(Boolean) }, result: {}, moves: [] });
+  } catch(err) {
+    console.error(`${MODULE_ID} | announcing a reaction failed`, err);
+  }
+}
+
 /** Run a picked reaction's afterwards step (after its outcome is resolved and announced). */
 function afterReaction(reactor, picked, { zeroed=false, castLevel=null }={}) {
+  announceReaction(reactor, picked);
   const after = picked?.option?.after;
   if ( !after ) return;
   if ( (after.when === "zeroed") && !zeroed ) return;

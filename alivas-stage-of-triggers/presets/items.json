@@ -1,0 +1,2524 @@
+[
+  {
+    "name": "Candle",
+    "type": "consumable",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.flames.01.orange",
+              "at": "source",
+              "scale": 0.35,
+              "sound": {
+                "file": "psfx.cantrips.produce-flame.v1.001",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Healer's Kit",
+    "type": "consumable",
+    "activities": {
+      "Stabilize": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cure_wounds.200px.green",
+              "at": "targets",
+              "scale": 1,
+              "sound": {
+                "file": "psfx.1st-level-spells.cure-wounds.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Oil",
+    "type": "consumable",
+    "activities": {
+      "Throw": {
+        "use": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.throwable.throw.flask.01.orange",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.consumables.potions-vials.cork-bottle.002",
+                "volume": 0.4
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.liquid.splash.brown",
+              "at": "targets",
+              "scale": 1,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      },
+      "Douse Space": {
+        "area": {
+          "steps": [
+            {
+              "kind": "area",
+              "file": "jb2a.flames.04.complete.orange",
+              "at": "region",
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.fire",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Torch",
+    "type": "consumable",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.club.melee.01.orange",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.fire.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.fire.01.orange",
+              "at": "targets",
+              "scale": 1.1,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.fire",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Adventurer's Ring",
+    "type": "equipment",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.complete.yellow",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.cantrips.light.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Hooded Lantern",
+    "type": "equipment",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.complete.yellow",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.cantrips.light.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Tinderbox",
+    "type": "equipment",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.flames.01.orange",
+              "at": "source",
+              "scale": 0.35,
+              "sound": {
+                "file": "psfx.cantrips.produce-flame.v1.001",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Cunning Action",
+    "type": "feat",
+    "effects": {
+      "Disengaged": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "bearer",
+              "scale": 1.1,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.25
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.02.white",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.45,
+              "scale": 1,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Martial Arts",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.on_token_buff.001.001.white",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Patient Defense",
+    "type": "feat",
+    "effects": {
+      "Disengaged": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "bearer",
+              "scale": 1.1,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.25
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.02.white",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.45,
+              "scale": 1,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Psychic Whispers",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.energy_strands.in.purple.01",
+              "at": "targets",
+              "scale": 1,
+              "sound": {
+                "file": "psfx.incantations.whispers.fem",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Psychic Whispers": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.horror.purple.01",
+              "at": "bearer",
+              "scale": 1.1
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Sneak Attack",
+    "type": "feat",
+    "effects": {
+      "Withdrawing": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "bearer",
+              "scale": 1.1,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.25
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.02.white",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.45,
+              "scale": 1,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Step of the Wind",
+    "type": "feat",
+    "effects": {
+      "Disengaged": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "bearer",
+              "scale": 1.1,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.25
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.02.white",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.45,
+              "scale": 1,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Dash": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "bearer",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.25
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.02.white",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.45,
+              "scale": 1.1,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Jump Doubled": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.ring.01",
+              "at": "bearer",
+              "scale": 0.5
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Stonecunning",
+    "type": "feat",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.earth.01",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.casting.earth.001",
+                "volume": 0.45
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Stonecunning": {
+        "active": {
+          "steps": [
+            {
+              "kind": "aura",
+              "file": "jb2a.template_circle.out_pulse.01.loop.greenorange",
+              "at": "bearer",
+              "persist": true,
+              "below": true,
+              "opacity": 0.5
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Stunning Strike",
+    "type": "feat",
+    "effects": {
+      "Slowed": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.chain.standard.complete",
+              "at": "bearer",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.3
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.chain.standard.loop",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 0.9,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Trip (Cost: 1d6)",
+    "type": "feat",
+    "activities": {
+      "Trip": {
+        "use": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.smoke.puff.centered.grey",
+              "at": "targets",
+              "scale": 1,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Withdraw (Cost: 1d6)",
+    "type": "feat",
+    "activities": {
+      "Withdraw": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Command",
+    "type": "spell",
+    "effects": {
+      "Command: Drop": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.02.dark_purple",
+              "at": "bearer",
+              "scale": 0.8
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Mind Spike",
+    "type": "spell",
+    "effects": {
+      "Spiked": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.horror.purple.01",
+              "at": "bearer",
+              "scale": 1.1,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.psychic",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.stun.purple.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.7,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Proto-Transmutation",
+    "type": "spell",
+    "activities": {
+      "Cast": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.03.greenyellow",
+              "at": "source",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.casting.generic.001",
+                "volume": 0.5
+              }
+            },
+            {
+              "kind": "onToken",
+              "file": "jb2a.magic_signs.circle.02.transmutation.complete.dark_green",
+              "at": "source",
+              "scale": 1.1,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Speak with Animals",
+    "type": "spell",
+    "effects": {
+      "Bestial Communication": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.swirling_leaves.outburst.01",
+              "at": "bearer",
+              "scale": 1.1
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.green",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Speak with Plants",
+    "type": "spell",
+    "effects": {
+      "Speaking with Plants": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.swirling_leaves.outburst.01",
+              "at": "bearer",
+              "scale": 1.1
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.green",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "True Strike",
+    "type": "spell",
+    "activities": {
+      "*": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.03.orangeyellow",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.magic-signs.rune.v1.divination.complete",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "True Strike": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.yellow",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Ranged Weapon": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light.loop.yellow",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Battleaxe",
+    "type": "weapon",
+    "baseItem": "battleaxe",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.02.battleaxe.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.heavy.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Blowgun",
+    "type": "weapon",
+    "baseItem": "blowgun",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.dart.01.throw.physical.white",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-weapons.longbow.v1",
+                "volume": 0.2
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Club",
+    "type": "weapon",
+    "baseItem": "club",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.club.melee.01.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Dagger",
+    "type": "weapon",
+    "baseItem": "dagger",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.dagger.melee.02.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Dart",
+    "type": "weapon",
+    "baseItem": "dart",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.dart.01.throw.physical.white",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-weapons.longbow.v1",
+                "volume": 0.25
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Enspelled (Level 1) Longsword",
+    "type": "weapon",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slashing.one_handed",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-attacks.sword.v1",
+                "volume": 0.45
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Divine Smite": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.caster.yellowwhite",
+              "at": "source",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.class-features.divine-smite.v1",
+                "volume": 0.7
+              }
+            },
+            {
+              "kind": "onToken",
+              "file": "jb2a.divine_smite.target.yellowwhite",
+              "at": "targets",
+              "scale": 1.6,
+              "delay": 300
+            }
+          ]
+        }
+      },
+      "Arc Blade (melee)": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slash.01.bluepurple",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.lightning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.blue",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.lightning",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Arc Blade (15 ft)": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.chain_lightning.primary.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.cantrips.shocking-grasp.v1",
+                "volume": 0.6
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.blue",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.lightning",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Burning Blade": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slash.01.orange",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.fire.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.fire.01.orange",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.fire",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "Frigid Blade": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.magic_sword.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.cold.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.frost.blue",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.cold",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      },
+      "True Strike": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.magic_sword.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.011.yellow",
+              "at": "targets",
+              "scale": 1.3,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.generic",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Vengeful Blade": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.magic_sword.dark_purple",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.necrotic.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.001.dark_purple",
+              "at": "targets",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.6
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Vengeful Aura": {
+        "start": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.cast_generic.dark.01",
+              "at": "bearer",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.impacts.magicaleffects.necrotic",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.smoke.ring.loop.purple",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.55,
+              "scale": 1.2,
+              "below": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Flail",
+    "type": "weapon",
+    "baseItem": "flail",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.flail.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Glaive",
+    "type": "weapon",
+    "baseItem": "glaive",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slashing.two_handed",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.heavy.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Greataxe",
+    "type": "weapon",
+    "baseItem": "greataxe",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.greataxe.melee.standard.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.heavy.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Greatclub",
+    "type": "weapon",
+    "baseItem": "greatclub",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.03.greatclub.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.heavy.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Greatsword",
+    "type": "weapon",
+    "baseItem": "greatsword",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.greatsword.melee.standard.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.heavy.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Halberd",
+    "type": "weapon",
+    "baseItem": "halberd",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slashing.two_handed",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.heavy.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Hand Crossbow",
+    "type": "weapon",
+    "baseItem": "handcrossbow",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.bolt.physical.white",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-weapons.longbow.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.7,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Handaxe",
+    "type": "weapon",
+    "baseItem": "handaxe",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.handaxe.melee.standard.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Heavy Crossbow",
+    "type": "weapon",
+    "baseItem": "heavycrossbow",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.bolt.physical.white",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-weapons.longbow.v1",
+                "volume": 0.45
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Javelin",
+    "type": "weapon",
+    "baseItem": "javelin",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.spear.melee.01.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-attacks.spear.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Lance",
+    "type": "weapon",
+    "baseItem": "lance",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.piercing.two_handed",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-attacks.spear.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Light Crossbow",
+    "type": "weapon",
+    "baseItem": "lightcrossbow",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.bolt.physical.white",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-weapons.longbow.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Light Hammer",
+    "type": "weapon",
+    "baseItem": "lighthammer",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.02.hammer.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Longbow",
+    "type": "weapon",
+    "baseItem": "longbow",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.arrow.physical.white.01",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-weapons.longbow.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Longsword",
+    "type": "weapon",
+    "baseItem": "longsword",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slashing.one_handed",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-attacks.sword.v1",
+                "volume": 0.45
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Mace",
+    "type": "weapon",
+    "baseItem": "mace",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.02.mace.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Maul",
+    "type": "weapon",
+    "baseItem": "maul",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.maul.melee.standard.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.heavy.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Morningstar",
+    "type": "weapon",
+    "baseItem": "morningstar",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.02.mace.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Net",
+    "type": "weapon",
+    "baseItem": "net",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.dart.01.throw.physical.white",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-weapons.longbow.v1",
+                "volume": 0.2
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.web.01",
+              "at": "targets",
+              "scale": 1,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Pike",
+    "type": "weapon",
+    "baseItem": "pike",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.piercing.two_handed",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-attacks.spear.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Quarterstaff",
+    "type": "weapon",
+    "baseItem": "quarterstaff",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.bludgeoning.two_handed",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Rapier",
+    "type": "weapon",
+    "baseItem": "rapier",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.piercing.one_handed",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Scimitar",
+    "type": "weapon",
+    "baseItem": "scimitar",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.scimitar.melee.01.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Shortbow",
+    "type": "weapon",
+    "baseItem": "shortbow",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.arrow.physical.white.01",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-weapons.longbow.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.7,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Shortsword",
+    "type": "weapon",
+    "baseItem": "shortsword",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.shortsword.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Sickle",
+    "type": "weapon",
+    "baseItem": "sickle",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.01.sickle.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Sling",
+    "type": "weapon",
+    "baseItem": "sling",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "projectile",
+              "file": "jb2a.slingshot",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "sound": {
+                "file": "psfx.ranged-weapons.longbow.v1",
+                "volume": 0.25
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Spear",
+    "type": "weapon",
+    "baseItem": "spear",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.spear.melee.01.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-attacks.spear.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Trident",
+    "type": "weapon",
+    "baseItem": "trident",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.spear.melee.01.white",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-attacks.spear.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Unarmed Strike",
+    "type": "weapon",
+    "activities": {
+      "Attack": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.creature_attack.fist.001.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.3
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Grapple": {
+        "use": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.unarmed_strike.no_hit.01.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      },
+      "Shove": {
+        "use": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.unarmed_strike.no_hit.01.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.4
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "targets",
+              "scale": 1.2
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "War Pick",
+    "type": "weapon",
+    "baseItem": "warpick",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.02.pickaxe.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.45
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.6,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Warhammer",
+    "type": "weapon",
+    "baseItem": "warhammer",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_attack.02.warhammer.01",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.45
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Whip",
+    "type": "weapon",
+    "baseItem": "whip",
+    "activities": {
+      "*": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slashing.one_handed",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.005.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.slashing.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]
