@@ -21,6 +21,7 @@ Installing the Box installs the Engine too. Enable both in your world, then relo
 ## Engine
 
 **Rules automation (settings)**
+- **Pick your level of automation**, separately for players and NPCs. Attacks: off, roll the attack, you roll the attack and damage on a hit is rolled and applied, or fully automatic. Save spells and abilities: off, saves rolled for you (you apply from the cards), you roll the saves and each result is applied as it comes in, or fully automatic. Areas (Fireball) find the creatures inside them by themselves.
 - **Auto-apply effects**: effects go on automatically — to creatures an attack hits, to creatures that fail a save rolled from the card, to yourself for self spells, and for buffs (Mage Armor, Bless, Aid…) to the creatures you targeted, or yourself.
 - **Concentration saves** roll automatically and end concentration on a failure.
 - **Players roll their own** repeat saves and concentration saves when they're connected.
