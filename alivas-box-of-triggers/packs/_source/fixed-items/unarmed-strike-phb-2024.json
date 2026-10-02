@@ -1,0 +1,487 @@
+{
+  "_id": "isDKvzTRDB4pCLM8",
+  "name": "Unarmed Strike",
+  "type": "weapon",
+  "img": "icons/skills/melee/unarmed-punch-fist.webp",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "149",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "",
+      "chat": ""
+    },
+    "proficient": null,
+    "quantity": 1,
+    "weight": {
+      "value": 0,
+      "units": "lb"
+    },
+    "price": {
+      "value": 0,
+      "denomination": "gp"
+    },
+    "attuned": false,
+    "identified": true,
+    "equipped": true,
+    "type": {
+      "value": "simpleM",
+      "baseItem": ""
+    },
+    "range": {
+      "value": null,
+      "long": null,
+      "reach": 5,
+      "units": "ft"
+    },
+    "properties": [],
+    "attunement": "",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "magicalBonus": "",
+    "damage": {
+      "base": {
+        "types": [
+          "bludgeoning"
+        ],
+        "bonus": "@mod",
+        "custom": {
+          "enabled": true,
+          "formula": "1"
+        },
+        "scaling": {
+          "number": 1
+        },
+        "modifiers": []
+      },
+      "versatile": {
+        "types": [],
+        "custom": {
+          "enabled": false
+        },
+        "scaling": {
+          "number": 1
+        },
+        "modifiers": []
+      }
+    },
+    "ammunition": {
+      "type": ""
+    },
+    "mastery": "",
+    "activities": {
+      "XmMDM4LlPWCItnoy": {
+        "_id": "XmMDM4LlPWCItnoy",
+        "type": "attack",
+        "name": "Attack",
+        "sort": 0,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "",
+          "value": ""
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false,
+            "type": ""
+          },
+          "override": false,
+          "prompt": true
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "attack": {
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "melee",
+            "classification": "unarmed"
+          },
+          "ability": "",
+          "flat": false,
+          "bonus": ""
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": true,
+          "parts": []
+        },
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": []
+      },
+      "X8sDjquJTumXgZ2o": {
+        "_id": "X8sDjquJTumXgZ2o",
+        "type": "save",
+        "name": "Grapple",
+        "sort": 1,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "requires": {
+              "maxSizeAbove": 1,
+              "freeHand": true
+            }
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "ON9rI6GBY20ZpUby",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        },
+        "save": {
+          "ability": [
+            "str",
+            "dex"
+          ],
+          "dc": {
+            "calculation": "str",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": []
+        }
+      },
+      "MU8dgjTraWGs18cq": {
+        "_id": "MU8dgjTraWGs18cq",
+        "type": "save",
+        "name": "Shove",
+        "sort": 2,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "requires": {
+              "maxSizeAbove": 1
+            },
+            "chooseEffects": {
+              "count": "1"
+            }
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "SRGjCG3iS1SmOm3S",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          },
+          {
+            "_id": "Ux63WJUcBB6gWwGE",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        },
+        "save": {
+          "ability": [
+            "str",
+            "dex"
+          ],
+          "dc": {
+            "calculation": "str",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": []
+        }
+      }
+    },
+    "identifier": "unarmed-strike",
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "crew": {
+      "value": []
+    },
+    "armor": {},
+    "rarities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Unarmed Strike",
+          "type": "weapon"
+        },
+        {
+          "identifier": "unarmed-strike",
+          "type": "weapon"
+        }
+      ],
+      "keep": {
+        "activities": [
+          "attack"
+        ],
+        "paths": [
+          "system.damage",
+          "system.type",
+          "system.range"
+        ]
+      }
+    }
+  },
+  "effects": [
+    {
+      "_id": "ON9rI6GBY20ZpUby",
+      "name": "Grappled",
+      "img": "icons/skills/melee/unarmed-punch-fist.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "grappled"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "tether": {
+            "range": 5,
+            "drag": true
+          }
+        }
+      },
+      "_key": "!items.effects!isDKvzTRDB4pCLM8.ON9rI6GBY20ZpUby"
+    },
+    {
+      "_id": "SRGjCG3iS1SmOm3S",
+      "name": "Pushed",
+      "img": "icons/skills/melee/unarmed-punch-fist.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Shove",
+              "event": "applied",
+              "action": {
+                "type": "push",
+                "distance": 5,
+                "from": "source"
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!isDKvzTRDB4pCLM8.SRGjCG3iS1SmOm3S"
+    },
+    {
+      "_id": "Ux63WJUcBB6gWwGE",
+      "name": "Prone",
+      "img": "icons/skills/melee/unarmed-punch-fist.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "prone"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!isDKvzTRDB4pCLM8.Ux63WJUcBB6gWwGE"
+    }
+  ],
+  "sort": 0,
+  "_key": "!items!isDKvzTRDB4pCLM8"
+}

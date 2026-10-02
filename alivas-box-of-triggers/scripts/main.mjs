@@ -16,6 +16,21 @@
  *   - replaced: activities and the rest of `system`, and the item's embedded effects
  * The applied version is stamped on the item; a patch is re-applied only when its version goes up.
  *
+ * A patch may also carry `keep: { activities: [type, ...], paths: [path, ...] }`: the target's own activities of those
+ * types and those system fields are kept instead of the patch's (Unarmed Strike keeps a Monk's Attack and damage).
+ *
+ * Combat Maneuvers (flag `maneuvers: true` on the "Combat Maneuvers" patch):
+ *   - Setting "Combat maneuvers for every creature" (world, default on): every world Actor of type character or npc gets
+ *     the item from this pack when created (preCreateActor), and at ready the lead GM adds it to existing world actors
+ *     that lack one. Idempotent: an actor that already holds an item flagged `maneuvers` (or with identifier
+ *     "combat-maneuvers") is skipped. Nothing is ever removed when the setting is switched off.
+ *   - Setting "Include homebrew maneuvers" (world, default off): activities and effects flagged
+ *     `flags.alivas-box-of-triggers.homebrew` are REMOVED from the granted copy (not hidden), whenever the copy is built:
+ *     on grant, on patch (buildPatched), and on a setting change - the lead GM then re-syncs every actor's copy: it
+ *     deletes homebrew activities/effects when off and adds back the missing ones from the pack when on. Only activities
+ *     flagged homebrew are ever deleted, so a user's own additions to the item survive. "Review & apply" on an
+ *     outdated copy also honours the setting, through buildPatched.
+ *
  * Patches are applied:
  *   - on demand: Settings → Alivas's Box of Triggers → Review & apply (choose which items)
  *   - automatically on creation, if the "Patch on import" setting is on: items created on their own (Plutonium,
@@ -163,16 +178,25 @@ Hooks.on("dnd5e.preActivityConsumption", activity => {
 function buildPatched(patch, old, items) {
   const data = foundry.utils.deepClone(patch.data);
   data._id = old._id;
-  const keep = old.type === "spell" ? [...PRESERVE, ...PRESERVE_SPELL] : PRESERVE;
+  const patchKeep = patch.data.flags?.[MODULE_ID]?.keep ?? {};
+  const keep = [...(old.type === "spell" ? [...PRESERVE, ...PRESERVE_SPELL] : PRESERVE), ...(patchKeep.paths ?? [])];
   for ( const path of keep ) {
     const value = foundry.utils.getProperty(old, path);
     if ( value !== undefined ) foundry.utils.setProperty(data, path, foundry.utils.deepClone(value));
+  }
+  // The target's own activities of these types replace the patch's (e.g. a Monk's Unarmed Strike Attack).
+  for ( const type of patchKeep.activities ?? [] ) {
+    const own = Object.entries(old.system?.activities ?? {}).filter(([, a]) => a.type === type);
+    if ( !own.length ) continue;
+    for ( const [aid, a] of Object.entries(data.system.activities) ) if ( a.type === type ) delete data.system.activities[aid];
+    for ( const [aid, a] of own ) data.system.activities[aid] = foundry.utils.deepClone(a);
   }
   if ( old.type === "spell" ) keepConsumption(data.system.activities, old.system?.activities);
   resolveIdentifierTargets(data, items);
   data.flags = foundry.utils.mergeObject(foundry.utils.deepClone(old.flags ?? {}), data.flags ?? {}, { inplace: false });
   data.flags[MODULE_ID] = { ...data.flags[MODULE_ID], version: patch.version };
   if ( old._stats ) data._stats = foundry.utils.deepClone(old._stats);
+  if ( data.flags[MODULE_ID].maneuvers && !homebrewOn() ) stripHomebrew(data);
   return data;
 }
 
@@ -374,6 +398,95 @@ class FixesMenu extends foundry.applications.api.ApplicationV2 {
     await openDialog();
     return this;
   }
+}
+
+/* -------------------------------------------- */
+/*  Combat Maneuvers                            */
+/* -------------------------------------------- */
+
+const MANEUVER_TYPES = ["character", "npc"];
+const grantOn = () => game.settings.get(MODULE_ID, "grantManeuvers");
+const homebrewOn = () => game.settings.get(MODULE_ID, "homebrewManeuvers");
+const maneuverPatch = () => PATCHES.find(p => p.data.flags?.[MODULE_ID]?.maneuvers) ?? null;
+/** Source data of an item, or an Item document: is it the Combat Maneuvers item? */
+const isManeuvers = i => !!(i.flags?.[MODULE_ID]?.maneuvers || (i.system?.identifier === "combat-maneuvers"));
+
+/** Remove homebrew activities and effects from item data, in place. */
+function stripHomebrew(data) {
+  for ( const [aid, a] of Object.entries(data.system?.activities ?? {}) ) {
+    if ( a.flags?.[MODULE_ID]?.homebrew ) delete data.system.activities[aid];
+  }
+  data.effects = (data.effects ?? []).filter(e => !e.flags?.[MODULE_ID]?.homebrew);
+}
+
+/** A fresh copy of the Combat Maneuvers item for an actor, honouring the homebrew setting. */
+function maneuverData() {
+  const patch = maneuverPatch();
+  if ( !patch ) return null;
+  const data = foundry.utils.deepClone(patch.data);
+  data._id = foundry.utils.randomID();
+  data.flags[MODULE_ID] = { ...data.flags[MODULE_ID], version: patch.version };
+  delete data._key;
+  if ( !homebrewOn() ) stripHomebrew(data);
+  return data;
+}
+
+/** A world actor is about to be created: include Combat Maneuvers. */
+Hooks.on("preCreateActor", (actor, data, options, userId) => {
+  if ( (userId !== game.userId) || !MANEUVER_TYPES.includes(actor.type) || !grantOn() ) return;
+  const items = actor.toObject().items ?? [];
+  if ( items.some(isManeuvers) ) return;
+  const item = maneuverData();
+  if ( item ) actor.updateSource({ items: [...items, item] });
+});
+
+/** Make an existing copy match the homebrew setting: delete homebrew parts when off, add the missing ones when on. */
+async function syncManeuverItem(item, patch) {
+  const want = foundry.utils.deepClone(patch.data);
+  if ( !homebrewOn() ) stripHomebrew(want);
+  const options = { [MODULE_ID]: { patching: true } };
+  const update = {};
+  for ( const a of item.system.activities ) {
+    if ( !(a.id in want.system.activities) && a.flags?.[MODULE_ID]?.homebrew ) update[`system.activities.-=${a.id}`] = null;
+  }
+  for ( const [aid, a] of Object.entries(want.system.activities) ) {
+    if ( !item.system.activities.has(aid) ) update[`system.activities.${aid}`] = a;
+  }
+  if ( !foundry.utils.isEmpty(update) ) await item.update(update, { ...options, diff: false });
+  const gone = item.effects.filter(e => e.getFlag(MODULE_ID, "homebrew") && !want.effects.some(w => w._id === e.id)).map(e => e.id);
+  if ( gone.length ) await item.deleteEmbeddedDocuments("ActiveEffect", gone, options);
+  const missing = want.effects.filter(w => !item.effects.has(w._id)).map(w => { const { _key, ...rest } = w; return rest; });
+  if ( missing.length ) await item.createEmbeddedDocuments("ActiveEffect", missing, { ...options, keepId: true });
+}
+
+/**
+ * Lead GM: every world character/npc gets the item (setting on) and every copy matches the homebrew setting.
+ * Idempotent; safe to run again on any setting change.
+ */
+async function syncManeuvers() {
+  if ( !isLeadGM() ) return;
+  await loadPatches();
+  const patch = maneuverPatch();
+  if ( !patch ) return;
+  for ( const actor of game.actors.contents ) {
+    if ( !MANEUVER_TYPES.includes(actor.type) ) continue;
+    try {
+      const have = actor.items.filter(i => isManeuvers(i));
+      if ( !have.length ) {
+        if ( !grantOn() ) continue;
+        const data = maneuverData();
+        if ( data ) await actor.createEmbeddedDocuments("Item", [data], { keepId: true, [MODULE_ID]: { patching: true } });
+      } else for ( const item of have ) await syncManeuverItem(item, patch);
+    } catch(err) {
+      console.error(`${MODULE_ID} | Combat Maneuvers sync failed for "${actor.name}"`, err);
+    }
+  }
+}
+
+/** The Engine's lead-GM test (one GM window does shared work). */
+function isLeadGM() {
+  const lead = game.modules.get(ENGINE_ID)?.api?.creatures?.isLeadGM;
+  return lead ? lead() : (game.user.isGM && (game.users.activeGM === game.user));
 }
 
 /* -------------------------------------------- */
@@ -611,6 +724,18 @@ Hooks.once("init", () => {
       + "\"Update existing\" import.",
     scope: "world", config: true, type: Boolean, default: true
   });
+  game.settings.register(MODULE_ID, "grantManeuvers", {
+    name: "Combat maneuvers for every creature",
+    hint: "Give every character and NPC the Combat Maneuvers item (Dash, Disengage, Dodge, Help, Hide, Shove Aside, Tumble...) "
+      + "when it is created, and add it to existing ones when the world loads.",
+    scope: "world", config: true, type: Boolean, default: true, onChange: () => syncManeuvers()
+  });
+  game.settings.register(MODULE_ID, "homebrewManeuvers", {
+    name: "Include homebrew maneuvers",
+    hint: "Also offer the homebrew maneuvers (Pin, Hurl Creature, Overrun, Climb onto a Bigger Creature, Dislodge Rider, "
+      + "Lift Ally, Drop Ally). When off they are removed from every creature's Combat Maneuvers item.",
+    scope: "world", config: true, type: Boolean, default: false, onChange: () => syncManeuvers()
+  });
   game.settings.registerMenu(MODULE_ID, "apply", {
     name: "Items already in this world",
     label: "Review & apply",
@@ -623,5 +748,8 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", async () => {
   await loadPatches();
-  game.modules.get(MODULE_ID).api = { plan, apply, openDialog, applyWeaponOption, findPatch, buildPatched, loadPatches };
+  game.modules.get(MODULE_ID).api = { plan, apply, openDialog, applyWeaponOption, findPatch, buildPatched, loadPatches, syncManeuvers };
+  // The lead-GM test comes from the Engine: wait for its API if it is not up yet.
+  if ( game.modules.get(ENGINE_ID)?.api ) syncManeuvers();
+  else Hooks.once("alivasTriggers.ready", () => syncManeuvers());
 });

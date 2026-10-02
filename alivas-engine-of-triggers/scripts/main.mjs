@@ -187,7 +187,7 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
 
   // Hits: a critical, or not a fumble and total >= current AC.
   const roll = rolls?.[0];
-  if ( !roll || !subject ) return;
+  if ( !roll || !subject || Maneuvers.isBareAttack(subject) ) return;
   // A new attack replaces any earlier "absorbed by a duplicate" mark for this attacker and target.
   for ( const token of game.user.targets ) if ( token.actor ) absorbed.delete(absorbKey(token.actor, subject));
   const hits = Array.from(game.user.targets).filter(token => {
@@ -2810,6 +2810,7 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", () => {
   Workflow.initWorkflow({ autoApply, rollSave, applyDamageAs, setting, findUsageMessage, chooseProfiles,
+    runActivitySteps: (activity, target, key) => runOnUse(activity, [target], key),
     saveSucceeded: args => Reactions.saveSucceeded(args) });
   Areas.initAreas({ runTriggerList, findUsageMessage, setting, saveMode: actor => Workflow.modeFor("Save", actor) });
   Maneuvers.initManeuvers({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });

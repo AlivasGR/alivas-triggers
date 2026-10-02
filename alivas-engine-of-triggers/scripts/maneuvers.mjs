@@ -16,6 +16,7 @@
  *
  * Activity requirements (activity flag `requires`), checked before it's used; unmet → a notice and the use is blocked:
  *   { maxSizeAbove: 1 }  each target at most N sizes larger than the user
+ *   { minSizeAbove: 2 }  each target at least N sizes larger than the user (Climb onto a Bigger Creature)
  *   { freeHand: true }   the user has a hand free (not two-handed weapon, not weapon + shield / two weapons)
  *   { grappling: true }  the user is grappling each target (a tether of the user's on it)
  *   { grappled: true }   the user is grappled (Escape)
@@ -23,7 +24,7 @@
  *   { canLift: true }    each target's weight fits the user's remaining carrying capacity (Hurl)
  *
  * Actions (run as triggers or activity steps; `onSuccess` / `onFailure` are lists of further actions):
- *   check       { skills: ["ath","acr"], ability?, dc, vs?, best: true, advantage?: "larger"|"smaller"|true, onSuccess,
+ *   check       { skills: ["ath","acr"], ability?, roll?: "attack", dc, vs?, advantage?: "larger"|true, onSuccess,
  *                 onFailure }  — the bearer (activity user) rolls; one check per target (`vs`, default the targets).
  *                 dc: a number, a formula on the bearer's data, with @target.* for the target's (8 + @target.abilities.
  *                 dex.mod + @target.prof), or "tether" (the escape DC of the tether on the bearer). advantage "larger":
@@ -174,6 +175,7 @@ export function unmetRequirement(activity, targets=[]) {
   if ( req.grappled && !tethersOn(user).length ) return `${user.name} isn't grappled`;
   for ( const t of targets ) {
     if ( Number.isFinite(req.maxSizeAbove) && (sizeDiff(user, t) > req.maxSizeAbove) ) return `${t.name} is too large`;
+    if ( Number.isFinite(req.minSizeAbove) && (sizeDiff(user, t) < req.minSizeAbove) ) return `${t.name} isn't large enough`;
     if ( req.grappling && !isGrappling(user, t) ) return `${user.name} isn't grappling ${t.name}`;
     if ( req.canLift && (weightOf(t) > remainingCapacity(user)) ) return `${t.name} (${weightOf(t)} lb) is more than ${user.name} can lift now (${remainingCapacity(user)} lb free)`;
   }
@@ -198,6 +200,23 @@ async function rollCheck(actor, { skills=[], ability=null, advantage=false, disa
   return { total: rolls?.[0]?.total ?? null, skill };
 }
 
+/** An attack roll with the actor's best equipped melee weapon (no damage). → { total } */
+async function rollWeaponAttack(actor, { advantage=false, disadvantage=false }={}) {
+  const acts = actor.items.filter(i => (i.type === "weapon") && (i.system.equipped || i.system.type?.value === "natural"))
+    .flatMap(i => [...(i.system.activities ?? [])].filter(a => (a.type === "attack") && (a.attack?.type?.value === "melee")));
+  const best = acts.sort((x, y) => (Number(y.labels?.toHit?.replace?.(/[^0-9-]/g, "")) || 0) - (Number(x.labels?.toHit?.replace?.(/[^0-9-]/g, "")) || 0))[0];
+  if ( !best ) return { total: null };
+  // Not a real attack: the engine's hit / damage handling skips it (see isBareAttack).
+  BARE.add(best.uuid);
+  try {
+    const rolls = await best.rollAttack({ advantage, disadvantage }, { configure: false }, {});
+    return { total: rolls?.[0]?.total ?? null };
+  } finally { setTimeout(() => BARE.delete(best.uuid), 1000); }
+}
+const BARE = new Set();
+/** Is this attack roll only a maneuver's contest (no hit, damage or masteries)? */
+export const isBareAttack = activity => BARE.has(activity?.uuid);
+
 export const MANEUVER_ACTIONS = {
   /** A check with follow-up steps (see the header). */
   async check(trigger, effect, bearer, event, context={}) {
@@ -212,7 +231,10 @@ export const MANEUVER_ACTIONS = {
       if ( !Number.isFinite(dc) ) continue;
       let adv = a.advantage === true, dis = false;
       if ( (a.advantage === "larger") && target ) { const d = sizeDiff(bearer, target); adv = d < 0; dis = d > 0; }
-      const { total } = await rollCheck(bearer, { skills: a.skills ?? [], ability: a.ability, advantage: adv, disadvantage: dis, target: dc });
+      // roll "attack": an attack roll with the bearer's best equipped melee weapon instead of a check (Disarm).
+      const { total } = a.roll === "attack"
+        ? await rollWeaponAttack(bearer, { advantage: adv, disadvantage: dis })
+        : await rollCheck(bearer, { skills: a.skills ?? [], ability: a.ability, advantage: adv, disadvantage: dis, target: dc });
       if ( total === null ) continue;
       const success = total >= dc;
       await deps.announce(trigger, effect, bearer, event, `${bearer.name}: ${total} vs DC ${dc}${target ? ` (${target.name})` : ""} — ${success ? "success" : "failure"}.`);

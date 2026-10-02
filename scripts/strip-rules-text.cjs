@@ -10,7 +10,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..", "alivas-box-of-triggers", "packs", "_source");
-const KEEP = new Set(["staff-of-the-savants-homebrew.json"]);   // our own text
+const KEEP = new Set(["staff-of-the-savants-homebrew.json", "combat-maneuvers-alivas.json"]);   // our own text
 const KEEP_DIRS = new Set(["weapon-options"]);   // weapon options are written by us
 const LIMIT = 450;   // longest text allowed in a published patch (our own effect summaries are shorter)
 

@@ -75,7 +75,9 @@ export async function resolveSave(activity, targets, { usage=null, label, origin
   // Saves, all at once.
   const statuses = (activity.effects ?? []).flatMap(p => Array.from(p.effect?.statuses ?? []));
   const results = await Promise.all(targets.map(async actor => ({ actor,
-    ...(await rollSaveOutcome(actor, { ability, dc, advantage: hasSaveAdvantage(actor, statuses) }, label)) })));
+    ...(await rollSaveOutcome(actor, { ability, dc,
+      // Activity flag saveAdvantage: the targets save with advantage (Shove Aside).
+      advantage: hasSaveAdvantage(actor, statuses) || !!activity.flags?.[MODULE_ID]?.saveAdvantage }, label)) })));
   const rolled = results.filter(r => r.total !== null);
 
   // Damage: one roll for everyone it can hurt.
@@ -127,6 +129,8 @@ async function applySaveOutcome(activity, actor, success, { damages, message, us
     const profiles = (chosen ?? activity.effects).filter(p => !success || p.onSave);
     if ( profiles.length ) await deps.autoApply(activity, actor, profiles, usage);
   }
+  // Activity flag onFail: steps the user runs against each creature that failed (Shove Aside: move it; Hurl: throw it).
+  if ( !success && activity.flags?.[MODULE_ID]?.onFail?.length ) await deps.runActivitySteps?.(activity, actor, "onFail");
 }
 
 /* -------------------------------------------- */

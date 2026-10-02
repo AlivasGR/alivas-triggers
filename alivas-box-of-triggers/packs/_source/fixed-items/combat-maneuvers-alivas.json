@@ -1,0 +1,2270 @@
+{
+  "_id": "EyGl5Rqnc8X5dTgs",
+  "name": "Combat Maneuvers",
+  "type": "feat",
+  "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+  "system": {
+    "source": {
+      "custom": "Alivas's Box of Triggers",
+      "book": "",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p>Combat actions and maneuvers for every creature. Granted by Alivas's Box of Triggers; homebrew maneuvers are shown only when that setting is on.</p>",
+      "chat": ""
+    },
+    "requirements": "",
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "activities": {
+      "QviMVDeRXLXdYZ7B": {
+        "_id": "QviMVDeRXLXdYZ7B",
+        "type": "save",
+        "name": "Shove Aside",
+        "sort": 0,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Replaces one attack: move a creature within reach aside.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "requires": {
+              "maxSizeAbove": 1
+            }
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "HFX8oqxdCsPFOyNC",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        },
+        "save": {
+          "ability": [
+            "str",
+            "dex"
+          ],
+          "dc": {
+            "calculation": "str",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": []
+        }
+      },
+      "ss9DQ00UGCuf8ez8": {
+        "_id": "ss9DQ00UGCuf8ez8",
+        "type": "utility",
+        "name": "Disarm",
+        "sort": 1,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Replaces one attack: make the target drop something it holds.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "check",
+                "ability": "str",
+                "skills": [],
+                "dc": "8 + max(@target.abilities.str.mod, @target.abilities.dex.mod) + @target.prof",
+                "onSuccess": [
+                  {
+                    "type": "note",
+                    "text": "The target drops a held item at its feet."
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        }
+      },
+      "RjpHS3oqzynAB5y5": {
+        "_id": "RjpHS3oqzynAB5y5",
+        "type": "save",
+        "name": "Pin",
+        "sort": 2,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Replaces one attack: restrain a creature you are grappling.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "requires": {
+              "grappling": true
+            }
+          },
+          "alivas-box-of-triggers": {
+            "homebrew": true
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "RrMZT2LpdWcZ6jsr",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        },
+        "save": {
+          "ability": [
+            "str",
+            "dex"
+          ],
+          "dc": {
+            "calculation": "str",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": []
+        }
+      },
+      "CsZ21Oej3HHV3Dnm": {
+        "_id": "CsZ21Oej3HHV3Dnm",
+        "type": "save",
+        "name": "Hurl Creature",
+        "sort": 3,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Replaces one attack: throw a creature you are grappling.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "requires": {
+              "freeHand": true,
+              "grappling": true,
+              "maxSizeAbove": 1,
+              "canLift": true
+            }
+          },
+          "alivas-box-of-triggers": {
+            "homebrew": true
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "SvGB5GurOWXVBMNv",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        },
+        "save": {
+          "ability": [
+            "str",
+            "dex"
+          ],
+          "dc": {
+            "calculation": "str",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": []
+        }
+      },
+      "MU5NGjYx4ICA1x7H": {
+        "_id": "MU5NGjYx4ICA1x7H",
+        "type": "utility",
+        "name": "Tumble",
+        "sort": 4,
+        "img": null,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Bonus action: Acrobatics to move through a creature's space this turn.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "offerWhenBlocked": true,
+            "onUse": [
+              {
+                "type": "check",
+                "skills": [
+                  "acr"
+                ],
+                "dc": "8 + @target.abilities.dex.mod + @target.prof",
+                "onSuccess": [
+                  {
+                    "type": "passThrough"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        }
+      },
+      "ZRac6qqhHnfBSYen": {
+        "_id": "ZRac6qqhHnfBSYen",
+        "type": "utility",
+        "name": "Overrun",
+        "sort": 5,
+        "img": null,
+        "activation": {
+          "type": "bonus",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Bonus action: Athletics to barge through a creature's space this turn.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "offerWhenBlocked": true,
+            "onUse": [
+              {
+                "type": "check",
+                "skills": [
+                  "ath"
+                ],
+                "dc": "8 + @target.abilities.str.mod + @target.prof",
+                "advantage": "larger",
+                "onSuccess": [
+                  {
+                    "type": "passThrough"
+                  }
+                ]
+              }
+            ]
+          },
+          "alivas-box-of-triggers": {
+            "homebrew": true
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        }
+      },
+      "2IC8MNET12TPwzRK": {
+        "_id": "2IC8MNET12TPwzRK",
+        "type": "utility",
+        "name": "Escape Grapple",
+        "sort": 6,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Try to break free of a grapple.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "requires": {
+              "grappled": true
+            },
+            "onUse": [
+              {
+                "type": "escape",
+                "skills": [
+                  "ath",
+                  "acr"
+                ]
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "aGQVYYZoZ9mEljxp": {
+        "_id": "aGQVYYZoZ9mEljxp",
+        "type": "utility",
+        "name": "Climb onto a Bigger Creature",
+        "sort": 7,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Climb onto a creature at least two sizes larger.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "check",
+                "skills": [
+                  "ath",
+                  "acr"
+                ],
+                "dc": "8 + @target.abilities.dex.mod + @target.prof",
+                "onSuccess": [
+                  {
+                    "type": "giveEffect",
+                    "effect": "Climbing",
+                    "to": {
+                      "who": "bearer"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "alivas-box-of-triggers": {
+            "homebrew": true
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        }
+      },
+      "kFSblIf4gX38FjtF": {
+        "_id": "kFSblIf4gX38FjtF",
+        "type": "utility",
+        "name": "Dislodge Rider",
+        "sort": 8,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Try to shake off a creature climbing on you.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "note",
+                "text": "The user tries to shake off a creature climbing on it; the GM sets the check."
+              }
+            ]
+          },
+          "alivas-box-of-triggers": {
+            "homebrew": true
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        }
+      },
+      "YYFIprNMjaMO2YhG": {
+        "_id": "YYFIprNMjaMO2YhG",
+        "type": "utility",
+        "name": "Help (Ability Check)",
+        "sort": 9,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Give an ally Advantage on their next ability check.",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "5UTEdYFIy4S2qRJh",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "ally",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "units": "any",
+          "override": false
+        }
+      },
+      "DOMFDLxKNnUHrB8W": {
+        "_id": "DOMFDLxKNnUHrB8W",
+        "type": "utility",
+        "name": "Help (Attack)",
+        "sort": 10,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Distract an enemy within 5 ft; an ally's next attack against it has Advantage.",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "TlMi5gZdZIbvfJE8",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "enemy",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        }
+      },
+      "pC6hp0PFd99n2t9q": {
+        "_id": "pC6hp0PFd99n2t9q",
+        "type": "utility",
+        "name": "Hide",
+        "sort": 11,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Stealth check against DC 15; on a success you are Hidden.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "check",
+                "skills": [
+                  "ste"
+                ],
+                "dc": 15,
+                "onSuccess": [
+                  {
+                    "type": "giveEffect",
+                    "effect": "Hidden",
+                    "to": {
+                      "who": "bearer"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "OVrGH0rqmV70qe21": {
+        "_id": "OVrGH0rqmV70qe21",
+        "type": "check",
+        "name": "Search",
+        "sort": 12,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Wisdom check to find something.",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "check": {
+          "ability": "",
+          "associated": [
+            "ins",
+            "med",
+            "prc",
+            "sur"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": ""
+          }
+        }
+      },
+      "7KLAUtjn2Y1yDX1G": {
+        "_id": "7KLAUtjn2Y1yDX1G",
+        "type": "check",
+        "name": "Study",
+        "sort": 13,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Intelligence check to recall or deduce.",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "check": {
+          "ability": "",
+          "associated": [
+            "arc",
+            "his",
+            "inv",
+            "nat",
+            "rel"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": ""
+          }
+        }
+      },
+      "OJzdnScio3aFZOiP": {
+        "_id": "OJzdnScio3aFZOiP",
+        "type": "check",
+        "name": "Influence",
+        "sort": 14,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Charisma or Wisdom check to sway a creature.",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "check": {
+          "ability": "",
+          "associated": [
+            "dec",
+            "itm",
+            "prf",
+            "per",
+            "ani"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": ""
+          }
+        }
+      },
+      "iGNMIdH0Ip5xS5hx": {
+        "_id": "iGNMIdH0Ip5xS5hx",
+        "type": "utility",
+        "name": "Utilize",
+        "sort": 15,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Use an object that needs an action.",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "7bYRqoNxFw3V60Ou": {
+        "_id": "7bYRqoNxFw3V60Ou",
+        "type": "utility",
+        "name": "Dash",
+        "sort": 16,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Extra movement this turn.",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "ogkQaxF4XlRrZn0C",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "J2l6VibgPdhz3VjG": {
+        "_id": "J2l6VibgPdhz3VjG",
+        "type": "utility",
+        "name": "Disengage",
+        "sort": 17,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Your movement provokes no Opportunity Attacks this turn.",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "FMwC02FBPwEtZMxS",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "m4zgZaieYI7agsE9": {
+        "_id": "m4zgZaieYI7agsE9",
+        "type": "utility",
+        "name": "Dodge",
+        "sort": 18,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Defensive stance until the start of your next turn.",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "gA7SdMZOMWODOGBu",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "x1eF57A5Wuj7hNcM": {
+        "_id": "x1eF57A5Wuj7hNcM",
+        "type": "utility",
+        "name": "Ready",
+        "sort": 19,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Hold an action and a reaction for a trigger (note only).",
+          "value": ""
+        },
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "CPoa0KvUEe07l88b": {
+        "_id": "CPoa0KvUEe07l88b",
+        "type": "utility",
+        "name": "Release Grapple",
+        "sort": 20,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Let go of a creature you are grappling.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "release"
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "O48augOsZwxOZ19u": {
+        "_id": "O48augOsZwxOZ19u",
+        "type": "utility",
+        "name": "Drop Prone",
+        "sort": 21,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Fall Prone at no cost.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "requires": {
+              "speed": true
+            }
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "hhNergo9DXRWYUTu",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "8heuS5T6nRUWvO0e": {
+        "_id": "8heuS5T6nRUWvO0e",
+        "type": "utility",
+        "name": "Stand Up",
+        "sort": 22,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "End Prone; this costs half your Speed.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "removeStatus",
+                "statuses": [
+                  "prone"
+                ],
+                "to": {
+                  "who": "bearer"
+                }
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      },
+      "hWEzMUyfyuGdVTyF": {
+        "_id": "hWEzMUyfyuGdVTyF",
+        "type": "utility",
+        "name": "Lift Ally",
+        "sort": 23,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Pick up a willing or unconscious ally within reach.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "requires": {
+              "canLift": true
+            }
+          },
+          "alivas-box-of-triggers": {
+            "homebrew": true
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "nTkfgz4hf0a3LVsG",
+            "level": {},
+            "onSave": false,
+            "uuid": null
+          }
+        ],
+        "target": {
+          "override": false,
+          "prompt": true,
+          "affects": {
+            "count": "1",
+            "type": "ally",
+            "choice": false
+          },
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          }
+        },
+        "range": {
+          "value": "5",
+          "units": "ft",
+          "override": false
+        }
+      },
+      "nshMax6SPXzJuYqo": {
+        "_id": "nshMax6SPXzJuYqo",
+        "type": "utility",
+        "name": "Drop Ally",
+        "sort": 24,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false,
+          "expiry": null
+        },
+        "description": {
+          "chatFlavor": "Put down a creature you are carrying.",
+          "value": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "release"
+              }
+            ]
+          },
+          "alivas-box-of-triggers": {
+            "homebrew": true
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "behaviors": [],
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "target": {
+          "override": false,
+          "prompt": false,
+          "affects": {
+            "type": "self",
+            "choice": false
+          }
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        }
+      }
+    },
+    "identifier": "combat-maneuvers",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Combat Maneuvers",
+          "type": "feat"
+        },
+        {
+          "identifier": "combat-maneuvers",
+          "type": "feat"
+        }
+      ],
+      "maneuvers": true
+    }
+  },
+  "effects": [
+    {
+      "_id": "ogkQaxF4XlRrZn0C",
+      "name": "Dashing",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.movement.speeds.walk",
+            "type": "multiply",
+            "value": "2",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.fly",
+            "type": "multiply",
+            "value": "2",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.swim",
+            "type": "multiply",
+            "value": "2",
+            "phase": "initial"
+          },
+          {
+            "key": "system.attributes.movement.speeds.climb",
+            "type": "multiply",
+            "value": "2",
+            "phase": "initial"
+          }
+        ]
+      },
+      "flags": {},
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.ogkQaxF4XlRrZn0C"
+    },
+    {
+      "_id": "FMwC02FBPwEtZMxS",
+      "name": "Disengaged",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnEnd"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "disengaged": true
+        }
+      },
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.FMwC02FBPwEtZMxS"
+    },
+    {
+      "_id": "gA7SdMZOMWODOGBu",
+      "name": "Dodging",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "dodging"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "turns",
+        "expiry": "turnStart"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.gA7SdMZOMWODOGBu"
+    },
+    {
+      "_id": "hhNergo9DXRWYUTu",
+      "name": "Prone",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "prone"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {},
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.hhNergo9DXRWYUTu"
+    },
+    {
+      "_id": "5UTEdYFIy4S2qRJh",
+      "name": "Helped (Ability Check)",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "sourceStart"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "checksWith": {
+            "mode": "advantage",
+            "once": true
+          }
+        }
+      },
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.5UTEdYFIy4S2qRJh"
+    },
+    {
+      "_id": "TlMi5gZdZIbvfJE8",
+      "name": "Distracted (Help)",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "sourceStart"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "attackedWith": {
+            "mode": "advantage",
+            "once": true,
+            "by": "allyOfSource"
+          }
+        }
+      },
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.TlMi5gZdZIbvfJE8"
+    },
+    {
+      "_id": "aiPivfxfy3PCQHow",
+      "name": "Hidden",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "hiding",
+        "invisible"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Hidden",
+              "event": "attack",
+              "action": {
+                "type": "note",
+                "text": "Made an attack roll."
+              },
+              "then": "remove"
+            },
+            {
+              "label": "Hidden",
+              "event": "spell",
+              "filter": [
+                {
+                  "k": "item.properties",
+                  "o": "has",
+                  "v": "vocal"
+                }
+              ],
+              "action": {
+                "type": "note",
+                "text": "Cast a spell with a Verbal component."
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.aiPivfxfy3PCQHow"
+    },
+    {
+      "_id": "HFX8oqxdCsPFOyNC",
+      "name": "Shoved Aside",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Shove Aside",
+              "event": "applied",
+              "action": {
+                "type": "note",
+                "text": "The user moves this creature 5 ft to another space within the user's reach."
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.HFX8oqxdCsPFOyNC"
+    },
+    {
+      "_id": "RrMZT2LpdWcZ6jsr",
+      "name": "Pinned",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "restrained"
+      ],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "sourceStart"
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "whileStatus": "grappled"
+        },
+        "alivas-box-of-triggers": {
+          "homebrew": true
+        }
+      },
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.RrMZT2LpdWcZ6jsr"
+    },
+    {
+      "_id": "SvGB5GurOWXVBMNv",
+      "name": "Hurled",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Hurl Creature",
+              "event": "applied",
+              "action": {
+                "type": "endEffect",
+                "status": "grappled"
+              }
+            },
+            {
+              "label": "Hurl Creature",
+              "event": "applied",
+              "action": {
+                "type": "note",
+                "text": "The user moves this creature up to 5 ft x the user's Strength modifier (minimum 5 ft) to a free space; falling damage if it lands lower."
+              },
+              "then": "remove"
+            }
+          ]
+        },
+        "alivas-box-of-triggers": {
+          "homebrew": true
+        }
+      },
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.SvGB5GurOWXVBMNv"
+    },
+    {
+      "_id": "9BHKupsY6EVDwp0Q",
+      "name": "Climbing",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-box-of-triggers": {
+          "homebrew": true
+        }
+      },
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.9BHKupsY6EVDwp0Q"
+    },
+    {
+      "_id": "nTkfgz4hf0a3LVsG",
+      "name": "Lifted",
+      "img": "icons/skills/melee/unarmed-punch-fist-yellow-red.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "",
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "tether": {
+            "range": 5,
+            "drag": true
+          }
+        },
+        "alivas-box-of-triggers": {
+          "homebrew": true
+        }
+      },
+      "_key": "!items.effects!EyGl5Rqnc8X5dTgs.nTkfgz4hf0a3LVsG"
+    }
+  ],
+  "sort": 0,
+  "_key": "!items!EyGl5Rqnc8X5dTgs"
+}
