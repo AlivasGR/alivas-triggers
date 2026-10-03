@@ -138,11 +138,12 @@ const TRIGGER_ACTIONS = [
   ["release", "fa-hand-back-fist", "Let go", "The bearer releases its holds on the creatures concerned"],
   ["escape", "fa-person-running", "Break free", "The bearer checks against the hold on it; a success ends the hold"],
   ["endEffect", "fa-circle-xmark", "End an effect", "Remove an effect by name or condition from the creatures concerned"],
-  ["useReaction", "fa-hourglass-half", "Spend the reaction", "The bearer's reaction is used (Ready)"]
+  ["useReaction", "fa-hourglass-half", "Spend the reaction", "The bearer's reaction is used (Ready)"],
+  ["dropHeld", "fa-hand-holding", "Drop held weapon", "Creatures drop a weapon they hold into a pile (Disarm; needs Item Piles)"]
 ];
 
 /** The actions a check's success / failure lists may hold. */
-const SUB_ACTIONS = ["giveEffect", "removeStatus", "passThrough", "place", "push", "release", "endEffect", "damage", "note", "tempHp"];
+const SUB_ACTIONS = ["giveEffect", "removeStatus", "passThrough", "place", "push", "release", "endEffect", "damage", "note", "tempHp", "dropHeld"];
 /** Check DC presets: [id, label, formula]. */
 const CHECK_DC_PRESETS = [
   ["dex", "8 + the target's DEX modifier + proficiency", "8 + @target.abilities.dex.mod + @target.prof"],
@@ -236,7 +237,8 @@ const DEFAULT_ACTIONS = {
   release: { type: "release" },
   escape: { type: "escape", skills: ["ath", "acr"] },
   endEffect: { type: "endEffect", name: "" },
-  useReaction: { type: "useReaction" }
+  useReaction: { type: "useReaction" },
+  dropHeld: { type: "dropHeld" }
 };
 
 /** Starting data for a step in a check's success / failure list (only SUB_ACTIONS). */
@@ -250,7 +252,8 @@ const DEFAULT_SUB_ACTIONS = {
   endEffect: { type: "endEffect", name: "" },
   damage: { type: "damage", formula: "1d6", damageType: "bludgeoning", to: { who: "targets" } },
   note: { type: "note" },
-  tempHp: { type: "tempHp", formula: "1d10 + 5" }
+  tempHp: { type: "tempHp", formula: "1d10 + 5" },
+  dropHeld: { type: "dropHeld" }
 };
 
 const FORMULA_HINT = "Formulas can use the source's data, e.g. <code>@abilities.wis.mod</code>, <code>@prof</code>, "
@@ -714,6 +717,9 @@ function validateTrigger(model) {
     case "inspire": case "swapInitiative":
       errors.push(...selectorErrors(a.to));
       break;
+    case "dropHeld":
+      if ( a.to ) errors.push(...selectorErrors(a.to));
+      break;
     case "tempHp":
       if ( !formulaOk(a.formula) ) errors.push("Temporary HP needs a formula, e.g. 1d10 + 5.");
       break;
@@ -942,6 +948,7 @@ function describeTriggerModel(model, sub=false) {
     case "release": what = `the bearer lets go of ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "what it holds"}`; break;
     case "escape": what = `the bearer tries to break free of the hold on it with ${(a.skills ?? []).map(skillLabel).join(" or ") || "?"}${(a.skills?.length ?? 0) > 1 ? " (the better)" : ""}; a success ends the hold`; break;
     case "useReaction": what = "the bearer's reaction is spent"; break;
+    case "dropHeld": what = `${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the creature concerned"} drops a held weapon`; break;
     case "endEffect": what = `${[a.name ? `“${a.name}”` : "", a.status ? statusLabel(a.status) : ""].filter(Boolean).join(" / ") || "?"} ends on ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the bearer"}`; break;
     default: what = EXT_ACTIONS.get(a.type)?.describe?.(a) ?? "(nothing chosen)";
   }
@@ -1044,7 +1051,7 @@ function describeReactionModel(model, item) {
 
 /** Actions offered in an activity's "right after it's used" steps. */
 const ACTIVITY_ACTIONS = ["giveEffect", "removeStatus", "inspire", "tempHp", "damage", "spendHitDie", "recoverSlots", "storeSpell", "toggleLight",
-  "random", "teleport", "push", "sense", "note", "check", "passThrough", "place", "release", "escape", "endEffect", "useReaction"];
+  "random", "teleport", "push", "sense", "note", "check", "passThrough", "place", "release", "escape", "endEffect", "useReaction", "dropHeld"];
 
 /** Activity requirements (flag `requires`): [key, label]. maxSizeAbove is a number and handled separately. */
 const REQUIREMENTS = [
@@ -1826,6 +1833,11 @@ export class TriggerEditor extends ApplicationV2 {
       }
       case "inspire": case "swapInitiative":
         return `<div class="aet-fields">${this.#selectorFields(`${P}.to`, a.to, "trigger")}</div>`;
+      case "dropHeld":
+        return `<div class="aet-fields">
+          <label class="aet-check"><input type="checkbox" data-special="actionTo" data-rerender${a.to ? " checked" : ""}><span>Choose who drops (default: the creature concerned)</span></label>
+          ${a.to ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}
+          <p class="aet-muted">Each drops one held weapon into a pile in its space; with several weapons the GM picks. Needs Item Piles.</p></div>`;
       case "duplicates":
         return `<div class="aet-fields">
           <label class="aet-inline"><span>Duplicates</span><input type="number" class="aet-num" data-path="${P}.count" data-type="number" value="${esc(a.count)}" min="1"></label>
