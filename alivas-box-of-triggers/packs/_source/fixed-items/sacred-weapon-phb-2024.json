@@ -93,7 +93,8 @@
             "pay": {
               "cost": 1,
               "from": [
-                "channel-divinity"
+                "channel-divinity",
+                "channel-divinity-paladin"
               ]
             }
           }
@@ -131,12 +132,17 @@
   "img": "icons/weapons/swords/sword-gold-holy.webp",
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 2,
+      "version": 3,
       "match": [
         {
           "type": "feat",
           "identifier": "sacred-weapon",
           "book": "PHB 2024"
+        },
+        {
+          "type": "feat",
+          "identifier": "sacred-weapon",
+          "compendiumSource": "Compendium.dnd5e.classes24.Item.phbpdnSacredWeap"
         }
       ]
     }

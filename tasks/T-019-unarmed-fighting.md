@@ -1,6 +1,6 @@
 # T-019 — Unarmed Fighting (2024 Fighting Style): damage swap and grapple damage
 
-- **Status:** needs-live-test
+- **Status:** done
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine, editor, box
@@ -34,20 +34,20 @@ Patch `unarmed-fighting-phb-2024.json` v1: one transfer effect.
 ## Acceptance
 - [x] `node --check` on main.mjs, creatures.mjs, editor.mjs (offline)
 - [x] strip-rules-text check; `npm run pack` (offline)
-- [ ] Fighter level 1, Str 16 (+3), with Unarmed Fighting patched (Review & apply), and a 2024 Unarmed Strike (Box
+- [x] Fighter level 1, Str 16 (+3), with Unarmed Fighting patched (Review & apply), and a 2024 Unarmed Strike (Box
       patched).
       - Nothing equipped: Unarmed Strike damage reads `1d8 + 3` bludgeoning.
       - Longsword equipped: `1d6 + 3`.
       - Shield equipped, no weapon: `1d6 + 3`.
-      - A critical hit doubles the d8. (live)
-- [ ] Monk level 5 (Martial Arts d8, Dex 18 +4, Str 10 +0), empty hands: the Monk's own `1d8 + 4` stays, because the
+      - A critical hit doubles the d8. (live 2026-10-03)
+- [x] Monk level 5 (Martial Arts d8, Dex 18 +4, Str 10 +0), empty hands: the Monk's own `1d8 + 4` stays, because the
       replacement's average is lower. (live)
-- [ ] Grapple a ZZ creature with the Unarmed Strike's Grapple, then start the bearer's turn in combat. A creature picker
+- [x] Grapple a ZZ creature with the Unarmed Strike's Grapple, then start the bearer's turn in combat. A creature picker
       offers the grappled creature (and no one else). Picking it deals 1d4 bludgeoning. Choosing nobody deals nothing.
-      With nobody grappled there is no prompt and no chat line. (live)
-- [ ] Editor: the effect's Effect rules → Damage group shows both lines ("Unarmed Strikes, holding no weapon or shield"
+      With nobody grappled there is no prompt and no chat line. (live 2026-10-03)
+- [x] Editor: the effect's Effect rules → Damage group shows both lines ("Unarmed Strikes, holding no weapon or shield"
       / "Unarmed Strikes"). Saving without changes keeps the flags identical. The trigger's selector shows "Only creatures
-      the bearer is grappling", and the summary reads "… that the bearer is grappling". (live)
+      the bearer is grappling", and the summary reads "… that the bearer is grappling". (live 2026-10-03: both lines and the grappledBy box render, the summary reads "... that the bearer is grappling", saving unchanged keeps the effect flags identical)
 
 ## Done
 - Engine: `baseDamage` rule plus `heldItems` / `averageOf` helpers (`main.mjs`); `grappledBy` selector
@@ -57,10 +57,11 @@ Patch `unarmed-fighting-phb-2024.json` v1: one transfer effect.
 - Box: `unarmed-fighting-phb-2024.json` v1 (`_id` hfKX9Ey48FFli97N).
 
 ## Left
-Run the live checks above.
+Nothing; every acceptance item passed live (2026-10-03).
 
-Assumption to verify: dnd5e's base damage roll is either the one marked `base: true` or `rolls[0]`, and its first part
-is the weapon's scaled formula. Check with `CONFIG.debug.dice` or by logging `config.rolls` in `dnd5e.preRollDamageV2`.
+Assumption verified: the base damage roll is replaced as expected (1d8 / 1d6 lines, crit doubles the die).
 
 ## Log
 - 2026-10-03 — Claude (Opus): engine pieces, editor, and patch written. Offline checks pass; untested live.
+- 2026-10-03 — Sonnet live test: damage swap and grapple picker PASS; editor round-trip NOT RUN. Fighter Str 16: empty hands 1d8 + 3, longsword 1d6 + 3, shield only 1d6 + 3, crit 2d8 + 3. Monk (class level 5, Dex 18, Martial Arts formula put on the strike by hand because the dump's Unarmed Strike doesn't carry the Martial Arts enchantment): kept 1d8 + 4. Grapple then turnStart: picker listed only the grappled creature plus "No one"; picking it dealt 1d4, "No one" dealt nothing, nobody grappled gave no prompt and no message.
+- 2026-10-03 — Sonnet live test (retest): editor round-trip PASS. Effect editor of the patched Unarmed Fighting shows the two base-damage lines (1d8 + @abilities.str.mod bludgeoning, "Unarmed Strikes, holding no weapon or shield"; 1d6 + @abilities.str.mod, "Unarmed Strikes"), the trigger's "Only creatures the bearer is grappling" box is checked and the summary reads "... that the bearer is grappling". Save without changes: effect flags JSON identical. Status set to done.

@@ -93,7 +93,7 @@
   },
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "type": "feat",
@@ -114,6 +114,16 @@
           "type": "feat",
           "name": "Alert",
           "book": "PHB 2014"
+        },
+        {
+          "type": "feat",
+          "identifier": "alert",
+          "book": "PHB'14"
+        },
+        {
+          "type": "feat",
+          "name": "Alert",
+          "book": "PHB'14"
         }
       ]
     }

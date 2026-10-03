@@ -94,6 +94,8 @@
  *   attacksWith { mode, once, unlessTarget }       unlessTarget "source": not against the effect's source (Compelled Duel)
  *   light { bright, dim, color }                   the bearer's token sheds this light while the effect lasts
  *   noSpells                                       the bearer can't cast spells; concentration ends when it's applied
+ *   actionOrBonus                                  on its turn the bearer takes an Action or a Bonus Action, not both
+ *                                                  (economy.mjs; Wardaway, Slow)
  *   armorClass { formula, label, armored }         one more AC calculation (dnd5e keeps the best) — Natural Armor
  *   whileStatus "rage"                             ends as soon as the creature lacks that status (effects, enchantments)
  *   sustain { events, filter }                     ends at the end of the bearer's turn unless it did one of the events
@@ -235,6 +237,7 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
         if ( !result.hit ) {
           absorbed.set(key, { at: Date.now(), reason: "the attack missed after a reaction" });
           fire("missed", subject.actor, missContext(subject, rolls, target));
+          await applyMastery(subject, target, { hit: false, roll });   // a miss after all: Graze
           continue;
         }
       } finally {
@@ -606,7 +609,10 @@ for ( const name of ["AbilityCheck", "Skill", "ToolCheck"] ) {
  * the enchanted item sheds it — until the enchantment ends or the item changes hands.
  */
 const lightRule = effect => (effect.active && (effect.parent instanceof Actor)) ? effect.getFlag(MODULE_ID, "light") : null;
-const itemLightRule = effect => ((effect.type === "enchantment") && !effect.disabled && !effect.isSuppressed) ? effect.getFlag(MODULE_ID, "light") : null;
+// Only an APPLIED enchantment (on the enchanted item) — not the profile effect stored on the item that enchants.
+const isApplied = effect => (effect.type === "enchantment") && !effect.disabled && !effect.isSuppressed
+  && (effect.isAppliedEnchantment ?? !!effect.system?.origin?.activity);
+const itemLightRule = effect => isApplied(effect) ? effect.getFlag(MODULE_ID, "light") : null;
 async function refreshLight(actor) {
   if ( !(actor instanceof Actor) ) return;
   const current = (actor.appliedEffects ?? []).map(lightRule).find(Boolean)
@@ -824,11 +830,11 @@ Hooks.once("setup", () => {
     const cls = config.documentClass;
     let proto = cls?.prototype, base;
     while ( proto && !(base = Object.getOwnPropertyDescriptor(proto, "spellcastingAbility")) ) proto = Object.getPrototypeOf(proto);
-    if ( !base?.get || Object.prototype.hasOwnProperty.call(cls.prototype, "spellcastingAbility") ) continue;
-    Object.defineProperty(cls.prototype, "spellcastingAbility", {
-      configurable: true,
-      get() { return castingAbilityFor(this) ?? base.get.call(this); }
-    });
+    // Chain on top of whatever is there (dnd5e's, or another module's — the Box's weapon-option getter), once per class.
+    if ( !base?.get || base.get.alivasCasting ) continue;
+    const get = function() { return castingAbilityFor(this) ?? base.get.call(this); };
+    get.alivasCasting = true;
+    Object.defineProperty(cls.prototype, "spellcastingAbility", { configurable: true, get });
   }
 });
 
@@ -903,7 +909,8 @@ Hooks.on("deleteActiveEffect", effect => {
   if ( !Creatures.isLeadGM() || !bondOf(effect) ) return;
   const item = effect.parent;
   // dnd5e may already remove it (an item created from a compendium while enchanting depends on its enchantment).
-  if ( (item instanceof Item) && item.getFlag(MODULE_ID, "conjured") && item.parent?.items.has(item.id) ) {
+  if ( (item instanceof Item) && item.getFlag(MODULE_ID, "conjured") && item.parent?.items.has(item.id)
+    && !item.getFlag("dnd5e", "dependentOn") ) {
     item.delete().catch(() => {});
   }
 });
@@ -920,7 +927,7 @@ Hooks.on("createItem", item => {
 });
 
 // Away too long (lead GM, on game time): more than `range` ft from the bonder for `away` seconds.
-Hooks.on("updateWorldTime", async worldTime => {
+Hooks.on("updateWorldTime", async (worldTime, delta=0) => {
   if ( !Creatures.isLeadGM() ) return;
   for ( const { effect, bond, holder, bonder } of allBonds() ) {
     if ( bond.carried && bonder && (holder.uuid !== bonder.uuid) ) {
@@ -938,8 +945,10 @@ Hooks.on("updateWorldTime", async worldTime => {
       if ( since !== undefined ) await effect.unsetFlag(MODULE_ID, "awaySince");
       continue;
     }
-    if ( since === undefined ) await effect.setFlag(MODULE_ID, "awaySince", worldTime);
-    else if ( (worldTime - since) >= Number(bond.away) ) await endBond(effect, `more than ${Number(bond.range) || 5} ft away for too long`);
+    // Away since this time step began (a 1-minute jump counts as a minute away).
+    const from = since ?? (worldTime - Math.max(0, Number(delta) || 0));
+    if ( (worldTime - from) >= Number(bond.away) ) await endBond(effect, `more than ${Number(bond.range) || 5} ft away for too long`);
+    else if ( since === undefined ) await effect.setFlag(MODULE_ID, "awaySince", from);
   }
 });
 
@@ -982,8 +991,22 @@ function masteryOf(activity) {
   const id = item?.system?.mastery;
   if ( !id || !actor ) return null;
   const known = actor.system.traits?.weaponProf?.mastery?.value;
-  const base = item.system.type?.baseItem;
+  // The weapon's kind: its base item, else its identifier when that names a weapon (an import with no base item set).
+  const ident = String(item.system.identifier ?? "").replace(/-/g, "");
+  const base = item.system.type?.baseItem || ((ident in (CONFIG.DND5E.weaponIds ?? {})) ? ident : "");
+  if ( !(known?.size ?? known?.length) ) hintNoMasteries(actor);
   return (known?.has?.(base) || known?.includes?.(base)) ? id : null;
+}
+
+/** Once per session: a creature with the Weapon Mastery feature but no masteries chosen on its sheet. */
+const masteryHinted = new Set();
+function hintNoMasteries(actor) {
+  if ( masteryHinted.has(actor.uuid) || !actor.items.some(i => i.system?.identifier === "weapon-mastery") ) return;
+  masteryHinted.add(actor.uuid);
+  ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }),
+    whisper: game.users.filter(u => u.isGM || actor.testUserPermission(u, "OWNER")).map(u => u.id),
+    content: `<p><strong>${actor.name}</strong> has Weapon Mastery but no masteries chosen, so none apply (Graze, Vex, Topple…). `
+      + "Choose them on the sheet: Weapon proficiencies → the star next to each weapon.</p>" });
 }
 
 /** Apply a weapon mastery after an attack (setting wfMastery): hit → vex, sap, slow, topple; miss → graze. */
@@ -999,7 +1022,8 @@ async function applyMastery(activity, target, { hit, roll }) {
     flags: { [MODULE_ID]: flags } }, [target]);
   const note = text => ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor: attacker }),
     content: `<p><strong>${label}</strong>: ${text}</p>` });
-  const mod = Number(activity.getRollData?.()?.mod ?? 0);
+  // The modifier the attack roll actually used (finesse: Strength or Dexterity, whichever was rolled).
+  const mod = Number(roll?.data?.mod ?? activity.getRollData?.()?.mod ?? 0);
   if ( hit ) switch ( mastery ) {
     case "vex":
       await give("Vexed", { attackedWith: { mode: "advantage", once: true, by: attacker.uuid } }, [], "sourceEnd");
@@ -1018,7 +1042,10 @@ async function applyMastery(activity, target, { hit, roll }) {
     }
   }
   if ( !hit && (mastery === "graze") && (mod > 0) ) {
-    const type = activity.damage?.parts?.[0]?.types?.first?.() ?? [...(activity.damage?.parts?.[0]?.types ?? [])][0] ?? "";
+    // The weapon's damage type: the one last chosen for this attack (Sacred / Pact Weapon), else its first.
+    const types = [...(activity.damage?.parts?.[0]?.types ?? [])];
+    const last = activity.item?.getFlag?.("dnd5e", `last.${activity.id}.damageType.0`);
+    const type = (last && types.includes(last)) ? last : (types[0] ?? "");
     await applyDamageAs(target, [{ value: mod, type, properties: [] }], activity, { pipeline: true });
     return note(`the miss still deals ${mod} damage to ${target.name}.`);
   }
@@ -1467,8 +1494,9 @@ async function reduceDamage(actor, damages) {
 Hooks.once("setup", () => {
   Delay.patchExpiry();
   Maneuvers.patchMovementCost();
-  // Concentration: dnd5e posts a prompt when a concentrating creature takes damage. Roll it straight away instead
-  // (setting "autoConcentration"), except for a PC whose player is connected in "auto" mode.
+  // Concentration: dnd5e posts a chat prompt when a concentrating creature takes damage — easy to miss. Instead
+  // (setting "autoConcentration"): roll it straight away, or in "auto" mode give a connected player's PC the same popup
+  // as other saves (rolls by itself after the reaction timeout); if the player doesn't answer, roll it here.
   const actorProto = CONFIG.Actor.documentClass.prototype;
   const challenge = actorProto.challengeConcentration;
   actorProto.challengeConcentration = async function(options={}) {
@@ -1476,9 +1504,14 @@ Hooks.once("setup", () => {
     if ( !isLocal(this.uuid) ) return null;
     const mode = setting("autoConcentration");
     if ( (mode === "off") || !this.concentration?.effects?.size ) return challenge.call(this, options);
-    if ( (mode === "auto") && activePlayerOwner(this) ) return challenge.call(this, options);
     const config = { target: options.dc ?? 10 };
     if ( options.ability in CONFIG.DND5E.abilities ) config.ability = options.ability;
+    const player = (mode === "auto") ? activePlayerOwner(this) : null;
+    if ( player ) {
+      const names = Array.from(this.concentration.effects).map(e => e.name);
+      const rolled = await Creatures.runAs(player, "concentrationPrompt", { actorUuid: this.uuid, config, names });
+      if ( rolled ) return null;
+    }
     return this.rollConcentration(config, { configure: false }, {});
   };
 
@@ -1991,6 +2024,28 @@ function damageOptions(activityUuid, messageId, pipeline=false) {
   if ( pipeline ) return { isDelta: true };
   return { isDelta: true, [MODULE_ID]: { reacted: true, activityUuid } };
 }
+
+/**
+ * One-time move to the 0.11.1 player defaults (lead GM): a world still holding the OLD defaults for players' attacks
+ * ("full") and saves ("auto") — stored when the settings window was saved — gets the new ones ("damage": players roll
+ * their attacks, damage on a hit is applied; "apply": targets roll their saves from the card, results applied).
+ * Anything else a GM chose is left alone. Runs once per world; the GM is told what changed.
+ */
+Hooks.once("ready", async () => {
+  if ( !Creatures.isLeadGM() || (setting("defaultsApplied") >= 1) ) return;
+  // The stored value as written (Foundry keeps it JSON-encoded in the source: "\"full\"").
+  const stored = key => {
+    const doc = game.settings.storage.get("world").find(s => s.key === `${MODULE_ID}.${key}`);
+    const raw = doc?._source?.value ?? doc?.value;
+    try { return (typeof raw === "string") ? JSON.parse(raw) : raw; } catch(err) { return raw; }
+  };
+  const changed = [];
+  if ( stored("wfAttackPC") === "full" ) { await game.settings.set(MODULE_ID, "wfAttackPC", "damage"); changed.push("players roll their own attacks (damage on a hit is still applied)"); }
+  if ( stored("wfSavePC") === "auto" ) { await game.settings.set(MODULE_ID, "wfSavePC", "apply"); changed.push("the targets of players' save spells roll from the card (damage and effects still applied)"); }
+  await game.settings.set(MODULE_ID, "defaultsApplied", 1);
+  if ( changed.length ) ChatMessage.implementation.create({ whisper: game.users.filter(u => u.isGM).map(u => u.id),
+    content: `<p><strong>Alivas's Engine</strong>: new defaults applied — ${changed.join("; ")}. Change them in Automation settings → Rolling and resolving.</p>` });
+});
 
 Hooks.once("ready", () => {
   game.socket.on(SOCKET, async data => {
@@ -2588,9 +2643,13 @@ const ACTIONS = {
     if ( !uuid ) return {};
     const original = await fromUuid(uuid);
     if ( !original ) return {};
-    // dnd5e creates a compendium item on the user's actor when enchanting it.
+    // dnd5e creates a compendium item on the user's actor when enchanting it. Its riders (Pact of the Blade's
+    // Spellcasting Attack) are only added from the enchant activity's usage card, so use that activity first (no cost).
     const profile = enchant.effects?.[0]?._id;
-    const enchantment = profile ? await enchant.applyEnchantment(profile, original) : null;
+    if ( !profile ) return {};
+    const usage = await enchant.use({ consume: false, enchantmentProfile: profile, subsequentActions: false,
+      [MODULE_ID]: { noWorkflow: true } }, { configure: false }, { create: true });
+    const enchantment = await enchant.applyEnchantment(profile, original, { chatMessage: usage?.message ?? undefined });
     const item = enchantment?.parent;
     if ( !(item instanceof Item) ) return {};
     await item.update({ [`flags.${MODULE_ID}.conjured`]: true, "system.equipped": true });
@@ -2830,6 +2889,38 @@ async function giveStatus(actor, statusId, until, effect, label) {
 }
 
 // A player rolls a save on their own client (auras, "save" with `to`).
+/**
+ * A player's concentration popup (setting autoConcentration "auto"): Roll / Advantage / Disadvantage; rolls by itself
+ * after the reaction timeout. A failed roll ends concentration (dnd5e.rollConcentrationV2 above). → true when rolled.
+ */
+Creatures.HANDLERS.concentrationPrompt = async function({ actorUuid, config, names }) {
+  const actor = fromUuidSync(actorUuid);
+  if ( !actor?.isOwner || !actor.concentration?.effects?.size ) return false;
+  const seconds = Number(setting("reactionTimeout")) || 0;
+  let dialog = null;
+  let timer = null;
+  const esc = foundry.utils.escapeHTML;
+  const choice = await new Promise(resolve => {
+    foundry.applications.api.DialogV2.wait({
+      window: { title: `${actor.name} — Concentration` }, position: { width: 380 }, rejectClose: false,
+      content: `<p>You took damage: Concentration save, <strong>DC ${config.target}</strong>.</p>
+        ${names?.length ? `<p>On a failure you lose: <strong>${names.map(esc).join(", ")}</strong>.</p>` : ""}
+        ${seconds ? `<p class="hint">Rolls by itself in ${seconds} s.</p>` : ""}`,
+      render: (event, app) => { dialog = app; },
+      buttons: [
+        { action: "normal", label: "Roll", icon: "fa-solid fa-dice-d20", default: true },
+        { action: "advantage", label: "Advantage", icon: "fa-solid fa-angles-up" },
+        { action: "disadvantage", label: "Disadvantage", icon: "fa-solid fa-angles-down" }
+      ]
+    }).then(r => resolve(r ?? "normal"));
+    if ( seconds ) timer = setTimeout(() => { dialog?.close(); resolve("normal"); }, seconds * 1000);
+  });
+  if ( timer ) clearTimeout(timer);
+  const rolls = await actor.rollConcentration({ ...config, advantage: choice === "advantage", disadvantage: choice === "disadvantage" },
+    { configure: false }, {});
+  return !!rolls?.length;
+};
+
 Creatures.HANDLERS.rollSave = async function({ actorUuid, spec }) {
   const actor = fromUuidSync(actorUuid);
   if ( !actor?.isOwner ) return null;
@@ -3002,12 +3093,14 @@ Hooks.once("init", () => {
   });
   game.settings.register(MODULE_ID, "autoConcentration", {
     name: "Concentration saves",
-    hint: "When a concentrating creature takes damage. Off: dnd5e's prompt and Break button. Automatic: NPCs (and PCs "
-      + "whose player is offline) roll immediately, connected players get dnd5e's prompt; any failed roll ends "
-      + "concentration. Everyone: roll immediately for all creatures.",
+    hint: "When a concentrating creature takes damage. Off: dnd5e's chat prompt and Break button. Automatic: NPCs (and PCs "
+      + "whose player is offline) roll immediately; a connected player gets a popup (rolls by itself after the reaction "
+      + "timeout; rolled for them if they don't answer); any failed roll ends concentration. Everyone: roll immediately "
+      + "for all creatures.",
     scope: "world", config: true, type: String, default: "auto",
     choices: { off: "Off (dnd5e default)", auto: "Automatic (players roll their own)", all: "Roll for everyone" }
   });
+  game.settings.register(MODULE_ID, "defaultsApplied", { scope: "world", config: false, type: Number, default: 0 });
   game.settings.register(MODULE_ID, "reactions", {
     name: "Reaction popups",
     hint: "When something happens that a creature could react to (an attack hits, a save succeeds, damage is about to "
@@ -3034,7 +3127,7 @@ Hooks.once("init", () => {
     hint: "When a player's creature (their character or summon) uses something that forces a save (Fireball, Toll the "
       + "Dead…): the creatures in its area — or the targets — roll, damage is rolled once and applied per result, and "
       + "effects go on those who failed.",
-    scope: "world", config: true, type: String, default: "auto", choices: saveModes
+    scope: "world", config: true, type: String, default: "apply", choices: saveModes
   });
   game.settings.register(MODULE_ID, "wfSaveNPC", {
     name: "Save spells and abilities — used by NPCs",
@@ -3047,7 +3140,7 @@ Hooks.once("init", () => {
   game.settings.register(MODULE_ID, "wfAttackPC", {
     name: "Attacks — used by players",
     hint: "When a player's creature attacks with targets selected.",
-    scope: "world", config: true, type: String, default: "full", choices: attackModes
+    scope: "world", config: true, type: String, default: "damage", choices: attackModes
   });
   game.settings.register(MODULE_ID, "wfAttackNPC", {
     name: "Attacks — used by NPCs",

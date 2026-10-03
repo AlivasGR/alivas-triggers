@@ -127,7 +127,7 @@ noHealing, dropSave, onlyIf, saveDamage, ownRollsOnly, ignoreDamageFrom, noReact
 attackAbilities(Only), minLevel, reduceDamage, damageDice (minimum die), baseDamage (deal X instead of a weapon's own
 damage when higher; filter data adds held.weapons / held.shield), light, noSpells, sustain (Rage upkeep),
 tether, passThrough, checksWith, whileStatus, ignoreCover ({ level, classification?, type? }), extraAttack ({ count,
-item: weapon filter }), noUnseenAdvantage (setting unseenAttacks), bond (on enchantments: { id, single, range, away,
+item: weapon filter }), noUnseenAdvantage (setting unseenAttacks), actionOrBonus (an Action or a Bonus Action on its turn, not both), bond (on enchantments: { id, single, range, away,
 endOnDeath } — Pact of the Blade; filters see `item.bonds`).
 Prefer dnd5e 6's own conditional Rules changes (`attack` / `damage` / `check` / `save` with `dnd5e.bonus` /
 `dnd5e.advantage` and `conditions` on the roll data, e.g. `roll.attack.mode`, `roll.ability`, `roll.skill`) before adding
@@ -135,7 +135,7 @@ an engine rule — Dueling, Reckless Attack and Danger Sense need nothing else.
 
 **Activity flags**: onUse, onHit (attacks: after hits settle; "targets" = creatures hit), pay, chooseEffects (also for
 save activities), targetFilter, summonEffects, repeat, mastery, properties, area.triggers, castingAbility ({ class } |
-{ spell }: where its "spellcasting" ability comes from).
+{ spell }: where its "spellcasting" ability comes from), autoSave (filter: creatures that succeed on its save without rolling).
 
 **Reactions** (on items): `reactions = [{ window, who, activity, outcome, filter, cost, free, oncePerTurn, onceKey,
 requiresItem, atTarget, after, refundUnlessSuccess… }]`. Windows: hitBy, d20Succeeded, d20Failed, damageIncoming,

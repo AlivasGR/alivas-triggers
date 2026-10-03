@@ -78,7 +78,8 @@
             "pay": {
               "cost": 1,
               "from": [
-                "channel-divinity"
+                "channel-divinity",
+                "channel-divinity-paladin"
               ]
             },
             "onUse": [
@@ -130,7 +131,7 @@
   "img": "icons/creatures/eyes/human-single-blue.webp",
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "type": "feat",

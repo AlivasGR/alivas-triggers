@@ -1,6 +1,6 @@
 # T-020 — Weapon options use their spell's casting ability (Magic Initiate)
 
-- **Status:** needs-live-test
+- **Status:** done
 - **Foundry:** test
 - **Owner:**
 - **Area:** box
@@ -20,10 +20,11 @@ that already have options work without re-dropping them.
 
 ## Acceptance
 - [x] Mocked Node test: Magic Initiate Int → int; class Cha → cha; no spell or no option → dnd5e default (offline)
-- [ ] Sorcerer (Cha 18, Int 14) with True Strike from Magic Initiate (Int) and the True Strike option on a dagger:
-      the attack uses Int (+2 + prof) and the damage `1d4 + 2` (live)
-- [ ] The same Sorcerer with Burning Blade learned as a sorcerer spell: Cha (+4) (live)
-- [ ] Remove the spell from the actor: the option falls back to dnd5e's best class ability (live)
+- [x] Sorcerer (Cha 18, Int 14) with True Strike from Magic Initiate (Int) and the True Strike option on a dagger:
+      the attack uses Int (+2 + prof) and the damage `1d4 + 2` (live 2026-10-03)
+- [x] The same Sorcerer with Burning Blade learned as a sorcerer spell: Cha (+4) (live 2026-10-03)
+- [x] Remove the spell from the actor: the option falls back to dnd5e's best class ability (live 2026-10-03)
 
 ## Log
 - 2026-10-03 — Claude (Opus): written and tested offline; untested live.
+- 2026-10-03 — Sonnet live test: PASS. Caster Cha 18 (+4) / Int 14 (+2): True Strike via Magic Initiate (spell ability int) on a dagger rolled 1d20 + 2 + 2, damage 1d4 + 2; Burning Blade as a sorcerer spell rolled 1d20 + 4 + 2; with the spell removed the option fell back to dnd5e's best class ability (Cha, 1d20 + 4 + 2). Options dropped through api.applyWeaponOption, not the sheet drop UI.

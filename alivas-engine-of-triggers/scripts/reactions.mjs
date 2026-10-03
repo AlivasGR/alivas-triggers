@@ -174,6 +174,8 @@ function eligible(actor, window, ctx) {
   for ( const item of actor.items ) {
     const decls = item.getFlag(MODULE_ID, "reactions");
     if ( !Array.isArray(decls) ) continue;
+    // A leveled spell that has to be prepared and isn't can't be cast (cantrips, innate and always-prepared spells can).
+    if ( (item.type === "spell") && (item.system.level > 0) && item.system.canPrepare && !item.system.prepared ) continue;
     for ( const [n, decl] of decls.entries() ) {
       if ( decl.window !== window ) continue;
       if ( (decl.reaction !== false) && noReaction ) continue;
@@ -199,6 +201,9 @@ function eligible(actor, window, ctx) {
       const usedIn = decl.onceKey ? [...actor.items] : [item];
       if ( decl.oncePerTurn && turn && usedIn.some(i => i.getFlag(MODULE_ID, `usedTurn.${onceKey}`) === turn) ) continue;
       const label = decl.label ?? item.name;
+      // Copies of the same item (a spell granted twice: class list and a feature) offer it once.
+      const ident = item.system.identifier;
+      if ( ident && out.some(o => (o.label === label) && (actor.items.get(o.option.itemId)?.system.identifier === ident)) ) continue;
       out.push({
         label, outcome: decl.outcome ?? { type: "none" },
         detail: decl.detail ?? "",

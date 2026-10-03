@@ -153,8 +153,22 @@ export async function spendInteraction(actor, { label="Interact with an object" 
   return spendUtilize(actor, { label });
 }
 
-/** Activities mark what they cost. */
+/**
+ * Activities mark what they cost. Effect rule `actionOrBonus: true` (Wardaway, Slow): on its turn the bearer can use an
+ * Action or a Bonus Action, not both — the second is refused with a notice.
+ */
 export function registerEconomyHooks() {
+  Hooks.on("dnd5e.preUseActivity", activity => {
+    if ( !tracking() ) return;
+    const actor = activity?.actor;
+    const type = activity?.activation?.type;
+    const kind = (type === "action") ? "action" : (type === "bonus") ? "bonus" : null;
+    if ( !kind || !actor || !isTurnOf(actor) ) return;
+    const rule = actor.appliedEffects?.find(e => e.getFlag(MODULE_ID, "actionOrBonus"));
+    if ( !rule || !used(actor, kind === "action" ? "bonus" : "action") ) return;
+    ui.notifications.warn(`${actor.name} can take an Action or a Bonus Action this turn, not both (${rule.name}).`);
+    return false;
+  });
   Hooks.on("dnd5e.postUseActivity", activity => {
     if ( !tracking() ) return;
     const type = activity?.activation?.type;

@@ -99,67 +99,73 @@ Stage (`sources.mjs`):
   take the unseen penalty.
 
 ## Acceptance (live) — throwaway ZZ scene, token vision on
-1. **Unseen attacks.**
+1. **Unseen attacks.** PASS (live 2026-10-03)
    - An Invisible ZZ Fighter attacks a ZZ Goblin that has no special senses: advantage.
    - The Goblin attacks the Fighter: disadvantage.
    - Give the Goblin Blindsight 10 ft, adjacent: neither applies.
    - Turn the setting off: nothing applies.
-2. **2014 Alert** (import a PHB 2014 Alert with Plutonium; confirm the match): initiative +5 in both legacy and modern
+2. **2014 Alert** PASS (live 2026-10-03; retest: Plutonium PHB 2014 import, book "PHB'14", auto-patched to v2, init total = Dex 2 + 5 = 7, no proficiency; earlier run: legacy and modern, no unseen advantage) (import a PHB 2014 Alert with Plutonium; confirm the match): initiative +5 in both legacy and modern
    worlds, with no proficiency-based bonus. An Invisible attacker gets no advantage against the Alert creature.
-3. **2024 Alert, SRD copy** (dragged from dnd5e's feats compendium): Review & apply offers it, and Initiative Swap
+3. **2024 Alert, SRD copy** PASS (live 2026-10-03) (dragged from dnd5e's feats compendium): Review & apply offers it, and Initiative Swap
    works.
-4. **Pact of the Blade** (ZZ Warlock 5 / Wizard 3, Cha 16, Int 18):
+4. **Pact of the Blade** PASS (live 2026-10-03; retest: conjured Longsword has the Spellcasting Attack, 1d20 + 3 (Cha) + 3 (prof); the Forge path (owned dagger) too; a single game.time.advance(60) ends the distance bond, dagger stays; Dead ends the bond and removes the conjured weapon; see Left 8 for server-log noise) (ZZ Warlock 5 / Wizard 3, Cha 16, Int 18):
    - **Conjure:** pick Longsword. It appears named "…, Pact Weapon", proficient, with the Spellcasting Attack, which
      uses **Cha** (+3), not Int.
    - **Bond a second weapon** (Forge on a dagger): the conjured longsword disappears and the bond chat line appears.
    - **Distance:** give the dagger to another ZZ token 10 ft away, then advance game time 1 minute. The bond ends; the
      dagger stays (it wasn't conjured).
    - **Death:** conjure again, then give the Warlock the Dead status. The bond ends and the weapon disappears.
-5. **Thirsting Blade:**
+5. **Thirsting Blade:** PASS (live 2026-10-03)
    - Attack with the pact weapon (Attack action): one follow-up attack is offered, with the pact weapon only.
    - Attack with a non-pact weapon: no follow-up.
-6. **Eldritch Smite:**
+6. **Eldritch Smite:** PASS (live 2026-10-03: 4d8, 8d8 on a crit, Pact slot spent, Prone, Gargantuan, once per turn)
    - Hit with the pact weapon and pick Eldritch Smite with a level 3 Pact slot: +4d8 force, doubled on a crit, and one
      Pact slot spent.
    - The "Knock the target Prone?" question appears; Yes gives Prone.
    - Against a Gargantuan target: no Prone question.
    - Once per turn.
-7. **Lifedrinker:**
+7. **Lifedrinker:** PASS (live 2026-10-03: 1d6, HD d8 spent and HP +9, once per turn)
    - Hit with the pact weapon, pick Lifedrinker (Psychic): +1d6 psychic.
    - "Spend a Hit Point Die…?" Yes: the largest Hit Point Die is spent and HP restored.
    - Once per turn across the three options.
-8. **Misty Step** (Plutonium copy, after Review & apply): casting it asks for a spot within 30 ft and teleports.
-9. **Sacred Weapon** (ZZ Paladin 3 Devotion, Cha 16):
+8. **Misty Step** PASS (live 2026-10-03; Plutonium import auto-patched; placement click stubbed) (Plutonium copy, after Review & apply): casting it asks for a spot within 30 ft and teleports.
+9. **Sacred Weapon** PASS (live 2026-10-03; retest on the dnd5e SRD copy: use spends the SRD Channel Divinity (2->1), +3 attack, light 20/40; a second Sacred Weapon removes the first and the light stays; deleting the enchantment turns the light off (0/0); handing the weapon over ends the bond and both tokens are dark; Review & apply plan() lists the SRD copy as outdated when its version flag is lowered) (ZZ Paladin 3 Devotion, Cha 16):
    - Use it on a longsword: attacks get +3 and the token sheds 20/40 ft light with the yellow loop. A hit asks
      Slashing or Radiant.
    - Use it on a second weapon: the first loses it, and the light stays (from the second).
    - Hand the weapon to another ZZ token: the bond ends, and the light and the loop stop.
    - The Channel Divinity use is spent.
-10. **Damage type choice:** a Pact Weapon hit asks Slashing / Necrotic / Psychic / Radiant, and the roll uses the
+10. **Damage type choice:** PASS (live 2026-10-03; retest: Pact Weapon answer Radiant -> roll type radiant, no damage to a radiant-immune target; answer Necrotic -> 7 necrotic, HP 195->188; Sacred Weapon Radiant -> 10 radiant, immune target unharmed, Slashing -> 4 slashing, HP 182->178; Graze with a multi-type weapon not run: by code graze uses the first damage type and does not ask) a Pact Weapon hit asks Slashing / Necrotic / Psychic / Radiant, and the roll uses the
     answer. Turn the setting off: no question; dnd5e uses its last choice.
-11. **Flurry of Blows v3** (Heightened Focus). Activity flag `repeat.count` may be a formula (`workflow.mjs`
+11. **Flurry of Blows v3** PASS (live 2026-10-03: 2 strikes at level 5, 3 at level 10, 1 Focus Point each time) (Heightened Focus). Activity flag `repeat.count` may be a formula (`workflow.mjs`
     `strikeCount`). The patch uses `2 + floor(min(@classes.monk.levels, 10) / 10)`.
     - ZZ Monk 5: Flurry asks for 1 follow-up (2 strikes).
     - Set the monk to level 10, then Review & apply: 2 follow-ups (3 strikes).
     - One Focus Point spent in both cases.
     - The editor's "Strikes per use" shows the formula and saves it unchanged.
-12. **Creature picker scrolls** (`creatures.mjs` `pickOnMap` and `pickMany`; the list is capped at about half the
+12. **Creature picker scrolls** PASS (live 2026-10-03: 21 rows, list 440 px, Confirm visible; map target scrolls its row in) (`creatures.mjs` `pickOnMap` and `pickMany`; the list is capped at about half the
     screen). Put 15+ ZZ tokens near a ZZ Sorcerer, then trigger Silvery Barbs. The "who gets advantage" list scrolls and
     Confirm stays visible. Targeting a creature on the map scrolls its row into view.
-13. **Editor:**
+13. **Editor:** PASS with notes (live 2026-10-03: all new patch editors open and save; only Eldritch Smite drops `configure:false`, Sacred Weapon gains `bond.range: 5`)
    - Open each new patch's effect, reaction and activity editors and save without changes: flags are identical.
    - The new fields render, and their descriptions read correctly.
 
 ## Left
-- Run the live checks above.
+Retest 2026-10-03 (Sonnet): the earlier failures 1-7 are fixed (2014 Alert book label, conjured rider, Cha vs Int, damage type answer, Sacred Weapon light, SRD Sacred Weapon / Channel Divinity pool, bond away in one tick). Remaining:
+1. **Server log noise when a conjured weapon's bond ends** (replaces the old double delete, which is gone): the log shows `undefined id [<item id>] does not exist in the EmbeddedCollection collection.` twice and `Cannot read properties of undefined (reading 'length')` from server-backend. Traced to dnd5e itself: `ActiveEffect5e#_onDeleteOperation` (dnd5e.mjs ~8202) sends one `modifyBatch` with an Item update (`system.activities.<rider id>: ForcedDeletion`) and the Item delete of the dependent conjured weapon; the update targets the item deleted in the same batch. The weapon is removed correctly; no Alivas frame in the stack. Harmless; could be avoided by deleting the conjured item first.
+2. Editor drift: saving Eldritch Smite's reactions drops `configure:false`; saving Sacred Weapon's effect adds `bond.range: 5` (not retested).
+3. Console noise: toggling the Invisible status logged `Failed data preparation ... reading 'filters'` (dnd5e, no Alivas frame; not retested).
+Not run: player-client console check, Graze with a multi-type weapon.
 - Not done:
   - "can't bond with a magic weapon someone else is attuned to / another Warlock bonded";
   - 2014 Alert "can't be surprised" (dnd5e has no 2014 surprise);
   - 2014 Fighting Styles taken through Fighting Initiate (TCE): see T-011.
 
 ## Log
+- 2026-10-03 — Sonnet live test: local sandbox, Foundry v14 / dnd5e 6.0.5 with Plutonium. Unseen attacks, Alert 2024 SRD + Initiative Swap, Thirsting Blade, Eldritch Smite, Lifedrinker, Misty Step, Flurry v3, picker scroll and editor round-trips pass. Failures: 2014 Alert book label, conjured weapon rider, Cha vs Int, damage type answer ignored, Sacred Weapon light not ending (details in Left). Test actors, scene and combat deleted; settings restored.
 - 2026-10-03 — Claude (Opus): Flurry of Blows v3: 3 strikes from monk level 10. `repeat.count` accepts a formula.
 - 2026-10-03 — Claude (Opus): Sacred Weapon v2, bond `carried`, light on enchantments, Stage enchantment cues and
   the damage type choice added.
 - 2026-10-03 — Claude (Opus): engine, editor and Box pieces written. `node --check` and the strip check pass, and
   the packs build. Untested live.
+- 2026-10-03 — Sonnet live retest (local sandbox, Foundry v14 / dnd5e 6.0.5 / Plutonium): items 2, 4, 9, 10 now pass (details in Acceptance). Divine Sense v2 and Vow of Enmity v2 spend a use from a `channel-divinity` pool (2->1->0) and from the SRD `channel-divinity-paladin` pool (2->1->0). Remaining: Left 1-3 (server-log noise from dnd5e, editor drift, Invisible console noise), so status stays needs-live-test. Test actors, scene and combat deleted; world time restored.

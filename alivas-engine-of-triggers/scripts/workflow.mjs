@@ -72,9 +72,9 @@ export async function resolveSave(activity, targets, { usage=null, label, origin
   const mode = modeFor("Save", activity.actor);
   if ( (mode === "apply") && usage ) return pendSaves(activity, targets, { usage, label, origin, ability, dc });
 
-  // Saves, all at once.
+  // Saves, all at once. Activity flag autoSave: creatures passing that filter succeed without rolling.
   const statuses = (activity.effects ?? []).flatMap(p => Array.from(p.effect?.statuses ?? []));
-  const results = await Promise.all(targets.map(async actor => ({ actor,
+  const results = await Promise.all(targets.map(async actor => autoSaves(activity, actor) ? { actor, total: 0, success: true, auto: true } : ({ actor,
     ...(await rollSaveOutcome(actor, { ability, dc,
       // Activity flag saveAdvantage: the targets save with advantage (Shove Aside).
       advantage: hasSaveAdvantage(actor, statuses) || !!activity.flags?.[MODULE_ID]?.saveAdvantage }, label)) })));
@@ -116,7 +116,12 @@ export async function chooseDamageTypes(activity) {
     });
     if ( answer && (answer !== last) ) update[`flags.dnd5e.last.${activity.id}.damageType.${index}`] = answer;
   }
-  if ( Object.keys(update).length ) await activity.item.update(update);
+  if ( !Object.keys(update).length ) return;
+  // The activity rolled may be a scaled copy (a usage card's associated activity) whose item is a clone: write the answer
+  // to the real item, and into the copy's item too, which is what dnd5e reads while rolling.
+  const real = activity.actor?.items.get(activity.item.id) ?? activity.item;
+  await real.update(update);
+  if ( activity.item !== real ) activity.item.updateSource(update);
 }
 
 /** Roll a save activity's damage once, its card targeting those creatures. → { damages, message } */
@@ -159,6 +164,16 @@ async function applySaveOutcome(activity, actor, success, { damages, message, us
   if ( !success && activity.flags?.[MODULE_ID]?.onFail?.length ) await deps.runActivitySteps?.(activity, actor, "onFail");
 }
 
+/**
+ * Activity flag `autoSave: FilterDescription` — targets whose roll data passes it succeed on the activity's save without
+ * rolling (Wardaway: Constructs and Undead), e.g. [{ k: "details.type.value", o: "in", v: ["construct", "undead"] }].
+ */
+export function autoSaves(activity, actor) {
+  const filter = activity?.flags?.[MODULE_ID]?.autoSave;
+  if ( !filter || !actor ) return false;
+  try { return dnd5e.Filter.performCheck(actor.getRollData(), [filter].flat()); } catch(err) { return false; }
+}
+
 /* -------------------------------------------- */
 /*  Pending saves (mode "apply")                */
 /* -------------------------------------------- */
@@ -176,8 +191,15 @@ async function pendSaves(activity, targets, { usage, label, origin, ability, dc 
   const chosen = activity.flags?.[MODULE_ID]?.chooseEffects ? (await deps.chooseProfiles(activity)).map(p => p._id ?? p.id) : null;
   const pending = { activity: activity.uuid, targets: targets.map(a => a.uuid), done: [], ability, dc, onSave, damages,
     damageMessage: message?.id ?? null, chosen, label };
+  // autoSave: those creatures succeed now, without a roll.
+  const auto = targets.filter(a => autoSaves(activity, a));
+  pending.done = auto.map(a => a.uuid);
   await usage.setFlag(MODULE_ID, "pendingSave", pending);
-  const names = targets.map(a => foundry.utils.escapeHTML(Creatures.tokenFor(a)?.name ?? a.name)).join(", ");
+  const profiles = chosen ? activity.effects.filter(p => chosen.includes(p._id ?? p.id)) : activity.effects;
+  for ( const actor of auto ) await applySaveOutcome(activity, actor, true, { damages, message, usage, chosen: profiles, onSave, ability });
+  const waiting = targets.filter(a => !auto.includes(a));
+  if ( !waiting.length ) return;
+  const names = waiting.map(a => foundry.utils.escapeHTML(Creatures.tokenFor(a)?.name ?? a.name)).join(", ");
   const abilityLabel = CONFIG.DND5E.abilities[ability]?.label ?? ability;
   await ChatMessage.implementation.create({
     speaker: ChatMessage.implementation.getSpeaker({ actor: activity.actor }),
@@ -325,7 +347,7 @@ Creatures.HANDLERS.rollSavePrompt = async function({ actorUuid, spec, label }) {
 async function summary(activity, label, ability, dc, results, manual=false) {
   const abilityLabel = CONFIG.DND5E.abilities[ability]?.label ?? ability;
   const rows = results.map(r => {
-    const mark = r.total === null ? "—" : (r.success ? "✔ saved" : "✘ failed");
+    const mark = r.total === null ? "—" : (r.auto ? "✔ saved (automatically)" : r.success ? "✔ saved" : "✘ failed");
     const dmg = r.multiplier === undefined ? "" : (r.multiplier === 0 ? " · no damage" : (r.multiplier < 1 ? " · half damage" : " · full damage"));
     return `<li><strong>${foundry.utils.escapeHTML(Creatures.tokenFor(r.actor)?.name ?? r.actor.name)}</strong>: ${mark}${dmg}</li>`;
   }).join("");

@@ -1,6 +1,6 @@
 # Tasks
 
-Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-022**.
+Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-025**.
 
 **Foundry?** column: `no` = can be done fully without Foundry · `test` = the work is offline, only the final check
 needs Foundry · `yes` = needs a running Foundry throughout.
@@ -25,9 +25,12 @@ needs Foundry · `yes` = needs a running Foundry throughout.
 | [T-016](T-016-stage-preset-review.md) | Visual review of the Stage's animation presets (Box items, conditions) | needs-live-test | yes |
 | [T-017](T-017-ready-action.md) | Ready action: full automation (on hold; today Ready only spends the reaction) | open | test |
 | [T-018](T-018-v010-open-items.md) | v0.10.0 follow-ups: unverified items, placeholders to confirm, session feedback | open | test |
-| [T-019](T-019-unarmed-fighting.md) | Unarmed Fighting (2024 Fighting Style): damage swap and grapple damage | needs-live-test | test |
-| [T-020](T-020-weapon-option-spell-ability.md) | Weapon options use their spell's casting ability (Magic Initiate) | needs-live-test | test |
+| [T-019](T-019-unarmed-fighting.md) | Unarmed Fighting (2024 Fighting Style): damage swap and grapple damage | done | test |
+| [T-020](T-020-weapon-option-spell-ability.md) | Weapon options use their spell's casting ability (Magic Initiate) | done | test |
 | [T-021](T-021-pact-blade-unseen-alert.md) | Pact of the Blade (conjure, bond, invocations), Sacred Weapon, damage type choice, unseen attackers, Alert 2014/2024, Misty Step | needs-live-test | test |
+| [T-022](T-022-concentration-graze.md) | Concentration popup for connected players; Graze fixes; reaction options skip unprepared spells and duplicates | done | test |
+| [T-023](T-023-wardaway.md) | Wardaway (FRHoF): range/target fix, scaling, slow + action-or-bonus rider, Constructs/Undead auto-succeed | done | test |
+| [T-024](T-024-player-workflow-defaults.md) | Player workflow defaults: manual attack and save rolls, automatic damage and effects | done | test |
 
 Statuses: `open` · `in-progress` · `needs-live-test` · `blocked` · `done`. Keep this table in sync when you change a
 task's status. Done tasks stay listed until the next release, then the file is deleted (git keeps it).

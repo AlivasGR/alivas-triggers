@@ -1088,6 +1088,14 @@ function describeReactionModel(model, item) {
 const ACTIVITY_ACTIONS = ["giveEffect", "removeStatus", "inspire", "tempHp", "damage", "spendHitDie", "recoverSlots", "storeSpell", "toggleLight",
   "random", "teleport", "conjureItem", "push", "sense", "note", "check", "passThrough", "place", "release", "escape", "endEffect", "useReaction", "dropHeld"];
 
+/** Presets for the activity flag autoSave (creatures that succeed on its save without rolling). */
+const AUTO_SAVES = { "": null, constructUndead: [{ k: "details.type.value", o: "in", v: ["construct", "undead"] }] };
+const autoSaveMode = s => {
+  const text = String(s.autoSaveText ?? "").trim();
+  if ( !text ) return "";
+  return Object.entries(AUTO_SAVES).find(([, f]) => f && (JSON.stringify(f) === JSON.stringify(parseFilterText(text))))?.[0] ?? "custom";
+};
+
 /** A stored strike count: a number above 1, or a formula (kept as text); null for 1 / empty. */
 function repeatCount(value) {
   const text = String(value ?? "").trim();
@@ -1166,7 +1174,7 @@ function readRules(effect) {
     attackedTypes: [...(f.attackedWith?.attacker?.find?.(x => x.k === "details.type.value")?.v ?? [])],
     attacksUnlessSource: f.attacksWith?.unlessTarget === "source",
     lightBright: f.light?.bright ?? "", lightDim: f.light?.dim ?? "", lightColor: f.light?.color ?? "#ffe9a8",
-    noSpells: !!f.noSpells, whileStatus: f.whileStatus ?? "",
+    noSpells: !!f.noSpells, actionOrBonus: !!f.actionOrBonus, whileStatus: f.whileStatus ?? "",
     coverLevel: f.ignoreCover?.level ?? "", coverClass: f.ignoreCover?.classification ?? "", coverType: f.ignoreCover?.type ?? "",
     acFormula: f.armorClass?.formula ?? "", acLabel: f.armorClass?.label ?? "", acUnarmored: f.armorClass?.armored === false,
     sustainEvents: [...(f.sustain?.events ?? [])], sustainFilter: JSON.stringify(f.sustain?.filter ?? []),
@@ -1275,6 +1283,7 @@ function rulesUpdate(r) {
   set("light", keepRest("light", ["bright", "dim", "color", "animation"], { bright: Number(r.lightBright) || 0, dim: Number(r.lightDim) || 0, color: r.lightColor || null,
     ...(r.lightAnimation ? { animation: r.lightAnimation } : {}) }), (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0));
   set("noSpells", true, r.noSpells);
+  set("actionOrBonus", true, r.actionOrBonus);
   set("ignoreCover", keepRest("ignoreCover", ["level", "classification", "type"], { level: r.coverLevel, ...(r.coverClass ? { classification: r.coverClass } : {}),
     ...(r.coverType ? { type: r.coverType } : {}) }), ["half", "threeQuarters"].includes(r.coverLevel));
   const whileStatus = String(r.whileStatus ?? "").trim();
@@ -1404,7 +1413,8 @@ export class TriggerEditor extends ApplicationV2 {
         repeat: f.repeat ? clone(f.repeat) : null, mastery: f.mastery ?? "", properties: [...(f.properties ?? [])],
         requires: f.requires ? clone(f.requires) : {}, offerWhenBlocked: !!f.offerWhenBlocked, applyToTargets: !!f.applyToTargets,
         saveAdvantage: !!f.saveAdvantage, castFrom: f.castingAbility?.class ? "class" : f.castingAbility?.spell ? "spell" : "",
-        castId: f.castingAbility?.class ?? f.castingAbility?.spell ?? "" };
+        castId: f.castingAbility?.class ?? f.castingAbility?.spell ?? "",
+        autoSaveText: f.autoSave ? JSON.stringify(f.autoSave) : "" };
     } else if ( this.mode === "area" ) {
       const list = this.activity.flags?.[MODULE_ID]?.area?.triggers;
       this.models = (Array.isArray(list) ? list : []).map(x => triggerToModel(x));
@@ -1635,7 +1645,7 @@ export class TriggerEditor extends ApplicationV2 {
     const abilityBoxes = (list, key) => abilityEntries().map(([id, label]) => `<label class="aet-check aet-small-check">
       <input type="checkbox" data-rule-list="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
     const groups = {
-      spells: [r.noReactions, r.noComponents, r.askFirst, r.minLevel, r.saveDamageOnSave, r.ownRollsOnly, r.noSpells, r.sustainEvents?.length, String(r.whileStatus ?? "").trim()],
+      spells: [r.noReactions, r.noComponents, r.askFirst, r.minLevel, r.saveDamageOnSave, r.ownRollsOnly, r.noSpells, r.actionOrBonus, r.sustainEvents?.length, String(r.whileStatus ?? "").trim()],
       damage: [r.ignoreDamageFrom, r.evasion?.length, r.noHealing, r.dropSave, r.onlyIfStatus, r.saveAdvStatuses?.length, r.healingExtraDie,
         String(r.reduceFormula ?? "").trim(), Number(r.diceMin) > 1, (r.baseRows ?? []).some(row => String(row.formula ?? "").trim())],
       area: [Number(r.areaRadius) > 0, r.stopOnCollision, r.disengaged, (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0)],
@@ -1662,6 +1672,7 @@ export class TriggerEditor extends ApplicationV2 {
           <span>of level</span><input type="number" class="aet-num" data-rule="saveDamageLevel" value="${esc(r.saveDamageLevel)}" placeholder="any"><span class="aet-muted">only upgrades “no damage” (Potent Cantrip)</span></label>
         <label class="aet-check"><input type="checkbox" data-rule="ownRollsOnly"${r.ownRollsOnly ? " checked" : ""}><span>Its roll bonuses are the bearer's own — summons matching the bearer's spell attack don't get them</span></label>
         <label class="aet-check"><input type="checkbox" data-rule="noSpells"${r.noSpells ? " checked" : ""}><span>The bearer can't cast spells (concentration ends when it's applied)</span></label>
+        <label class="aet-check"><input type="checkbox" data-rule="actionOrBonus"${r.actionOrBonus ? " checked" : ""}><span>On its turn the bearer can take an Action or a Bonus Action, not both (Slow, Wardaway)</span></label>
         <label class="aet-inline"><span>Lasts only while the bearer has</span><input type="text" class="aet-formula" data-rule="whileStatus" value="${esc(r.whileStatus)}" placeholder="a status id, e.g. rage"><span class="aet-muted">ends the moment it's gone (also for an enchantment on its weapon)</span></label>
         <div class="aet-subtitle">Ends at the end of the bearer's turn unless during it the bearer…</div>
         <div class="aet-pills">${typePills(r.sustainEvents, "sustainEvents", sustainEventEntries)}</div>
@@ -1807,7 +1818,10 @@ export class TriggerEditor extends ApplicationV2 {
         <span class="aet-muted">· at least</span><input type="number" class="aet-num" min="0" data-setting="req.minSizeAbove" data-rerender value="${esc(s.requires?.minSizeAbove ?? "")}" placeholder="any"><span class="aet-muted">sizes larger</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="offerWhenBlocked" data-rerender${s.offerWhenBlocked ? " checked" : ""}><span>Offer this when a hostile creature blocks the user's move (Tumble, Overrun)</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="applyToTargets"${s.applyToTargets ? " checked" : ""}><span>Its effects go on the targets even if they're enemies (no save — Help: distract an enemy)</span></label>
-      ${this.activity.type === "save" ? `<label class="aet-check"><input type="checkbox" data-setting="saveAdvantage"${s.saveAdvantage ? " checked" : ""}><span>Its targets save with advantage (Shove Aside)</span></label>` : ""}
+      ${this.activity.type === "save" ? `<label class="aet-check"><input type="checkbox" data-setting="saveAdvantage"${s.saveAdvantage ? " checked" : ""}><span>Its targets save with advantage (Shove Aside)</span></label>
+      <label class="aet-inline"><span>Succeed automatically</span><select data-setting="autoSaveMode" data-rerender>${options([["", "nobody"], ["constructUndead", "Constructs and Undead"],
+        ...(autoSaveMode(s) === "custom" ? [["custom", "a custom filter (below)"]] : [])], autoSaveMode(s))}</select></label>
+      ${autoSaveMode(s) === "custom" ? `<label class="aet-inline"><span>Filter</span><input type="text" class="aet-wide" data-setting="autoSaveText" value="${esc(s.autoSaveText)}"></label>` : ""}` : ""}
       ${(describeRequires(s.requires).length || s.offerWhenBlocked) ? `<p class="aet-muted">→ ${esc([describeRequires(s.requires).length ? `Needs: ${describeRequires(s.requires).join(", ")}.` : "", s.offerWhenBlocked ? "Offered when a hostile creature blocks the user's move." : ""].filter(Boolean).join(" "))}</p>` : ""}
       <label class="aet-inline"><span>Use it automatically when the only target is</span><select data-setting="targetPick">${options([["", "— (always ask)"],
         ["damaged", "Missing hit points"], ["healthy", "At full hit points"], ["bloodied", "Bloodied (half HP or less)"], ["unbloodied", "Not bloodied"],
@@ -2527,6 +2541,10 @@ export class TriggerEditor extends ApplicationV2 {
     if ( key === "applyToTargets" ) { this.settings.applyToTargets = el.checked; return false; }
     if ( key === "saveAdvantage" ) { this.settings.saveAdvantage = el.checked; return false; }
     if ( key === "castFrom" ) { this.settings.castFrom = el.value; return true; }
+    if ( key === "autoSaveMode" ) {
+      if ( el.value in AUTO_SAVES ) this.settings.autoSaveText = AUTO_SAVES[el.value] ? JSON.stringify(AUTO_SAVES[el.value]) : "";
+      return true;
+    }
     if ( key === "chooseOn" ) { this.settings.chooseEffects = el.checked ? { count: "1" } : null; return true; }
     if ( key === "pay.from" ) { this.settings.pay.from = el.value.split(",").map(s => s.trim()).filter(Boolean); return false; }
     if ( key === "pay.cost" ) { this.settings.pay.cost = Number(el.value) || 1; return false; }
@@ -2844,7 +2862,8 @@ export class TriggerEditor extends ApplicationV2 {
         mastery: s.mastery || null, properties: s.properties?.length ? s.properties : null,
         requires: Object.keys(s.requires ?? {}).length ? s.requires : null, offerWhenBlocked: s.offerWhenBlocked ? true : null,
         applyToTargets: s.applyToTargets ? true : null, saveAdvantage: s.saveAdvantage ? true : null,
-        castingAbility: s.castFrom && String(s.castId ?? "").trim() ? { [s.castFrom]: String(s.castId).trim() } : null
+        castingAbility: s.castFrom && String(s.castId ?? "").trim() ? { [s.castFrom]: String(s.castId).trim() } : null,
+        autoSave: (activityType => activityType === "save" ? parseFilterText(s.autoSaveText) : null)(this.activity.type)
       }));
     } else if ( this.mode === "area" ) {
       await this.activity.update(cleanFlagUpdate({
@@ -2946,6 +2965,7 @@ function describeRules(effect) {
   if ( Number(r.diceMin) > 1 ) list.push(`The bearer's damage dice count at least ${r.diceMin}${(parseFilterText(r.diceFilter) ?? []).length ? " (on matching attacks)" : ""}.`);
   if ( (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0) ) list.push(`Sheds light (${r.lightBright || 0}/${r.lightDim || 0} ft${r.lightAnimation ? `, ${r.lightAnimation}` : ""}) while it lasts.`);
   if ( r.noSpells ) list.push("The bearer can't cast spells or concentrate.");
+  if ( r.actionOrBonus ) list.push("On its turn the bearer can take an Action or a Bonus Action, not both.");
   if ( r.coverLevel ) list.push(`The bearer's ${r.coverType ? `${r.coverType} ` : ""}${r.coverClass ? `${r.coverClass} ` : ""}attacks ignore ${r.coverLevel === "half" ? "Half Cover" : "Half and Three-Quarters Cover"}.`);
   if ( String(r.whileStatus ?? "").trim() ) list.push(`Lasts only while the bearer has ${r.whileStatus}.`);
   if ( String(r.acFormula ?? "").trim() ) list.push(`Armor Class option: ${r.acFormula}${r.acUnarmored ? " (without armor)" : ""}${r.acShield ? (r.acShield === "true" ? " (with a shield)" : " (without a shield)") : ""}${r.acLabel ? ` — “${r.acLabel}”` : ""}.`);
@@ -2984,6 +3004,8 @@ function describeActivityAutomation(activity) {
   if ( needs.length ) list.push(`Needs: ${needs.join(", ")}.`);
   if ( f.offerWhenBlocked ) list.push("Offered when a hostile creature blocks the user's move.");
   if ( f.applyToTargets ) list.push("Its effects go on its targets, enemies included.");
+  if ( f.autoSave ) list.push(JSON.stringify([f.autoSave].flat()) === JSON.stringify(AUTO_SAVES.constructUndead)
+    ? "Constructs and Undead succeed on its save automatically." : "Some creatures succeed on its save automatically (custom filter).");
   if ( repeatCount(f.repeat?.count) ) list.push(`${f.repeat.count} strikes per use${f.repeat.swap ? ` (one may be ${f.repeat.swap})` : ""}.`);
   for ( const tr of f.area?.triggers ?? [] ) {
     try { list.push(`Its area: ${describeTrigger(tr)}`); } catch(err) { list.push("Its area: (a trigger the editor can't read)"); }
