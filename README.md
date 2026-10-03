@@ -48,6 +48,10 @@ Needs **Sequencer**, plus animations and sounds to play: **JB2A** (free or Patre
 **Automated Animations**: whatever the Stage animates, Automated Animations leaves alone; everything else it keeps
 playing — but only when its preset's name matches whole words (no more *Natural Armor* playing *Alarm*).
 
+The presets are made with **JB2A Patreon**. With the free JB2A, an animation it lacks plays the closest one it has (the
+same animation in another colour or variant); when it has nothing close, that step is skipped, and if nothing of the
+Stage's would play, Automated Animations is left to animate the item.
+
 Manifest: `https://github.com/AlivasGR/alivas-triggers/releases/latest/download/alivas-stage-of-triggers.json`
 
 ## Box

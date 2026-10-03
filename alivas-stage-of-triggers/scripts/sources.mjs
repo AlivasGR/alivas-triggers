@@ -27,7 +27,7 @@
  *   Moves          world setting (moveCues): { teleport, push } for engine moves with no animation of their own
  */
 
-import { MODULE_ID, playCue, endCue, normalizeCue, isPersistent } from "./cues.mjs";
+import { MODULE_ID, playCue, endCue, normalizeCue, cuePlayable, isPersistent } from "./cues.mjs";
 
 const setting = key => game.settings.get(MODULE_ID, key);
 const engine = () => game.modules.get("alivas-engine-of-triggers")?.api;
@@ -126,25 +126,31 @@ export function statusCues(id) {
   return setting("statusCues")?.[id] ?? PRESETS.statuses[id] ?? null;
 }
 
-/** Does anything of ours animate this activity or effect? (Then Automated Animations stays out of it.) */
+/** Does any phase ({ start, active, end }) of an effect's cues play with the animations installed? */
+const phasesPlayable = c => Object.values(c ?? {}).some(cuePlayable);
+
+/**
+ * Does anything of ours animate this activity or effect? (Then Automated Animations stays out of it.) Only cues that
+ * would actually play count: when none of their animations or sounds are installed, Automated Animations keeps it.
+ */
 export function hasOwnCues({ item, activity, effect }) {
   if ( effect ) {
-    if ( effectCues(effect) || (effect.statuses?.size && [...effect.statuses].some(s => statusCues(s))) ) return true;
+    if ( phasesPlayable(effectCues(effect)) || (effect.statuses?.size && [...effect.statuses].some(s => phasesPlayable(statusCues(s)))) ) return true;
     // An effect from an item we animate is ours too (Celestial Revelation's wings: the feature's preset owns them).
     const from = effectItem(effect);
     return from ? hasOwnCues({ item: from, activity: null }) : false;
   }
   const { cues } = itemCues(item, activity);
-  if ( Object.values(cues ?? {}).some(c => normalizeCue(c)) ) return true;
+  if ( Object.values(cues ?? {}).some(cuePlayable) ) return true;
   // Any activity of the item animated by us → we own the whole item (no Automated Animations on its other activities,
   // e.g. a feature whose preset animates one activity and its effect). Effect-only presets leave the item to AA.
-  const anyPhase = map => Object.values(map ?? {}).some(phases => Object.values(phases ?? {}).some(c => normalizeCue(c)));
+  const anyPhase = map => Object.values(map ?? {}).some(phases => Object.values(phases ?? {}).some(cuePlayable));
   const own = item?.getFlag?.(MODULE_ID, "cues");
   if ( anyPhase(own) || anyPhase(presetFor(item)?.activities) ) return true;
   // The activity applies an effect that has a "start" animation of ours: that animation is the activity's, so AA
   // stays out (Celestial Revelation's Heavenly Wings). An effect with only a loop leaves the cast to AA.
   const applied = (activity?.effects ?? []).map(p => p.effect ?? item?.effects?.get?.(p._id ?? p.id)).filter(Boolean);
-  return applied.some(e => normalizeCue(effectCues(e)?.start));
+  return applied.some(e => cuePlayable(effectCues(e)?.start));
 }
 
 /* -------------------------------------------- */

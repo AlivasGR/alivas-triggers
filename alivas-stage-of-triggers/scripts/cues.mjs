@@ -14,7 +14,8 @@
  *               "aura"       around a creature, following it          — sized to the effect's area (radius) if any
  *               "teleport"   vanish where a creature was, appear where it lands (needs a move)
  *               "sound"      sound only
- *     file      a Sequencer database path (jb2a.fire_bolt.orange) or a file path; empty = sound only
+ *     file      a Sequencer database path (jb2a.fire_bolt.orange) or a file path; empty = sound only. A database path
+ *               that isn't installed (free JB2A) plays the closest one that is (resolveFile), else the step is skipped
  *     at        onToken / impact / aura: "source" | "targets" | "subject" | "bearer" | "region" (default by kind)
  *     from, to  projectile / melee:     "source" | "targets" | "subject" | "bearer"
  *     scale     size multiplier (1)                     opacity (1)        below  under tokens (false)
@@ -102,6 +103,79 @@ export function canPlay() {
   return !!globalThis.Sequencer && !!globalThis.Sequence && game.settings.get(MODULE_ID, "enabled");
 }
 
+/* -------------------------------------------- */
+/*  Missing files                               */
+/* -------------------------------------------- */
+
+/** Resolved database paths, valid while the database keeps the same size (modules register theirs late). */
+const resolved = new Map();
+let resolvedFor = -1;
+
+const isDatabasePath = path => !/[/\\]/.test(path) && !/\.(webm|webp|png|jpe?g|gif|mp4|ogg|mp3|wav|flac|m4a)$/i.test(path);
+/** JB2A writes colours run together (bluepurple, yellowwhite): split those into colour words. */
+const COLOURS = /red|orange|yellow|gold|green|teal|cyan|blue|purple|violet|pink|magenta|white|grey|gray|black|dark|light|bright|brown|rainbow/g;
+const words = seg => String(seg).toLowerCase().split(/[_-]/).filter(Boolean)
+  .flatMap(w => (w.replace(COLOURS, "") === "" ? w.match(COLOURS) : [w]));
+/** Neighbouring hues, so a missing purple prefers pink or blue to orange. */
+const NEAR = { red: ["orange", "pink", "dark"], orange: ["red", "yellow", "gold"], yellow: ["gold", "orange", "white"],
+  gold: ["yellow", "orange"], green: ["teal", "yellow"], teal: ["blue", "green", "cyan"], cyan: ["teal", "blue"],
+  blue: ["teal", "purple", "cyan"], purple: ["pink", "violet", "blue", "magenta"], violet: ["purple", "pink"],
+  pink: ["purple", "magenta", "red"], magenta: ["pink", "purple"], white: ["grey", "gray", "yellow", "light"],
+  grey: ["white", "black"], gray: ["white", "black"], black: ["dark", "grey", "gray"], dark: ["black"] };
+const likeness = (want, have) => want.reduce((sum, m) => sum + (have.includes(m) ? 2
+  : have.some(w => NEAR[m]?.includes(w) || ((m.length > 3) && (w.includes(m) || m.includes(w)))) ? 1 : 0), 0);
+
+/**
+ * The database path to play for a cue's file. Presets are written against JB2A Patreon; the free JB2A lacks most
+ * colours and some variants. A path that isn't in the database is replaced by the closest one that is: trailing
+ * colour / number segments are dropped until an existing branch is found, then the branch's entry at the original depth
+ * closest in colour is taken (jb2a.impact.003.pinkpurple → jb2a.impact.003.purple, else .blue…). A missing name
+ * (fumes.toxic) is not swapped for another animation: the step is skipped.
+ * Keeping the depth keeps the structure: a projectile still gets a branch with its distance files.
+ * File paths, and anything when the database isn't loaded yet, are returned unchanged.
+ * @param {string} path
+ * @returns {string|null}  null: nothing in that family exists
+ */
+export function resolveFile(path) {
+  if ( !path || !isDatabasePath(path) ) return path || null;
+  const entries = globalThis.Sequencer?.Database?.flattenedEntries;
+  if ( !entries?.length ) return path;
+  if ( resolvedFor !== entries.length ) { resolved.clear(); resolvedFor = entries.length; }
+  if ( resolved.has(path) ) return resolved.get(path);
+  const segs = path.split(".");
+  const under = prefix => entries.filter(e => (e === prefix) || e.startsWith(`${prefix}.`));
+  let result = under(path).length ? path : null;
+  // Only colours and variant numbers are swapped, anywhere in the path (toll_the_dead.purple.skull_smoke →
+  // toll_the_dead.green.skull_smoke); every other segment must stay: fumes.toxic → fumes.steam is another animation.
+  const variant = seg => words(seg).every(w => /^\d+$/.test(w) || (w.replace(COLOURS, "") === ""));
+  for ( let i = segs.length - 1; !result && (i >= 2); i-- ) {
+    const missing = segs.slice(i).flatMap(words);
+    const found = under(segs.slice(0, i).join("."));
+    if ( !found.length ) continue;
+    const candidates = [...new Set(found.map(e => e.split(".").slice(0, segs.length).join(".")))].filter(c => {
+      const cs = c.split(".");
+      return (cs.length === segs.length) && cs.every((seg, j) => (j < i) || (seg === segs[j]) || (variant(seg) && variant(segs[j])));
+    });
+    if ( !candidates.length ) continue;
+    const score = c => likeness(missing, c.split(".").slice(i).flatMap(words));
+    result = candidates.reduce((best, c) => (score(c) > score(best) ? c : best), candidates[0]);
+  }
+  resolved.set(path, result);
+  if ( result !== path ) {
+    let debug = false;
+    try { debug = game.settings.get(MODULE_ID, "debug"); } catch(err) {}
+    if ( debug ) console.log(`${MODULE_ID} | "${path}" is not installed — ${result ? `playing "${result}"` : "skipped"}`);
+  }
+  return result;
+}
+
+/** Would this cue show or play anything with the animations installed? (Not whether this client has them on.) */
+export function cuePlayable(cue) {
+  const c = normalizeCue(cue);
+  if ( !c ) return false;
+  return c.steps.some(s => (s.file && resolveFile(s.file)) || (s.sound?.file && resolveFile(s.sound.file)));
+}
+
 /** Tokens a step role resolves to. */
 function tokensFor(role, ctx) {
   switch ( role ) {
@@ -135,8 +209,10 @@ export async function playCue(cue, ctx={}, { local=false }={}) {
 }
 
 /** Add one step to a sequence. Returns how many sections were added. */
-function addStep(seq, s, ctx) {
+function addStep(seq, step, ctx) {
   let n = 0;
+  const s = { ...step, file: resolveFile(step.file) ?? "", missFile: resolveFile(step.missFile) ?? "" };
+  if ( step.sound?.file ) s.sound = { ...step.sound, file: resolveFile(step.sound.file) ?? "" };
   const sound = s.sound?.file ? s.sound : (s.kind === "sound" ? { file: s.file } : null);
   if ( sound?.file ) {
     seq.sound().file(sound.file).volume((Number(sound.volume ?? 0.6)) * volume()).delay(Number(sound.delay ?? 0) + Number(s.delay ?? 0));

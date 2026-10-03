@@ -34,6 +34,15 @@ authored offline from path names (no one had seen the animations).
 - [ ] Every condition preset previewed: start, active (the loop doesn't hide the token), end (live)
 - [ ] One full flow each: an attack with a miss, a save spell with an area, a buff with an active loop, a Wild Surge
       teleport (live)
+- [ ] **Free JB2A fallback** (`cues.mjs` `resolveFile` / `cuePlayable`): a world with `JB2A_DnD5e` (free) enabled and
+      `jb2a_patreon` disabled. Offline: 137 of the 250 preset JB2A paths resolve to another colour/variant, 19 to
+      nothing (`node private/work/anim/validate-presets.mjs` lists them); with Patreon nothing changes (all 941
+      references resolve to themselves). Check live (offline: yes, live: not yet):
+      - Misty Step (`jb2a.misty_step.01.purple` → `.blue`) plays blue; Toll the Dead plays the green skull.
+      - A projectile substitute still picks its distance file (Chromatic Orb / Magic Missile at 30 and 90 ft).
+      - A persistent loop on a substitute ends with its effect (condition `charmed` or `frightened`).
+      - An item whose every cue step is missing in free (e.g. a weapon whose preset is `melee_generic.slashing.*`):
+        Automated Animations plays instead (setting aaHandOff on). With debug logging on, the console names each swap.
 
 ## Done
 - Presets written; all 331 steps validated against the installed JB2A Patreon + free PSFX database (offline).
@@ -45,3 +54,8 @@ Steps 1–4 above.
 
 ## Log
 - 2026-10-02 — Presets authored offline and validated (paths, kinds, names). Live: three flows checked.
+- 2026-10-03 — Free-JB2A fallback: `resolveFile` swaps a missing colour / variant number for the closest installed one
+  (any position in the path; other segments must match), else skips the step; `hasOwnCues` only counts cues that would
+  play, so Automated Animations keeps items the Stage can't animate. Validator reports free coverage
+  (`jb2a_free_paths.json`, from JB2A_DnD5e's `scripts/jb2a_sequencer.js`). Tested offline in Node against both
+  databases; untested live.
