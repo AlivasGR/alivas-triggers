@@ -76,6 +76,14 @@ alivas-engine-of-triggers/
   scripts/areas.mjs        automated areas (Region behavior): appear / enter / leave / turn start / turn end
   scripts/editor.mjs       trigger editor (triggers / reactions / activity / area modes), sheet summaries
   scripts/settings-app.mjs the grouped "Automation settings" window
+  scripts/maneuvers.mjs    2024 maneuvers: holds (tether), pass-through, check/place/escape actions, requirements, blocked-move offers
+  scripts/loot.mjs         Item Piles integration: drops (2024 timing), disarm, pile images, locks on piles and doors
+  scripts/economy.mjs      action economy per combat turn: Action, Bonus Action, free object interaction, Utilize, Fast Hands
+  scripts/interact.mjs     token interactions registry: right-click menu (non-owners) + Token HUD buttons (owners/GM)
+  scripts/bodies.mjs       carry bodies (container item), put down, loot the unconscious, pickpocket
+  scripts/trade.mjs        hand over / throw / catch items (2024 + house ruling), retrieving from containers
+  scripts/skills.mjs       skill checks with another ability (sheet menu + rollSkillWith for triggers)
+  scripts/cover.mjs        Half / Three-Quarters cover on attacks (dialog + after-roll buttons with undo), ignoreCover
 alivas-box-of-triggers/
   scripts/main.mjs         patch matching, buildPatched, Review & apply, auto-patch on create/import, weapon options
 alivas-stage-of-triggers/  animations + sounds (Sequencer; JB2A / PSFX); requires the Engine and Sequencer
@@ -114,7 +122,8 @@ needsUses, oncePerTurn, every }]`, run while the effect is active on its **beare
 **Effect rules** (flags): area, stopOnCollision, attackedWith (mode, once, by uuid|"source", attacker filter),
 attacksWith (mode, once, unlessTarget "source"), disengaged, extraAttack, evasion, saveAdvantageAgainst, healingExtraDie,
 noHealing, dropSave, onlyIf, saveDamage, ownRollsOnly, ignoreDamageFrom, noReactions, noComponents, askFirst,
-attackAbilities(Only), minLevel, reduceDamage, damageDice (minimum die), light, noSpells, sustain (Rage upkeep).
+attackAbilities(Only), minLevel, reduceDamage, damageDice (minimum die), light, noSpells, sustain (Rage upkeep),
+tether, passThrough, checksWith, whileStatus, ignoreCover ({ level, classification?, type? }).
 Prefer dnd5e 6's own conditional Rules changes (`attack` / `damage` / `check` / `save` with `dnd5e.bonus` /
 `dnd5e.advantage` and `conditions` on the roll data, e.g. `roll.attack.mode`, `roll.ability`, `roll.skill`) before adding
 an engine rule — Dueling, Reckless Attack and Danger Sense need nothing else.

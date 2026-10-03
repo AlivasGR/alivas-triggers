@@ -133,6 +133,12 @@ import { registerSettingsMenu } from "./settings-app.mjs";
 import { TriggerEditor, describeTrigger, describeReaction, registerActionType, registerEditorSection } from "./editor.mjs";
 import * as Maneuvers from "./maneuvers.mjs";
 import * as Loot from "./loot.mjs";
+import * as Economy from "./economy.mjs";
+import * as Interact from "./interact.mjs";
+import * as Bodies from "./bodies.mjs";
+import * as Trade from "./trade.mjs";
+import * as Skills from "./skills.mjs";
+import * as Cover from "./cover.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const SOCKET = `module.${MODULE_ID}`;
@@ -189,10 +195,14 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
   if ( !roll || !subject || Maneuvers.isBareAttack(subject) ) return;
   // A new attack replaces any earlier "absorbed by a duplicate" mark for this attacker and target.
   for ( const token of game.user.targets ) if ( token.actor ) absorbed.delete(absorbKey(token.actor, subject));
+  // Cover chosen in the attack dialog (cover.mjs) raises each target's AC for this attack, unless the attacker ignores it.
+  const coverAC = Cover.coverBonus(Cover.effectiveCover(Cover.rollCover(roll), subject.actor, subject));
   const hits = Array.from(game.user.targets).filter(token => {
     const ac = token.actor?.system.attributes?.ac?.value;
-    return token.actor && Number.isFinite(ac) && (roll.isCritical || (!roll.isFumble && (roll.total >= ac)));
+    return token.actor && Number.isFinite(ac) && (roll.isCritical || (!roll.isFumble && (roll.total >= ac + coverAC)));
   });
+  // What the hits do is recorded, so cover applied after the roll can undo a hit that becomes a miss.
+  const ledger = hits.length ? Cover.beginLedger(hits.map(t => t.actor)) : null;
   for ( const token of game.user.targets ) {
     if ( token.actor && !hits.includes(token) ) {
       fire("missed", subject.actor, missContext(subject, rolls, token.actor));
@@ -209,7 +219,7 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
       awaitingReaction.set(key, new Promise(r => release = r));
       try {
         const result = await Reactions.attackHit({
-          attacker: subject.actor, target, activity: subject, roll, ac: target.system.attributes.ac.value
+          attacker: subject.actor, target, activity: subject, roll, ac: target.system.attributes.ac.value + coverAC
         });
         if ( !result.hit ) {
           absorbed.set(key, { at: Date.now(), reason: "the attack missed after a reaction" });
@@ -231,8 +241,13 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
       await autoApply(subject, target, subject.effects, findUsageMessage(subject));
     }
   }
-  await Workflow.attackLanded(subject, landed, roll);
-  if ( landed.length ) await runOnUse(subject, landed, "onHit");
+  try {
+    await Workflow.attackLanded(subject, landed, roll);
+    if ( landed.length ) await runOnUse(subject, landed, "onHit");
+  } finally {
+    if ( ledger ) await Cover.finishLedger(ledger, game.messages.contents.findLast(m => Cover.isAttackMessage(m)
+      && (Cover.messageActivityUuid(m) === subject.uuid)));
+  }
 });
 
 /**
@@ -2815,11 +2830,19 @@ Hooks.once("ready", () => {
   Maneuvers.initManeuvers({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
   Maneuvers.registerManeuverHooks();
   Loot.initLoot({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
+  Economy.registerEconomyHooks();
+  Interact.registerInteractHooks();
+  Cover.registerCoverHooks();
+  const shared = { ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting };
+  Bodies.registerBodies(shared);
+  Trade.registerTrade(shared);
+  Skills.registerSkills(shared);
   game.modules.get(MODULE_ID).api = {
     ACTIONS, fire, autoApply, findUsageMessage,
     openEditor: doc => TriggerEditor.open(doc), describeTrigger, describeReaction,
     creatures: Creatures, workflow: Workflow, areas: Areas,
-    registerAction, registerEditorSection, maneuvers: Maneuvers, loot: Loot
+    registerAction, registerEditorSection, maneuvers: Maneuvers, loot: Loot, economy: Economy, interact: Interact,
+    bodies: Bodies, trade: Trade, skills: Skills, cover: Cover
   };
   Hooks.callAll("alivasTriggers.ready", game.modules.get(MODULE_ID).api);
   console.log(`${MODULE_ID} | Ready`);

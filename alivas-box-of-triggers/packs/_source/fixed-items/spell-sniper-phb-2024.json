@@ -1,0 +1,78 @@
+{
+  "_id": "spellsniperXPHB0",
+  "name": "Spell Sniper",
+  "type": "feat",
+  "img": "icons/magic/fire/projectile-fireball-orange.webp",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Spell Sniper (PHB 2024 p. ). Patched items keep their own description, effects and advancement; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "type": {
+      "value": "feat",
+      "subtype": ""
+    }
+  },
+  "effects": [
+    {
+      "_id": "spellsniperCov00",
+      "name": "Spell Sniper: Bypass Cover",
+      "img": "icons/magic/fire/projectile-fireball-orange.webp",
+      "description": "",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "system": {
+        "changes": [],
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "duration": {
+        "units": "seconds",
+        "value": null,
+        "expiry": null,
+        "expired": false
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "ignoreCover": {
+            "level": "threeQuarters",
+            "classification": "spell"
+          }
+        }
+      },
+      "_key": "!items.effects!spellsniperXPHB0.spellsniperCov00"
+    }
+  ],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "Spell Sniper",
+          "type": "feat",
+          "book": "PHB 2024"
+        }
+      ],
+      "keep": {
+        "effects": true,
+        "paths": [
+          "system"
+        ]
+      }
+    }
+  },
+  "_key": "!items!spellsniperXPHB0"
+}

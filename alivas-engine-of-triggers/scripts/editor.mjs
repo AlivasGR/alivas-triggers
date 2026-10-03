@@ -668,6 +668,7 @@ function modelToTrigger(model) {
     for ( const key of ["onSuccess", "onFailure"] ) if ( !action[key]?.length ) delete action[key];
     if ( action.ability && action.skills?.length ) delete action.ability;
     if ( !action.skills?.length ) delete action.skills;
+    if ( !action.skills || !action.skillAbility ) delete action.skillAbility;
     if ( !action.advantage ) delete action.advantage;
   }
   if ( action.type === "save" ) {
@@ -836,6 +837,7 @@ function validateCheck(a) {
   if ( abilityMode ) {
     if ( !(a.ability in CONFIG.DND5E.abilities) ) errors.push("Check: choose which ability is rolled.");
   } else if ( !a.skills?.length ) errors.push("Check: pick at least one skill, or roll an ability.");
+  if ( a.skillAbility && !(a.skillAbility in CONFIG.DND5E.abilities) ) errors.push("Check: choose which ability the skill check uses.");
   if ( a.dc !== "tether" ) {
     if ( (a.dc === undefined) || (String(a.dc).trim() === "") ) errors.push("Check: set the DC (a number, a formula, or the escape DC of a hold).");
     else if ( !Number.isFinite(Number(a.dc)) && !formulaOk(a.dc) ) errors.push("Check: the DC must be a number or a formula.");
@@ -886,7 +888,7 @@ function describeCheck(a) {
   const dc = a.dc === "tether" ? "the escape DC of the hold on the bearer"
     : preset ? preset[1].replace(/ \(.*\)$/, "").replace(/^Your /, "your ")
       : Number.isFinite(Number(a.dc)) && String(a.dc ?? "") !== "" ? `DC ${a.dc}` : `DC ${a.dc || "?"}`;
-  let what = `${roll} vs ${dc}`;
+  let what = `${roll}${(!abilityMode && a.skillAbility) ? ` (using ${abilityLabel(a.skillAbility)})` : ""} vs ${dc}`;
   if ( a.vs ) what += ` against ${describeSelector(a.vs, { you: "the bearer" })}`;
   if ( a.advantage === "larger" ) what += " (advantage if larger, disadvantage if smaller)";
   else if ( a.advantage === true ) what += " (with advantage)";
@@ -1117,6 +1119,7 @@ function readRules(effect) {
     attacksUnlessSource: f.attacksWith?.unlessTarget === "source",
     lightBright: f.light?.bright ?? "", lightDim: f.light?.dim ?? "", lightColor: f.light?.color ?? "#ffe9a8",
     noSpells: !!f.noSpells, whileStatus: f.whileStatus ?? "",
+    coverLevel: f.ignoreCover?.level ?? "", coverClass: f.ignoreCover?.classification ?? "", coverType: f.ignoreCover?.type ?? "",
     acFormula: f.armorClass?.formula ?? "", acLabel: f.armorClass?.label ?? "", acUnarmored: f.armorClass?.armored === false,
     sustainEvents: [...(f.sustain?.events ?? [])], sustainFilter: JSON.stringify(f.sustain?.filter ?? [])
   };
@@ -1173,6 +1176,8 @@ function rulesUpdate(r) {
   set("light", { bright: Number(r.lightBright) || 0, dim: Number(r.lightDim) || 0, color: r.lightColor || null },
     (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0));
   set("noSpells", true, r.noSpells);
+  set("ignoreCover", { level: r.coverLevel, ...(r.coverClass ? { classification: r.coverClass } : {}), ...(r.coverType ? { type: r.coverType } : {}) },
+    ["half", "threeQuarters"].includes(r.coverLevel));
   const whileStatus = String(r.whileStatus ?? "").trim();
   set("whileStatus", whileStatus, whileStatus);
   const acFormula = String(r.acFormula ?? "").trim();
@@ -1512,7 +1517,8 @@ export class TriggerEditor extends ApplicationV2 {
       damage: [r.ignoreDamageFrom, r.evasion?.length, r.noHealing, r.dropSave, r.onlyIfStatus, r.saveAdvStatuses?.length, r.healingExtraDie,
         String(r.reduceFormula ?? "").trim(), Number(r.diceMin) > 1],
       area: [Number(r.areaRadius) > 0, r.stopOnCollision, r.disengaged, (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0)],
-      weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0, String(r.acFormula ?? "").trim()],
+      weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0, String(r.acFormula ?? "").trim(),
+        r.coverLevel],
       holds: [r.tetherOn, r.checksMode]
     };
     const typePills = (list, key, entries) => entries.map(([id, label]) => `<label class="aet-check aet-small-check">
@@ -1570,6 +1576,9 @@ export class TriggerEditor extends ApplicationV2 {
           <input type="number" class="aet-num" data-rule="lightDim" value="${esc(r.lightDim)}" placeholder="dim"><span class="aet-muted">ft, while this lasts</span>
           <input type="color" data-rule="lightColor" value="${esc(r.lightColor)}"></label>`)}
       ${group("weapons", "Weapon attacks", `
+        <label class="aet-inline"><span>The bearer's attacks ignore</span><select data-rule="coverLevel" data-rerender>${options([["", "— (no cover rule)"], ["half", "Half Cover"], ["threeQuarters", "Half and Three-Quarters Cover"]], r.coverLevel)}</select>
+          ${r.coverLevel ? `<span class="aet-muted">for</span><select data-rule="coverClass">${options([["", "any attack"], ["weapon", "weapon attacks"], ["spell", "spell attacks"], ["unarmed", "unarmed attacks"]], r.coverClass)}</select>
+          <select data-rule="coverType">${options([["", "melee or ranged"], ["melee", "melee only"], ["ranged", "ranged only"]], r.coverType)}</select>` : ""}</label>
         <label class="aet-inline"><span>Attacks against the bearer have</span><select data-rule="attackedMode" data-rerender>${options([["", "— (normal)"], ["advantage", "Advantage"], ["disadvantage", "Disadvantage"]], r.attackedMode)}</select>
           ${r.attackedMode ? `<label class="aet-check aet-small-check"><input type="checkbox" data-rule="attackedOnce"${r.attackedOnce ? " checked" : ""}><span>only the next one (then it ends)</span></label>
           <span class="aet-muted">attacks by</span><select data-rule="attackedBy">${options([["", "anyone"], ["source", "only the source"],
@@ -1856,7 +1865,8 @@ export class TriggerEditor extends ApplicationV2 {
         return `<div class="aet-fields">
           <label class="aet-inline"><span>Roll</span><select data-special="checkKind" data-rerender>${options([["skills", "A skill check (the best of several)"], ["ability", "An ability check"]], abilityMode ? "ability" : "skills")}</select>
             ${abilityMode ? `<select data-path="${P}.ability">${options(abilityEntries(), a.ability)}</select>` : ""}</label>
-          ${abilityMode ? "" : `<div class="aet-pills">${this.#skillBoxes(a.skills, "skills")}</div>`}
+          ${abilityMode ? "" : `<div class="aet-pills">${this.#skillBoxes(a.skills, "skills")}</div>
+          <label class="aet-inline"><span>Skill check uses</span><select data-path="${P}.skillAbility">${options([["", "The default ability of the skill"], ...abilityEntries()], a.skillAbility ?? "")}</select></label>`}
           <label class="aet-inline"><span>Against</span><select data-special="checkDc" data-rerender>${options(dcEntries, dcMode)}</select>
             ${dcMode === "fixed" ? `<input type="number" class="aet-num" data-path="${P}.dc" data-type="number" value="${esc(a.dc)}">` : ""}
             ${dcMode === "formula" ? `<input type="text" class="aet-formula" data-path="${P}.dc" value="${esc(a.dc)}" placeholder="8 + @target.abilities.dex.mod + @target.prof">` : ""}</label>
@@ -2164,7 +2174,7 @@ export class TriggerEditor extends ApplicationV2 {
       return false;
     }
     if ( el.dataset.special === "checkKind" ) {
-      if ( el.value === "ability" ) { delete act.skills; act.ability = act.ability || "str"; }
+      if ( el.value === "ability" ) { delete act.skills; delete act.skillAbility; act.ability = act.ability || "str"; }
       else { delete act.ability; act.skills = act.skills?.length ? act.skills : ["ath"]; }
     }
     if ( el.dataset.special === "checkDc" ) {
@@ -2706,6 +2716,7 @@ function describeRules(effect) {
   if ( Number(r.diceMin) > 1 ) list.push(`The bearer's damage dice count at least ${r.diceMin}${(parseFilterText(r.diceFilter) ?? []).length ? " (on matching attacks)" : ""}.`);
   if ( (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0) ) list.push(`Sheds light (${r.lightBright || 0}/${r.lightDim || 0} ft) while it lasts.`);
   if ( r.noSpells ) list.push("The bearer can't cast spells or concentrate.");
+  if ( r.coverLevel ) list.push(`The bearer's ${r.coverType ? `${r.coverType} ` : ""}${r.coverClass ? `${r.coverClass} ` : ""}attacks ignore ${r.coverLevel === "half" ? "Half Cover" : "Half and Three-Quarters Cover"}.`);
   if ( String(r.whileStatus ?? "").trim() ) list.push(`Lasts only while the bearer has ${r.whileStatus}.`);
   if ( String(r.acFormula ?? "").trim() ) list.push(`Armor Class option: ${r.acFormula}${r.acUnarmored ? " (without armor)" : ""}${r.acLabel ? ` — “${r.acLabel}”` : ""}.`);
   if ( r.tetherOn ) list.push(`Holds the bearer (grapple) to whoever applied it: the hold ends beyond ${r.tetherRange || 5} ft or when the holder is Incapacitated${r.tetherDrag ? "; the bearer is dragged along with its holder" : ""}${r.tetherDc !== "" ? `; escape DC ${r.tetherDc}` : ""}.`);

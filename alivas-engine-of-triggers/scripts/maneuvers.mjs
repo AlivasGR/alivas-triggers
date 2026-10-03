@@ -40,7 +40,9 @@
  */
 
 import * as Creatures from "./creatures.mjs";
+import * as Economy from "./economy.mjs";
 import * as Reactions from "./reactions.mjs";
+import { rollSkillWith } from "./skills.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const INCAPACITATING = ["incapacitated", "paralyzed", "petrified", "stunned", "unconscious", "dead"];
@@ -208,11 +210,15 @@ const targetsOf = (a, effect, bearer, context, trigger) => a.vs || a.to
   : Promise.resolve(context.targets?.length ? context.targets : (context.subject ? [context.subject] : []));
 
 /** Roll a check for an actor: the best of `skills` (or an ability), with advantage/disadvantage. → { total } */
-async function rollCheck(actor, { skills=[], ability=null, advantage=false, disadvantage=false, target=null }) {
+async function rollCheck(actor, { skills=[], ability=null, skillAbility=null, advantage=false, disadvantage=false, target=null }) {
   let skill = null;
-  if ( skills.length ) skill = skills.reduce((best, s) => ((actor.system.skills?.[s]?.total ?? -99) > (actor.system.skills?.[best]?.total ?? -99) ? s : best), skills[0]);
+  // With skillAbility, a skill's total is re-based from its own ability's modifier to that ability's.
+  const score = s => (actor.system.skills?.[s]?.total ?? -99) + (skillAbility
+    ? (actor.system.abilities?.[skillAbility]?.mod ?? 0) - (actor.system.abilities?.[actor.system.skills?.[s]?.ability]?.mod ?? 0) : 0);
+  if ( skills.length ) skill = skills.reduce((best, s) => (score(s) > score(best) ? s : best), skills[0]);
   const config = { advantage, disadvantage, ...(target ? { target } : {}) };
-  const rolls = skill ? await actor.rollSkill({ skill, ...config }, { configure: false })
+  const rolls = skill && skillAbility ? await rollSkillWith(actor, skill, skillAbility, { advantage, disadvantage, target })
+    : skill ? await actor.rollSkill({ skill, ...config }, { configure: false })
     : await actor.rollAbilityCheck({ ability: ability ?? "str", ...config }, { configure: false });
   return { total: rolls?.[0]?.total ?? null, skill };
 }
@@ -251,7 +257,7 @@ export const MANEUVER_ACTIONS = {
       // roll "attack": an attack roll with the bearer's best equipped melee weapon instead of a check (Disarm).
       const { total } = a.roll === "attack"
         ? await rollWeaponAttack(bearer, { advantage: adv, disadvantage: dis })
-        : await rollCheck(bearer, { skills: a.skills ?? [], ability: a.ability, advantage: adv, disadvantage: dis, target: dc });
+        : await rollCheck(bearer, { skills: a.skills ?? [], ability: a.ability, skillAbility: a.skillAbility, advantage: adv, disadvantage: dis, target: dc });
       if ( total === null ) continue;
       const success = total >= dc;
       await deps.announce(trigger, effect, bearer, event, `${bearer.name}: ${total} vs DC ${dc}${target ? ` (${target.name})` : ""} — ${success ? "success" : "failure"}.`);
@@ -429,21 +435,10 @@ export function registerManeuverHooks() {
 /*  Bonus actions and "blocked" offers          */
 /* -------------------------------------------- */
 
-/** Has the actor used its bonus action this combat turn? (Tracked from activities with a bonus-action activation.) */
+/** Has the actor used its bonus action this combat turn? (economy.mjs tracks it from activities' activation.) */
 export function bonusActionUsed(actor) {
-  const combat = game.combat;
-  const c = combat?.started ? combat.getCombatantsByActor?.(actor)?.[0] : null;
-  if ( !c ) return false;
-  const used = c.getFlag(MODULE_ID, "bonusUsed");
-  return !!used && (used.round === combat.round) && (used.turn === combat.turn);
+  return Economy.inCombat(actor) && Economy.used(actor, "bonus");
 }
-
-Hooks.on("dnd5e.postUseActivity", activity => {
-  if ( activity?.activation?.type !== "bonus" ) return;
-  const combat = game.combat;
-  const c = combat?.started ? combat.getCombatantsByActor?.(activity.actor)?.[0] : null;
-  if ( c?.isOwner ) c.setFlag(MODULE_ID, "bonusUsed", { round: combat.round, turn: combat.turn });
-});
 
 /**
  * When a hostile creature blocks a creature's move (dnd5e movement automation), its player is offered the activities

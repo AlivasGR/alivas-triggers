@@ -16,8 +16,10 @@
  *   - replaced: activities and the rest of `system`, and the item's embedded effects
  * The applied version is stamped on the item; a patch is re-applied only when its version goes up.
  *
- * A patch may also carry `keep: { activities: [type, ...], paths: [path, ...] }`: the target's own activities of those
- * types and those system fields are kept instead of the patch's (Unarmed Strike keeps a Monk's Attack and damage).
+ * A patch may also carry `keep: { activities: [type, ...], paths: [path, ...], effects: true }`: the target's own
+ * activities of those types and those system fields are kept instead of the patch's (Unarmed Strike keeps a Monk's
+ * Attack and damage); with `effects`, the target's own effects stay and the patch's are added (Sharpshooter keeps its
+ * ability increase, a Wand of the War Mage its attack bonus).
  *
  * Combat Maneuvers (flag `maneuvers: true` on the "Combat Maneuvers" patch):
  *   - Setting "Combat maneuvers for every creature" (world, default on): every world Actor of type character or npc gets
@@ -190,6 +192,11 @@ function buildPatched(patch, old, items) {
     if ( !own.length ) continue;
     for ( const [aid, a] of Object.entries(data.system.activities) ) if ( a.type === type ) delete data.system.activities[aid];
     for ( const [aid, a] of own ) data.system.activities[aid] = foundry.utils.deepClone(a);
+  }
+  // keep.effects: the target's own effects stay (an item's magic bonus, a feat's ability increase); the patch's are added.
+  if ( patchKeep.effects ) {
+    const ours = new Set((data.effects ?? []).map(e => e._id));
+    data.effects = [...(old.effects ?? []).filter(e => !ours.has(e._id)).map(e => foundry.utils.deepClone(e)), ...(data.effects ?? [])];
   }
   if ( old.type === "spell" ) keepConsumption(data.system.activities, old.system?.activities);
   resolveIdentifierTargets(data, items);

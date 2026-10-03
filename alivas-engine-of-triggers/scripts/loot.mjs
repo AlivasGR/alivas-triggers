@@ -186,6 +186,10 @@ function findPileAt(scene, position) {
   }) ?? null;
 }
 
+/** A carried body (bodies.mjs: a container flagged `body`), and putting it down through that module. */
+const isCarriedBody = item => (item?.type === "container") && !!item.flags?.[MODULE_ID]?.body;
+const putDownBody = (actor, item, position) => game.modules.get(MODULE_ID)?.api?.bodies?.putDown?.(actor, item, position ?? undefined);
+
 /** Is a GM client available to do privileged writes? Returns the user to run on, or null. */
 const gmUser = () => (game.user.isGM ? game.user : (game.users.activeGM ?? null));
 
@@ -255,7 +259,7 @@ function pileData(item, quantity) {
  * @param {string} [options.verb="drops"]           Chat verb.
  * @returns {Promise<{tokenUuid:string, dropped:string[]}|null>}
  */
-export async function dropItems(actor, items, { position=null, pile=null, skipTiming=false, verb="drops" }={}) {
+export async function dropItems(actor, items, { position=null, pile=null, skipTiming=false, verb="drops", quiet=false }={}) {
   if ( !needIP("dropItems") ) return null;
   actor = actorOf(actor);
   if ( !actor ) return null;
@@ -266,6 +270,16 @@ export async function dropItems(actor, items, { position=null, pile=null, skipTi
     if ( !gm ) { warn("dropItems: no GM is connected to drop another creature's items", { notify: true }); return null; }
     const entries = normalizeEntries(actor, items).map(e => ({ itemId: e.item.id, quantity: e.quantity }));
     return Creatures.runAs(gm, "lootDrop", { actorUuid: actor.uuid, entries, position, pileUuid: pile?.uuid ?? null, verb });
+  }
+
+  // A carried body (bodies.mjs) isn't loot: dropping it puts the creature's token down there.
+  const list = Array.isArray(items) ? items : [items];
+  const bodyOf = e => { const i = (e instanceof Item) ? e : (e?.item instanceof Item ? e.item : actor.items.get(e?.item ?? e)); return isCarriedBody(i) ? i : null; };
+  const bodies = list.map(bodyOf).filter(Boolean);
+  if ( bodies.length ) {
+    for ( const body of bodies ) await putDownBody(actor, body, position);
+    items = list.filter(e => !bodyOf(e));
+    if ( !items.length ) return { tokenUuid: null, dropped: bodies.map(b => b.name) };
   }
 
   const token = Creatures.tokenFor(actor);
@@ -321,7 +335,7 @@ export async function dropItems(actor, items, { position=null, pile=null, skipTi
   if ( removed === undefined ) warn(`items were put in the pile but could not be removed from ${actor.name}; remove them by hand`, { notify: true });
 
   const names = moving.map(e => (e.quantity > 1 ? `${e.item.name} ×${e.quantity}` : e.item.name));
-  await chat(actor, `<strong>${esc(actor.name)}</strong> ${esc(verb)} ${names.map(esc).join(", ")}.`);
+  if ( !quiet ) await chat(actor, `<strong>${esc(actor.name)}</strong> ${esc(verb)} ${names.map(esc).join(", ")}.`);
   return { tokenUuid, dropped: names };
 }
 
@@ -1001,6 +1015,11 @@ function registerHooks() {
     const target = rest.find(a => a && (a.documentName === "Token")) ?? null;
     const item = itemData?.uuid ? fromUuidSync(itemData.uuid) : null;
     const actor = actorOf(source);
+    // A carried body dragged to the map: put its token down there instead of making a pile.
+    if ( (item instanceof Item) && actor && (item.parent === actor) && isCarriedBody(item) ) {
+      putDownBody(actor, item, position ? canvas.grid.getTopLeftPoint?.(position) ?? position : null);
+      return false;
+    }
     if ( !(item instanceof Item) || !actor || (item.parent !== actor) || !inStartedCombat(actor) ) return;
     const verdict = dropTiming(actor, item);
     if ( verdict === "ok" ) return;

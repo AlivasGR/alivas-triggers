@@ -1,0 +1,87 @@
+{
+  "_id": "wandwarmageXDMG0",
+  "name": "Wand of the War Mage",
+  "type": "equipment",
+  "img": "icons/weapons/wands/wand-carved-fire.webp",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "DMG 2024",
+      "page": "322",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Wand of the War Mage (DMG 2024 p. 322). Patched items keep their own description, effects and advancement; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "type": {
+      "value": "wand"
+    }
+  },
+  "effects": [
+    {
+      "_id": "wandwarmageCov00",
+      "name": "Wand of the War Mage: Ignore Half Cover",
+      "img": "icons/weapons/wands/wand-carved-fire.webp",
+      "description": "",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "system": {
+        "changes": [],
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "duration": {
+        "units": "seconds",
+        "value": null,
+        "expiry": null,
+        "expired": false
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "ignoreCover": {
+            "level": "half",
+            "classification": "spell"
+          }
+        }
+      },
+      "_key": "!items.effects!wandwarmageXDMG0.wandwarmageCov00"
+    }
+  ],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 2,
+      "match": [
+        {
+          "name": "+1 Wand of the War Mage",
+          "type": "equipment",
+          "book": "DMG 2024"
+        },
+        {
+          "name": "+2 Wand of the War Mage",
+          "type": "equipment",
+          "book": "DMG 2024"
+        },
+        {
+          "name": "+3 Wand of the War Mage",
+          "type": "equipment",
+          "book": "DMG 2024"
+        }
+      ],
+      "keep": {
+        "effects": true,
+        "paths": [
+          "system"
+        ]
+      }
+    }
+  },
+  "_key": "!items!wandwarmageXDMG0"
+}
