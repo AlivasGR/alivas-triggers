@@ -1,6 +1,6 @@
 # Tasks
 
-Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-018**.
+Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-019**.
 
 **Foundry?** column: `no` = can be done fully without Foundry · `test` = the work is offline, only the final check
 needs Foundry · `yes` = needs a running Foundry throughout.
@@ -11,19 +11,20 @@ needs Foundry · `yes` = needs a running Foundry throughout.
 | [T-002](T-002-live-test-backlog.md) | Live-test backlog: things built but not yet exercised in a real game flow | needs-live-test | yes |
 | [T-003](T-003-srd-copies.md) | Match dnd5e SRD 2024 copies of every patched item | open | test |
 | [T-004](T-004-remaining-masteries.md) | Weapon masteries Nick, Cleave, Push | open | test |
-| [T-005](T-005-cover.md) | Cover as an effect rule (half / three-quarters), used by the Keywand of the Stars | open | test |
+| [T-005](T-005-cover.md) | Cover as an effect rule (half / three-quarters), used by the Keywand of the Stars | open (cover itself built in v0.10.0: `cover.mjs`; Keywand still to wire) | test |
 | [T-006](T-006-generators-in-repo.md) | Patch generators as public, rerunnable scripts | open | no |
 | [T-007](T-007-deflect-redirect-type.md) | Deflect Attacks: redirect keeps the attack's damage type | open | test |
 | [T-008](T-008-healers-kit-stabilize.md) | Healer's Kit / Medicine: stabilize a dying creature | open | test |
 | [T-009](T-009-slow-fall.md) | Monk Slow Fall: reduce falling damage | open | test |
 | [T-010](T-010-npc-condition-riders.md) | Condition riders on monster attacks (save-ends, bite → poisoned…) | open | test |
 | [T-011](T-011-2014-variants.md) | 2014 variants of patched items, as separate patches | open | test |
-| [T-012](T-012-editor-coverage-audit.md) | Editor coverage audit: every engine field reachable and described | open | test |
+| [T-012](T-012-editor-coverage-audit.md) | Editor coverage audit: every engine field reachable and described | done (v0.10.0) | test |
 | [T-013](T-013-unit-tests.md) | Node unit tests for the pure parts (filters, formulas, patch matching, editor converters) | open | no |
 | [T-014](T-014-uses-bug-items.md) | Items whose attack spends uses they don't have (Dagger, Rope, Hooded Lantern) | open | test |
 | [T-015](T-015-paladin-barbarian-monk-species.md) | Aasimar, Lizardfolk, Paladin / Barbarian (Wild Magic) / Monk (Astral Self) to level 3 | needs-live-test | test |
 | [T-016](T-016-stage-preset-review.md) | Visual review of the Stage's animation presets (Box items, conditions) | needs-live-test | yes |
 | [T-017](T-017-ready-action.md) | Ready action: full automation (on hold; today Ready only spends the reaction) | open | test |
+| [T-018](T-018-v010-open-items.md) | v0.10.0 follow-ups: unverified items, placeholders to confirm, session feedback | open | test |
 
 Statuses: `open` · `in-progress` · `needs-live-test` · `blocked` · `done`. Keep this table in sync when you change a
 task's status. Done tasks stay listed until the next release, then the file is deleted (git keeps it).
