@@ -31,7 +31,7 @@ needs Foundry · `yes` = needs a running Foundry throughout.
 | [T-022](T-022-concentration-graze.md) | Concentration popup for connected players; Graze fixes; reaction options skip unprepared spells and duplicates | done | test |
 | [T-023](T-023-wardaway.md) | Wardaway (FRHoF): range/target fix, scaling, slow + action-or-bonus rider, Constructs/Undead auto-succeed | done | test |
 | [T-024](T-024-player-workflow-defaults.md) | Player workflow defaults: manual attack and save rolls, automatic damage and effects | done | test |
-| [T-025](T-025-alliances.md) | Alliances (baseline): letters per combatant, tracker + sheet editing, sides follow alliances, picker override | needs-live-test | test |
+| [T-025](T-025-alliances.md) | Alliances (baseline): letters per combatant, tracker + sheet editing, sides follow alliances, picker override | done | test |
 
 Statuses: `open` · `in-progress` · `needs-live-test` · `blocked` · `done`. Keep this table in sync when you change a
 task's status. Done tasks stay listed until the next release, then the file is deleted (git keeps it).
