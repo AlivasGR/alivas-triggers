@@ -863,6 +863,12 @@ export async function leavesReach(tokenDoc, movement) {
   const mover = tokenDoc.actor;
   const combat = game.combats.find(c => c.started && c.combatants.some(cb => cb.tokenId === tokenDoc.id));
   if ( !mover || !combat ) return;
+  // 2024: only a creature leaving reach by its own movement (or action/reaction) provokes. Forced movement and
+  // teleports don't: the engine's pushes, pulls, drags, placements (Shove Aside, Hurl) and teleports all move with
+  // Foundry's "displace" action; "blink" is Foundry's teleport.
+  const steps = movement.passed?.waypoints ?? [];
+  if ( steps.length && steps.every(w => INVOLUNTARY_MOVES.has(w.action)) ) return;
+  if ( INVOLUNTARY_MOVES.has(movement.passed?.action ?? movement.action) ) return;
   // Disengaged (status, an effect with the disengaged rule, or one named so): no Opportunity Attacks.
   if ( mover.statuses?.has("disengaged") || (mover.appliedEffects ?? []).some(e => e.getFlag(MODULE_ID, "disengaged") || /disengag/i.test(e.name)) ) return;
   const origin = movement.origin ?? {};
@@ -894,6 +900,9 @@ export async function leavesReach(tokenDoc, movement) {
     if ( answer?.choice && (answer.choice !== "skip") ) await stopIfHeld(tokenDoc, reactorToken, reach, movement);
   }
 }
+
+/** Foundry movement actions that aren't the creature moving itself (no Opportunity Attack). */
+const INVOLUNTARY_MOVES = new Set(["displace", "blink"]);
 
 /** Statuses that leave a creature with no speed (it can't finish a move it was making). */
 const NO_SPEED = ["grappled", "restrained", "incapacitated", "paralyzed", "petrified", "stunned", "unconscious", "dead"];
