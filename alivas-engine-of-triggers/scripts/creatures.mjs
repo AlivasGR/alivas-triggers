@@ -5,7 +5,7 @@
  *   tokenFor(actor, scene)            the actor's token (prefers the given scene)
  *   distanceFt(tokenA, tokenB)        5e distance, edge to edge
  *   canSee(viewerToken, targetToken)  Foundry vision from the viewer's point of view
- *   relation(a, b, scene)             "self" | "ally" | "enemy" | "neutral" (token dispositions)
+ *   relation(a, b, scene)             "self" | "ally" | "enemy" | "neutral" (alliances, else token dispositions)
  *   findCreatures(from, spec, ctx)    creatures matching a spec (range, sight, side…)
  *   pickCreature(chooser, actors)     "choose a creature" popup for whoever controls the chooser; waits for the answer
  *   selectCreatures(chooser, sel, ctx)   a SELECTOR → the creatures it means (may ask the chooser)
@@ -135,12 +135,22 @@ export function canSee(viewerDoc, targetDoc) {
   }
 }
 
+/** Set by alliances.mjs: { enabled(), relation(a, b, scene), allianceOf(actor, scene) }. */
+let alliances = null;
+export const setAllianceResolver = api => { alliances = api; };
+/** Are alliances deciding sides right now? */
+export const alliancesOn = () => !!alliances?.enabled();
+/** A creature's alliance letter ("" for none), when alliances are on. */
+export const allianceLetter = (actor, scene) => alliances?.allianceOf(actor, scene) ?? "";
+
 /**
- * How b stands relative to a, from their tokens' dispositions.
+ * How b stands relative to a: from their alliances when that setting is on, else from their tokens' dispositions.
  * @returns {"self"|"ally"|"enemy"|"neutral"}
  */
 export function relation(a, b, scene) {
   if ( a && b && (a.uuid === b.uuid) ) return "self";
+  // Alliances (alliances.mjs, setting "alliances"): when on, they decide; otherwise token dispositions.
+  if ( alliancesOn() ) return alliances.relation(a, b, scene);
   const da = tokenFor(a, scene)?.disposition;
   const db = tokenFor(b, scene)?.disposition;
   const { FRIENDLY, HOSTILE } = CONST.TOKEN_DISPOSITIONS;
@@ -223,13 +233,14 @@ export async function pickCreature(chooser, actors, { title, prompt="", allowNon
  * Ask whoever controls the chooser to pick up to `count` creatures from a list.
  * @returns {Promise<Actor5e[]>}
  */
-export async function pickCreatures(chooser, actors, { title, prompt="", allowNone=true, count=1 }={}) {
-  if ( !actors.length ) return [];
+export async function pickCreatures(chooser, actors, { title, prompt="", allowNone=true, count=1, others=[] }={}) {
+  if ( !actors.length && !others.length ) return [];
   const user = controllerOf(chooser);
   if ( !user ) return [];
   const payload = {
     title: title ?? `${chooser.name} — choose ${count > 1 ? `up to ${count} creatures` : "a creature"}`, prompt, allowNone, count,
-    choices: actors.map(a => ({ uuid: a.uuid, name: a.uuid === chooser.uuid ? `${a.name} (yourself)` : (tokenFor(a)?.name ?? a.name) }))
+    choices: actors.map(a => ({ uuid: a.uuid, name: a.uuid === chooser.uuid ? `${a.name} (yourself)` : (tokenFor(a)?.name ?? a.name) })),
+    others: others.map(a => ({ uuid: a.uuid, name: tokenFor(a)?.name ?? a.name }))
   };
   const result = await runAs(user, count > 1 ? "pickCreatures" : "pickCreature", payload);
   const uuids = Array.isArray(result) ? result : (result ? [result] : []);
@@ -264,9 +275,13 @@ export async function selectCreatures(chooser, selector={}, ctx={}) {
     case "subject": return ctx.subject ? [ctx.subject] : [];
     case "targets": return (ctx.targets ?? []).filter(a => a && (!selector.side || sideMatches(selector.side, relation(chooser, a))));
     case "all": return findCreatures(chooser, selector, ctx);
-    default: return pickCreatures(chooser, findCreatures(chooser, selector, ctx), {
-      title: ctx.title, prompt: ctx.prompt, count: selectorCount(selector, chooser)
-    });
+    default: {
+      const found = findCreatures(chooser, selector, ctx);
+      // A side filter (allies / enemies): the picker can also offer everyone else in range — Bless an enemy, Bane an ally.
+      const others = (selector.side && (selector.side !== "any"))
+        ? findCreatures(chooser, { ...selector, side: "any" }, ctx).filter(a => !found.includes(a)) : [];
+      return pickCreatures(chooser, found, { title: ctx.title, prompt: ctx.prompt, count: selectorCount(selector, chooser), others });
+    }
   }
 }
 
@@ -516,15 +531,15 @@ export function lowestSlot(activity) {
 /** Handlers that can be run remotely: name → async (payload) => result. */
 export const HANDLERS = {
   /** Choose one creature; resolves to its UUID or null. */
-  async pickCreature({ title, prompt, choices, allowNone }) {
-    const [uuid] = await pickOnMap({ title, prompt, choices, count: 1, allowNone });
+  async pickCreature({ title, prompt, choices, allowNone, others }) {
+    const [uuid] = await pickOnMap({ title, prompt, choices, count: 1, allowNone, others });
     return uuid ?? null;
   }
 };
 
 /** Choose up to count creatures; resolves to a list of UUIDs. */
-HANDLERS.pickCreatures = async function({ title, prompt, choices, count, allowNone }) {
-  return pickOnMap({ title, prompt, choices, count, allowNone });
+HANDLERS.pickCreatures = async function({ title, prompt, choices, count, allowNone, others }) {
+  return pickOnMap({ title, prompt, choices, count, allowNone, others });
 };
 
 /** A list that scrolls instead of growing the dialog past the screen (many creatures on the map). */
@@ -535,7 +550,7 @@ const scrollList = rows => `<div class="aet-pick-list" style="max-height:min(50v
  * map picks its row. One pick = radio buttons, several = checkboxes (up to count). Cancelling restores the targets.
  * @returns {Promise<string[]>} UUIDs
  */
-async function pickOnMap({ title, prompt, choices, count=1, allowNone=true }) {
+async function pickOnMap({ title, prompt, choices, count=1, allowNone=true, others=[] }) {
   const single = count <= 1;
   const tokenOf = uuid => tokenFor(fromUuidSync(uuid))?.object ?? null;
   const previous = Array.from(game.user.targets ?? []);
@@ -553,24 +568,38 @@ async function pickOnMap({ title, prompt, choices, count=1, allowNone=true }) {
     }
     return token;
   };
-  const rows = choices.map(c => {
+  const row = (c, other=false) => {
     const token = tokenOf(c.uuid);
     const img = token?.document.texture.src ?? fromUuidSync(c.uuid)?.img ?? "icons/svg/mystery-man.svg";
-    return `<label class="aet-pick-row" style="display:flex;gap:8px;align-items:center;margin:3px 0;padding:2px 4px;border-radius:4px;cursor:pointer">
+    return `<label class="aet-pick-row${other ? " aet-pick-other" : ""}" style="display:${other ? "none" : "flex"};gap:8px;align-items:center;margin:3px 0;padding:2px 4px;border-radius:4px;cursor:pointer">
       <input type="${single ? "radio" : "checkbox"}" name="pick" value="${c.uuid}">
       <img src="${img}" width="28" height="28" style="border:none;object-fit:contain">
-      <span>${foundry.utils.escapeHTML(c.name)}</span></label>`;
-  }).join("");
+      <span>${foundry.utils.escapeHTML(c.name)}${other ? ' <em class="hint">(outside the alliance)</em>' : ""}</span></label>`;
+  };
+  // Creatures the side filter left out (another alliance): hidden until "Include creatures outside this alliance".
+  const rows = choices.map(c => row(c)).join("") + others.map(c => row(c, true)).join("");
+  const othersToggle = others.length ? `<label class="aet-pick-others" style="display:flex;gap:6px;align-items:center;margin:4px 0">
+    <input type="checkbox" name="showOthers"><span>Include creatures outside this alliance (${others.length})</span></label>` : "";
   let hook = null;
   const buttons = [{ action: "ok", label: "Confirm", icon: "fa-solid fa-check", default: true,
     callback: (event, button, dialog) => [...dialog.element.querySelectorAll('input[name="pick"]:checked')].map(b => b.value) }];
   if ( allowNone !== false ) buttons.push({ action: "none", label: "No one", icon: "fa-solid fa-xmark", callback: () => null });
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title }, position: { width: 420 }, rejectClose: false,
-    content: `${prompt || ""}<p class="hint"><em>${single ? "Pick one" : `Pick up to ${count}`} — or target ${single ? "it" : "them"} on the map.</em></p>${scrollList(rows)}`,
+    content: `${prompt || ""}<p class="hint"><em>${single ? "Pick one" : `Pick up to ${count}`} — or target ${single ? "it" : "them"} on the map.</em></p>${othersToggle}${scrollList(rows)}`,
     render: (event, dialog) => {
       const boxes = [...dialog.element.querySelectorAll('input[name="pick"]')];
       const ok = dialog.element.querySelector('button[data-action="ok"]');
+      const showOthers = dialog.element.querySelector('input[name="showOthers"]');
+      const revealOthers = on => {
+        if ( showOthers ) showOthers.checked = on;
+        for ( const label of dialog.element.querySelectorAll(".aet-pick-other") ) {
+          label.style.display = on ? "flex" : "none";
+          const box = label.querySelector("input");
+          if ( !on && box.checked ) { box.checked = false; target(tokenOf(box.value), false, false); }
+        }
+      };
+      showOthers?.addEventListener("change", () => { revealOthers(showOthers.checked); refresh(); });
       const refresh = () => {
         const n = boxes.filter(b => b.checked).length;
         if ( !single ) boxes.forEach(b => { b.disabled = !b.checked && (n >= count); });
@@ -587,6 +616,7 @@ async function pickOnMap({ title, prompt, choices, count=1, allowNone=true }) {
         const box = boxes.find(b => b.value === token.actor?.uuid);
         if ( !box ) return;
         if ( targeted ) {
+          if ( box.closest(".aet-pick-other") && !showOthers?.checked ) revealOthers(true);
           box.closest("label")?.scrollIntoView({ block: "nearest" });
           if ( single ) boxes.forEach(b => { b.checked = b === box; });
           else if ( !box.checked && (boxes.filter(b => b.checked).length < count) ) box.checked = true;

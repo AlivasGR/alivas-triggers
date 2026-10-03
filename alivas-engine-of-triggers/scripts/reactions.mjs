@@ -80,7 +80,7 @@
  */
 
 import {
-  itemFilterData, tokenFor, distanceFt, canSee, relation, controllerOf, lowestSlot, selectCreatures, giveEffect, describeSelector, isLeadGM,
+  itemFilterData, alliancesOn, tokenFor, distanceFt, canSee, relation, controllerOf, lowestSlot, selectCreatures, giveEffect, describeSelector, isLeadGM,
   runAs, HANDLERS, displaceToken
 } from "./creatures.mjs";
 
@@ -224,9 +224,11 @@ function eligible(actor, window, ctx) {
 function allyNear(target, attacker, scene) {
   const tt = tokenFor(target, scene);
   if ( !tt ) return false;
-  return scene.tokens.some(t => t.actor && (t.id !== tt.id) && (t.actor.uuid !== attacker.uuid) && (t.disposition !== tt.disposition)
-    && (t.disposition !== CONST.TOKEN_DISPOSITIONS.NEUTRAL) && !["incapacitated", "unconscious", "dead"].some(s => t.actor.statuses?.has(s))
-    && (distanceFt(t, tt) <= 5));
+  // Hostile to the target: by alliance when that's on, else by disposition (not neutral).
+  const hostileToTarget = t => alliancesOn() ? (relation(target, t.actor, scene) === "enemy")
+    : ((t.disposition !== tt.disposition) && (t.disposition !== CONST.TOKEN_DISPOSITIONS.NEUTRAL));
+  return scene.tokens.some(t => t.actor && (t.id !== tt.id) && (t.actor.uuid !== attacker.uuid) && hostileToTarget(t)
+    && !["incapacitated", "unconscious", "dead"].some(s => t.actor.statuses?.has(s)) && (distanceFt(t, tt) <= 5));
 }
 
 /** "combat:round:turn" of the running combat this creature is in, or null out of combat. */
@@ -896,7 +898,15 @@ export async function leavesReach(tokenDoc, movement) {
     const reactorToken = cb.token;
     const reactor = cb.actor;
     if ( !reactor || !reactorToken || (reactorToken.id === tokenDoc.id) || (reactorToken.parent !== tokenDoc.parent) ) continue;
-    if ( reactorToken.disposition === tokenDoc.disposition ) continue;
+    // Sides: alliances when on (an ally leaving reach is offered only with setting allianceOaAllies), else dispositions.
+    let againstAlly = false;
+    if ( alliancesOn() ) {
+      const rel = relation(reactor, mover, tokenDoc.parent);
+      if ( (rel === "ally") || (rel === "self") ) {
+        if ( !setting("allianceOaAllies") ) continue;
+        againstAlly = true;
+      }
+    } else if ( reactorToken.disposition === tokenDoc.disposition ) continue;
     if ( NO_REACT.some(s => reactor.statuses?.has(s)) || reactionUsed(reactor) ) continue;
     // A creature the mover drags along (grapple) moves with it: it isn't left behind.
     if ( reactor.effects.some(e => (e.getFlag(MODULE_ID, "tether")?.source === tokenDoc.uuid) && e.getFlag(MODULE_ID, "tether")?.drag) ) continue;
@@ -918,7 +928,7 @@ export async function leavesReach(tokenDoc, movement) {
       options.push({ id: `${unarmed.id}.${activity.id}`, label: `Opportunity Attack — ${activity.name} (Unarmed Strike)`,
         itemId: unarmed.id, activityId: activity.id, targetUuid: tokenDoc.uuid, rollAttack: false });
     }
-    const answer = await ask(reactor, `<strong>${mover.name}</strong> leaves <strong>${reactor.name}</strong>'s reach.`, options);
+    const answer = await ask(reactor, `<strong>${mover.name}</strong>${againstAlly ? " (an ally)" : ""} leaves <strong>${reactor.name}</strong>'s reach.`, options);
     if ( answer?.choice && (answer.choice !== "skip") ) await stopIfHeld(tokenDoc, reactorToken, reach, movement);
   }
 }

@@ -152,6 +152,7 @@ import * as Bodies from "./bodies.mjs";
 import * as Trade from "./trade.mjs";
 import * as Skills from "./skills.mjs";
 import * as Cover from "./cover.mjs";
+import * as Alliances from "./alliances.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const SOCKET = `module.${MODULE_ID}`;
@@ -3199,6 +3200,7 @@ Hooks.once("ready", () => {
   Maneuvers.registerManeuverHooks();
   Loot.initLoot({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
   Economy.registerEconomyHooks();
+  Alliances.registerAlliances();
   Interact.registerInteractHooks();
   Cover.registerCoverHooks();
   const shared = { ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting };
@@ -3210,7 +3212,9 @@ Hooks.once("ready", () => {
     openEditor: doc => TriggerEditor.open(doc), describeTrigger, describeReaction,
     creatures: Creatures, workflow: Workflow, areas: Areas,
     registerAction, registerEditorSection, maneuvers: Maneuvers, loot: Loot, economy: Economy, interact: Interact,
-    bodies: Bodies, trade: Trade, skills: Skills, cover: Cover
+    bodies: Bodies, trade: Trade, skills: Skills, cover: Cover,
+    alliances: { of: Alliances.allianceOf, relation: Alliances.relation, set: Alliances.set, setDefault: Alliances.setDefault,
+      enabled: Alliances.enabled }
   };
   Hooks.callAll("alivasTriggers.ready", game.modules.get(MODULE_ID).api);
   console.log(`${MODULE_ID} | Ready`);

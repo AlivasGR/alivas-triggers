@@ -63,6 +63,11 @@ const DEFS = {
   blockedOffers: bool("Offer Tumble / Overrun when blocked", "When a hostile creature blocks a move, offer the mover its activities flagged as blocked-move options."),
   skillAbilityMenu: bool("Skills with another ability", "Right-click a skill on a character or NPC sheet: \"Roll using a different ability…\"."),
 
+  /* Alliances (alliances.mjs) */
+  alliances: bool("Alliances", "Each creature has an alliance letter (A, B…): the same letter are allies, different letters enemies, none = nobody's ally. Sides for picking allies or enemies, auras, Help, reactions and Opportunity Attacks follow it. Players' creatures start as the letter below, NPCs by token disposition (Friendly A, Hostile B); the GM changes it per encounter on the combat tracker or as a default on the sheet (Alliance button). Off: token dispositions decide sides."),
+  alliancePC: text("Alliance of players' creatures", "The letter player-owned creatures start with (unless their sheet sets another).", "A"),
+  allianceOaAllies: bool("Opportunity Attacks against allies", "Also offer an Opportunity Attack when a creature of your own alliance leaves your reach.", false),
+
   /* Locks and loot piles */
   doorLocks: bool("Door lock interaction", "Lock DC / force DC / key fields on doors, and players' Pick Lock / Force open / Use key on a locked door."),
   defaultLockDc: num("Default lock and force DC", "Used when a lock, door or pile has no DC of its own.", 15, 1, 40),
@@ -81,6 +86,7 @@ export const GROUPS = {
     "tradeHeavyLb", "tradeRetrieveUtilize", "fragileHeuristic", "fragilePattern", "tradeAskTimeout"],
   cover: ["coverDialog", "coverButtons", "unseenAttacks", "damageTypeChoice"],
   economy: ["economyTracking", "freeHandChecks", "blockedOffers", "skillAbilityMenu"],
+  alliances: ["alliances", "alliancePC", "allianceOaAllies"],
   locks: ["doorLocks", "defaultLockDc", "dropTiming", "pileComposite", "pileNames", "pileSingleScale"]
 };
 

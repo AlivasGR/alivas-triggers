@@ -143,6 +143,18 @@ spellCast, d20Rolling, hitting, leavesReach. Outcomes: acBonus, reroll, modifyRo
 damageNext, none. `after` steps may `ask` first. The hitting window's filter data has `item` (identifier, bonds…).
 Headers of `reactions.mjs` / `main.mjs` document every field.
 
+**Alliances** (`alliances.mjs`, setting `alliances`, default on):
+- Every creature has an alliance letter A–Z, or none. The same letter are allies, different letters enemies; a
+  creature with no letter is nobody's ally.
+- The letter is resolved from: the combatant flag `alliance` (stamped when the creature joins a combat; the GM edits it
+  on the tracker), then the actor flag `alliance` (the sheet's Alliance button; "-" means none), then automatic:
+  player-owned creatures get `alliancePC` ("A"), summons their summoner's letter, others go by token disposition
+  (Friendly A, Hostile B, Neutral none).
+- `Creatures.relation` follows alliances, so selector sides, the `subjectIsAlly`/`subjectIsEnemy` filters, Opportunity
+  Attacks, blocked-move offers and Sneak Attack's ally-near check do too. Side-filtered pickers offer "Include creatures
+  outside this alliance".
+- API: `api.alliances`. Hook: `alivasTriggers.allianceChanged`.
+
 **Delay turn** (`delay.mjs`, setting `delayTurn`): combat tracker button; combatant flag `delayed`, combat flag `resume`; wraps
 `ActiveEffect#isExpiryEvent` so a delay only ends turn-end effects that help the delayer; returning reorders with
 `turnEvents: false`; reactions are blocked through `Reactions.reactionUsed`.

@@ -420,11 +420,22 @@ export function registerManeuverHooks() {
     if ( !allowed.size ) return;
     for ( const t of [...found] ) if ( allowed.has(t.document?.id ?? t.id) ) found.delete(t);
   });
+  // Alliances on: creatures of the mover's own alliance never block it (dnd5e decides blocking by disposition).
+  Hooks.on("dnd5e.determineOccupiedGridSpaceBlocking", (gridSpace, token, options, found) => {
+    if ( !found.size || !token?.actor || !Creatures.alliancesOn() ) return;
+    const own = Creatures.allianceLetter(token.actor, token.document?.parent);
+    if ( !own ) return;
+    for ( const t of [...found] ) if ( t.actor && (Creatures.allianceLetter(t.actor, t.document?.parent) === own) ) found.delete(t);
+  });
   // Blocked by hostile creatures on a real move (not a ruler preview): offer Tumble / Overrun.
   Hooks.on("dnd5e.determineOccupiedGridSpaceBlocking", (gridSpace, token, options, found) => {
     if ( options?.preview || !found.size || !token?.actor ) return;
-    const hostile = [...found].filter(t => (t.document.disposition !== token.document.disposition)
-      && (t.document.disposition !== CONST.TOKEN_DISPOSITIONS.NEUTRAL || token.document.disposition === CONST.TOKEN_DISPOSITIONS.NEUTRAL));
+    // Hostile: by alliance when on (a creature with a letter other than the mover's), else by disposition.
+    const mine = Creatures.alliancesOn() ? Creatures.allianceLetter(token.actor, token.document?.parent) : null;
+    const hostile = [...found].filter(t => (mine !== null)
+      ? (() => { const theirs = Creatures.allianceLetter(t.actor, t.document?.parent); return !!theirs && (theirs !== mine); })()
+      : ((t.document.disposition !== token.document.disposition)
+        && (t.document.disposition !== CONST.TOKEN_DISPOSITIONS.NEUTRAL || token.document.disposition === CONST.TOKEN_DISPOSITIONS.NEUTRAL)));
     if ( hostile.length ) offerWhenBlocked(token, hostile);
   });
 
