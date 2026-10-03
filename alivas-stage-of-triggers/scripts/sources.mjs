@@ -113,7 +113,15 @@ export function effectCues(effect) {
 }
 
 /** The item an effect belongs to or came from. */
+/** An enchantment applied to an item (dnd5e): an enabled effect of type "enchantment" on an item. */
+const isEnchantment = effect => (effect?.type === "enchantment") && (effect.parent?.documentName === "Item") && !effect.disabled;
+
 function effectItem(effect) {
+  // An applied enchantment (Sacred Weapon on a sword): the item whose activity enchanted it, not the sword.
+  if ( isEnchantment(effect) ) {
+    const activity = effect.system?.origin?.activity ? fromUuidSync(effect.system.origin.activity, { strict: false }) : null;
+    if ( activity?.item ) return activity.item;
+  }
   if ( effect?.parent?.documentName === "Item" ) return effect.parent;
   const origin = effect?.origin ? fromUuidSync(effect.origin, { strict: false }) : null;
   if ( origin?.documentName === "Item" ) return origin;
@@ -260,7 +268,9 @@ export function registerActivityHooks() {
 /* -------------------------------------------- */
 
 function effectBearer(effect) {
-  const actor = effect.parent?.documentName === "Actor" ? effect.parent : null;
+  // An enchantment plays on whoever holds the enchanted item.
+  const actor = effect.parent?.documentName === "Actor" ? effect.parent
+    : isEnchantment(effect) && (effect.parent?.parent?.documentName === "Actor") ? effect.parent.parent : null;
   return actor ? tokenOf(actor) : null;
 }
 
@@ -288,8 +298,10 @@ async function effectEnd(effect, { play=true, persist=true }={}) {
   for ( const c of cues ) if ( c.end ) await playCue(c.end, { source: bearer, bearer, targets: [bearer], subject: bearer });
 }
 
-/** Effects that are actor-level and active (not item effects, not suppressed or disabled). */
-const live = effect => (effect.parent?.documentName === "Actor") && effect.active !== false && !effect.disabled && !effect.isSuppressed;
+/** Effects that are actor-level and active (not item effects, not suppressed or disabled), or an enchantment applied to
+ * an item a creature holds. */
+const live = effect => ((effect.parent?.documentName === "Actor") || (isEnchantment(effect) && (effect.parent?.parent?.documentName === "Actor")))
+  && effect.active !== false && !effect.disabled && !effect.isSuppressed;
 
 export function registerEffectHooks() {
   Hooks.on("createActiveEffect", (effect, options, userId) => {
@@ -300,6 +312,11 @@ export function registerEffectHooks() {
     // The lead GM ends persistent animations (Sequencer lets a GM end anyone's); the deleting user plays "end".
     if ( isLeadGM() ) endCue(effect.uuid);
     if ( userId === game.user.id ) effectEnd(effect, { persist: false });
+  });
+  // An item leaving a creature (traded, dropped, destroyed) takes its enchantments' loops with it.
+  Hooks.on("deleteItem", item => {
+    if ( !isLeadGM() ) return;
+    for ( const effect of item.effects ?? [] ) if ( isEnchantment(effect) ) endCue(effect.uuid);
   });
   Hooks.on("updateActiveEffect", (effect, changes, options, userId) => {
     if ( userId !== game.user.id ) return;

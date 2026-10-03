@@ -69,6 +69,8 @@
  *   teleport { range, sight, to }     the creature's controller picks a spot within range (that it can see) and it moves there
  *   push { distance, to, from }       move creatures straight away from the bearer (from "source": the effect's source);
  *                                     negative pulls; stops at walls and creatures (Thunderous Smite)
+ *   conjureItem { pack, itemType, categories, enchant }   pick an item from a compendium; it appears equipped, enchanted
+ *                                     by this item's enchant activity, and vanishes when that bond ends (Pact of the Blade)
  *   sense { range, creatures, items } whisper what's within range: creatures passing the filter (pinged), and with
  *                                     items "magic", magic items and spells on them (Divine Sense, Magic Awareness)
  *
@@ -79,8 +81,14 @@
  *
  * Effect rules (flags on the effect, besides triggers — see also the editor's Effect rules section):
  *   reduceDamage { formula, types, oncePerTurn }   incoming damage of those types reduced by the roll (Resistance)
+ *   noUnseenAdvantage                              attackers gain no Advantage from being unseen by the bearer (2014
+ *                                                  Alert); see setting unseenAttacks
  *   damageDice { min, filter }                     the bearer's damage dice count below `min` as `min` (Great Weapon
  *                                                  Fighting); filter on the damage roll data (roll.attack.type…)
+ *   baseDamage [{ formula, filter, type }, …]      the bearer's attacks may deal `formula` instead of their base damage
+ *                                                  (the weapon's die and modifier) when that's higher on average; the
+ *                                                  first entry whose filter passes (damage roll data + held) — Unarmed
+ *                                                  Fighting
  *   attackedWith { mode, once, by, attacker }      by: uuid, "source", or "allyOfSource" (Help); attacker: roll-data filter
  *   checksWith   { mode, once, skills, tools, abilities }  the bearer's checks (Help's ability-check form)
  *   attacksWith { mode, once, unlessTarget }       unlessTarget "source": not against the effect's source (Compelled Duel)
@@ -101,6 +109,8 @@
  *                        "paralyzed", "poisoned"], to: { who: "targets" }, choose: true }
  *   chooseEffects: { count }   the user picks which of the activity's effects to apply (count: formula, e.g.
  *                        "min(2, 1 + floor(@item.level / 4))"); an effect flagged minLevel needs that slot level
+ *   castingAbility: { class } | { spell }   its "spellcasting" ability comes from that class (identifier) or the actor's
+ *                        spell with that identifier (its own chosen ability) — see castingAbilityFor
  *   pay: { cost, from: [identifier, …] }   pay `cost` uses from these items in order (e.g. Metamagic Adept's points
  *                        first, then Sorcery Points); refused if together they can't cover it
  *
@@ -130,7 +140,7 @@ import * as Workflow from "./workflow.mjs";
 import * as Areas from "./areas.mjs";
 import * as Delay from "./delay.mjs";
 import { registerSettingsMenu } from "./settings-app.mjs";
-import { registerAutomationSettings } from "./settings.mjs";
+import { registerAutomationSettings, opt } from "./settings.mjs";
 import { TriggerEditor, describeTrigger, describeReaction, registerActionType, registerEditorSection } from "./editor.mjs";
 import * as Maneuvers from "./maneuvers.mjs";
 import * as Loot from "./loot.mjs";
@@ -524,6 +534,25 @@ Hooks.on("dnd5e.preRollAttackV2", config => {
     if ( attacksRuleApplies(rule, effect, targets) ) apply(rule);
   }
 });
+/**
+ * Unseen attackers and targets (setting unseenAttacks, 2024 rules): an attack roll has Disadvantage when the attacker
+ * can't see its target, and Advantage when the target can't see the attacker — by token vision (Creatures.canSee: light,
+ * walls, Invisible, Blinded, and detection modes such as Blindsight / Truesight / See Invisibility). Both can apply (they
+ * cancel). Effect rule `noUnseenAdvantage` on the target (2014 Alert): attackers gain no Advantage from being unseen by it.
+ */
+Hooks.on("dnd5e.preRollAttackV2", config => {
+  if ( !opt("unseenAttacks") ) return;
+  const attackerToken = Creatures.tokenFor(config.subject?.actor);
+  if ( !attackerToken ) return;
+  for ( const t of game.user.targets ?? [] ) {
+    const targetToken = t.document;
+    if ( !targetToken || (targetToken === attackerToken) ) continue;
+    if ( !Creatures.canSee(attackerToken, targetToken) ) config.disadvantage = true;
+    const noAdvantage = (t.actor?.appliedEffects ?? []).some(e => e.getFlag(MODULE_ID, "noUnseenAdvantage"));
+    if ( !noAdvantage && !Creatures.canSee(targetToken, attackerToken) ) config.advantage = true;
+  }
+});
+
 Hooks.on("dnd5e.rollAttackV2", (rolls, { subject }={}) => {
   const attacker = subject?.actor;
   const targets = Array.from(game.user.targets ?? [], t => t.actor).filter(Boolean);
@@ -572,20 +601,32 @@ for ( const name of ["AbilityCheck", "Skill", "ToolCheck"] ) {
 }
 
 /**
- * Effect rule `light: { bright, dim, color, animation }` (Inner Radiance, Sacred Weapon): the bearer's token sheds that
- * light while the effect is on it; its previous light comes back when the effect ends.
+ * Effect rule `light: { bright, dim, color, animation }` (Inner Radiance): the bearer's token sheds that light while the
+ * effect is on it; its previous light comes back when the effect ends. On an enchantment (Sacred Weapon), whoever holds
+ * the enchanted item sheds it — until the enchantment ends or the item changes hands.
  */
 const lightRule = effect => (effect.active && (effect.parent instanceof Actor)) ? effect.getFlag(MODULE_ID, "light") : null;
+const itemLightRule = effect => ((effect.type === "enchantment") && !effect.disabled && !effect.isSuppressed) ? effect.getFlag(MODULE_ID, "light") : null;
 async function refreshLight(actor) {
-  const current = (actor.appliedEffects ?? []).map(lightRule).find(Boolean) ?? null;
+  if ( !(actor instanceof Actor) ) return;
+  const current = (actor.appliedEffects ?? []).map(lightRule).find(Boolean)
+    ?? actor.items.contents.flatMap(i => i.effects.contents).map(itemLightRule).find(Boolean) ?? null;
   await Creatures.setLight(actor, current);
 }
+const lightOwner = effect => (effect.parent instanceof Actor) ? effect.parent : (effect.parent?.parent instanceof Actor ? effect.parent.parent : null);
 Hooks.on("createActiveEffect", (effect, options, userId) => {
-  if ( (userId === game.userId) && lightRule(effect) ) refreshLight(effect.parent);
+  if ( (userId === game.userId) && effect.getFlag(MODULE_ID, "light") ) refreshLight(lightOwner(effect));
+});
+Hooks.on("updateActiveEffect", (effect, changed, options, userId) => {
+  if ( (userId === game.userId) && (effect.parent instanceof Item) && effect.getFlag(MODULE_ID, "light") && ("disabled" in changed) ) refreshLight(lightOwner(effect));
 });
 Hooks.on("deleteActiveEffect", (effect, options, userId) => {
-  if ( (userId === game.userId) && (effect.parent instanceof Actor) && effect.getFlag(MODULE_ID, "light") ) refreshLight(effect.parent);
+  if ( (userId === game.userId) && effect.getFlag(MODULE_ID, "light") ) refreshLight(lightOwner(effect));
 });
+// An item with a light enchantment changes hands: the old and new holders' light follows it.
+const hasItemLight = item => item.effects?.some(e => e.getFlag(MODULE_ID, "light"));
+Hooks.on("createItem", (item, options, userId) => { if ( (userId === game.userId) && hasItemLight(item) ) refreshLight(item.parent); });
+Hooks.on("deleteItem", (item, options, userId) => { if ( (userId === game.userId) && hasItemLight(item) ) refreshLight(item.parent); });
 
 /**
  * Effect rule `armorClass: { formula, label, armored, shielded }` (Lizardfolk Natural Armor, Tortle shell…): one more
@@ -715,6 +756,198 @@ Hooks.on("dnd5e.preRollDamageV2", config => {
     roll.parts = (roll.parts ?? []).map(p => String(p).includes("@ruleBonus") ? p
       : CONFIG.Dice.BasicRoll.replaceFormulaData(String(p), data, { missing: 0 }).replace(/(\d*d\d+)(?![\dd]|min)/g, `$1min${Number(rule.min)}`));
   }
+});
+
+/**
+ * Effect rule `baseDamage: [{ formula, filter, type }, …]` (Unarmed Fighting): an attack's base damage part — the
+ * weapon's own die and modifier — is replaced by `formula` (the bearer's roll data) when its average is higher ("you can
+ * deal … instead": a Monk's Martial Arts die may already be better). The first entry whose filter passes is used; other
+ * damage (bonuses, riders, rules bonuses) stays. Filter data: the damage roll data (roll.attack.classification…) plus
+ * `held: { weapons, shield }` — weapons and a shield the bearer has equipped (natural weapons and Unarmed Strike don't count).
+ */
+Hooks.on("dnd5e.preRollDamageV2", config => {
+  const actor = config.subject?.actor;
+  const rules = (actor?.appliedEffects ?? []).flatMap(e => [e.getFlag(MODULE_ID, "baseDamage") ?? []].flat())
+    .filter(r => String(r?.formula ?? "").trim());
+  if ( !rules.length ) return;
+  const rolls = config.rolls ?? [];
+  const base = rolls.find(r => r.base) ?? (config.subject?.damage?.includeBase ? rolls[0] : null);
+  if ( !base?.parts?.length || (base.options?.type in CONFIG.DND5E.healingTypes) ) return;
+  const data = base.data ?? config.subject?.getRollData?.() ?? actor.getRollData();
+  const held = heldItems(actor);
+  const rule = rules.find(r => !r.filter?.length || dnd5e.Filter.performCheck({ ...data, held }, r.filter));
+  if ( !rule ) return;
+  // The base part comes first; dnd5e adds the ability modifier as its own "@mod" part when the formula lacks it.
+  const isMod = p => String(p).trim() === "@mod";
+  const own = [base.parts[0], ...base.parts.slice(1).filter(isMod)].join(" + ");
+  if ( averageOf(rule.formula, data) <= averageOf(own, data) ) return;
+  base.parts = [String(rule.formula), ...base.parts.slice(1).filter(p => !isMod(p))];
+  if ( rule.type ) base.options = { ...(base.options ?? {}), type: rule.type, types: [rule.type] };
+});
+
+/** What a creature holds: equipped weapons (not natural weapons or Unarmed Strike) and whether a shield is equipped. */
+function heldItems(actor) {
+  const weapons = actor?.items.filter(i => (i.type === "weapon") && i.system.equipped && (i.system.type?.value !== "natural")
+    && (i.system.identifier !== "unarmed-strike") && !/unarmed strike/i.test(i.name)).length ?? 0;
+  const shield = !!actor?.items.some(i => (i.type === "equipment") && i.system.equipped && (i.system.type?.value === "shield"));
+  return { weapons, shield };
+}
+
+/** A formula's average (mean of its minimum and maximum) with the given roll data; -Infinity when it can't be read. */
+function averageOf(formula, data) {
+  try {
+    const f = Roll.replaceFormulaData(String(formula), data, { missing: 0 });
+    return (new Roll(f).evaluateSync({ minimize: true }).total + new Roll(f).evaluateSync({ maximize: true }).total) / 2;
+  } catch(err) { return -Infinity; }
+}
+
+/**
+ * Activity flag `castingAbility: { class } | { spell }`: the activity's "spellcasting" ability (attack ability, save DC)
+ * is that class's spellcasting ability (class identifier, e.g. "warlock" — Pact of the Blade's Spellcasting Attack on a
+ * multiclass character), or the casting ability of the actor's spell with that identifier (its own chosen ability, e.g.
+ * Magic Initiate, else its class's). Without a match, dnd5e's default (the actor's best class ability) applies.
+ */
+export function castingAbilityFor(activity) {
+  const spec = activity?.flags?.[MODULE_ID]?.castingAbility;
+  const actor = activity?.actor;
+  if ( !spec || !actor ) return null;
+  if ( spec.class ) return actor.classes?.[spec.class]?.system?.spellcasting?.ability || null;
+  if ( spec.spell ) {
+    const spell = actor.items.find(i => (i.type === "spell") && (i.system.identifier === spec.spell));
+    return spell?.system.availableAbilities?.first?.() ?? null;
+  }
+  return null;
+}
+
+Hooks.once("setup", () => {
+  for ( const config of Object.values(CONFIG.DND5E.activityTypes ?? {}) ) {
+    const cls = config.documentClass;
+    let proto = cls?.prototype, base;
+    while ( proto && !(base = Object.getOwnPropertyDescriptor(proto, "spellcastingAbility")) ) proto = Object.getPrototypeOf(proto);
+    if ( !base?.get || Object.prototype.hasOwnProperty.call(cls.prototype, "spellcastingAbility") ) continue;
+    Object.defineProperty(cls.prototype, "spellcastingAbility", {
+      configurable: true,
+      get() { return castingAbilityFor(this) ?? base.get.call(this); }
+    });
+  }
+});
+
+/* -------------------------------------------- */
+/*  Bonds (Pact of the Blade)                   */
+/* -------------------------------------------- */
+
+/**
+ * Enchantment flag `bond: { id, range, away, endOnDeath, single }` — the enchanted item is bonded to the creature whose
+ * activity applied the enchantment (its "bonder"):
+ *   id          bond name, e.g. "pact-of-the-blade"; filters see it in `item.bonds` (itemFilterData)
+ *   single      applying it again ends the bonder's other bonds of this id (Pact of the Blade: "use the Bonus Action again")
+ *   range, away the bond ends after the item has been more than `range` ft from the bonder for `away` seconds (game time;
+ *               another creature holding it, or a loot pile, counts by token distance) — lead GM, on world time changes
+ *   endOnDeath  the bond ends when the bonder gets the Dead status
+ *   carried     the bond ends as soon as the item isn't in the bonder's inventory (given away, dropped in a pile)
+ * An item flagged `conjured` (by conjureItem) is deleted when its bond ends.
+ */
+const bondOf = Creatures.bondOf;
+
+/** The creature that applied a bond enchantment (from the enchant activity's uuid). */
+function bonderOf(effect) {
+  const origin = effect.system?.origin?.activity ?? effect.origin ?? "";
+  const actorUuid = String(origin).split(".Item.")[0];
+  return actorUuid ? fromUuidSync(actorUuid) : null;
+}
+
+/** Every actor that may hold items: world actors and unlinked tokens' actors on any scene. */
+function allActors() {
+  const tokenActors = game.scenes.contents.flatMap(sc => sc.tokens.filter(t => !t.actorLink && t.actor).map(t => t.actor));
+  return [...game.actors.contents, ...tokenActors];
+}
+
+/** All bond enchantments in the world: [{ effect, bond, item, holder, bonder }]. */
+function allBonds() {
+  const found = [];
+  for ( const holder of allActors() ) {
+    for ( const item of holder.items ) {
+      for ( const effect of item.effects ) {
+        const bond = bondOf(effect);
+        if ( bond ) found.push({ effect, bond, item, holder, bonder: bonderOf(effect) });
+      }
+    }
+  }
+  return found;
+}
+
+/** End a bond: remove the enchantment (a conjured item goes with it, see deleteActiveEffect below). */
+function endBond(effect, why) {
+  const bonder = bonderOf(effect);
+  if ( bonder ) ChatMessage.create({ speaker: ChatMessage.implementation.getSpeaker({ actor: bonder }),
+    whisper: game.users.filter(u => u.isGM || bonder.testUserPermission(u, "OWNER")).map(u => u.id),
+    content: `<p><strong>${effect.parent?.name ?? "A bonded item"}</strong>: the bond ends (${why}).</p>` });
+  return deleteEffectAs(effect);
+}
+
+// single: a new bond ends the bonder's other bonds of the same id (on the creating client).
+Hooks.on("createActiveEffect", (effect, options, userId) => {
+  if ( userId !== game.user.id ) return;
+  const bond = bondOf(effect);
+  if ( !bond?.single || !(effect.parent instanceof Item) ) return;
+  const bonder = bonderOf(effect);
+  if ( !bonder ) return;
+  for ( const other of allBonds() ) {
+    if ( (other.effect === effect) || (other.bond.id !== bond.id) || (other.bonder?.uuid !== bonder.uuid) ) continue;
+    endBond(other.effect, "a new bond was made");
+  }
+});
+
+// A conjured item disappears when its bond ends (lead GM).
+Hooks.on("deleteActiveEffect", effect => {
+  if ( !Creatures.isLeadGM() || !bondOf(effect) ) return;
+  const item = effect.parent;
+  // dnd5e may already remove it (an item created from a compendium while enchanting depends on its enchantment).
+  if ( (item instanceof Item) && item.getFlag(MODULE_ID, "conjured") && item.parent?.items.has(item.id) ) {
+    item.delete().catch(() => {});
+  }
+});
+
+// carried: the item turns up in someone else's inventory, or a pile (lead GM).
+Hooks.on("createItem", item => {
+  if ( !Creatures.isLeadGM() || !(item.parent instanceof Actor) ) return;
+  for ( const effect of item.effects ) {
+    const bond = bondOf(effect);
+    if ( !bond?.carried ) continue;
+    const bonder = bonderOf(effect);
+    if ( bonder && (bonder.uuid !== item.parent.uuid) ) endBond(effect, `${bonder.name} isn't carrying it`);
+  }
+});
+
+// Away too long (lead GM, on game time): more than `range` ft from the bonder for `away` seconds.
+Hooks.on("updateWorldTime", async worldTime => {
+  if ( !Creatures.isLeadGM() ) return;
+  for ( const { effect, bond, holder, bonder } of allBonds() ) {
+    if ( bond.carried && bonder && (holder.uuid !== bonder.uuid) ) {
+      await endBond(effect, `${bonder.name} isn't carrying it`);
+      continue;
+    }
+    if ( !bond.away || !bonder ) continue;
+    let near = holder.uuid === bonder.uuid;
+    if ( !near ) {
+      const a = Creatures.tokenFor(holder), b = Creatures.tokenFor(bonder);
+      near = !!(a && b && (a.parent === b.parent) && (Creatures.distanceFt(a, b) <= (Number(bond.range) || 5)));
+    }
+    const since = effect.getFlag(MODULE_ID, "awaySince");
+    if ( near ) {
+      if ( since !== undefined ) await effect.unsetFlag(MODULE_ID, "awaySince");
+      continue;
+    }
+    if ( since === undefined ) await effect.setFlag(MODULE_ID, "awaySince", worldTime);
+    else if ( (worldTime - since) >= Number(bond.away) ) await endBond(effect, `more than ${Number(bond.range) || 5} ft away for too long`);
+  }
+});
+
+// The bonder dies (lead GM): bonds with endOnDeath end.
+Hooks.on("createActiveEffect", effect => {
+  if ( !Creatures.isLeadGM() || !effect.statuses?.has("dead") || !(effect.parent instanceof Actor) ) return;
+  const dead = effect.parent;
+  for ( const { effect: e, bond, bonder } of allBonds() ) if ( bond.endOnDeath && (bonder?.uuid === dead.uuid) ) endBond(e, `${dead.name} died`);
 });
 
 /**
@@ -2325,6 +2558,46 @@ const ACTIONS = {
    * Creatures (default: the event's targets) spend one of their Hit Point Dice (the largest left) and regain that many
    * Hit Points — the die only, no Constitution (Blood and Bone). The healer's healingExtraDie counts.
    */
+  /**
+   * conjureItem { pack, itemType, categories, enchant } — the bearer picks an item from a compendium (default
+   * dnd5e.equipment24; of `itemType`, default "weapon", and those `categories`, e.g. ["simpleM", "martialM"]) and it
+   * appears in its inventory, equipped and flagged `conjured`; the item's enchant activity `enchant` (id or name;
+   * default its first enchant activity) is then applied to it (Pact of the Blade: conjure a pact weapon). A conjured
+   * item is deleted when its bond ends (see Bonds).
+   */
+  async conjureItem(trigger, effect, bearer, event, context={}) {
+    const a = trigger.action;
+    const source = context.activity?.item ?? effect.parent;
+    const enchant = (a.enchant ? (source?.system.activities.get(a.enchant) ?? source?.system.activities.getName(a.enchant)) : null)
+      ?? source?.system.activities.find(x => x.type === "enchant");
+    const pack = game.packs.get(a.pack || "dnd5e.equipment24");
+    if ( !pack || !enchant ) {
+      ui.notifications.warn(`${trigger.label ?? "Conjure"}: ${pack ? "no enchant activity on the item" : `compendium ${a.pack || "dnd5e.equipment24"} not found`}.`);
+      return {};
+    }
+    const type = a.itemType || "weapon";
+    const index = await pack.getIndex({ fields: ["type", "system.type.value", "system.properties"] });
+    const categories = [a.categories ?? []].flat().flatMap(c => String(c).split(",")).map(c => c.trim()).filter(Boolean);
+    const choices = index.filter(e => (e.type === type) && (!categories.length || categories.includes(e.system?.type?.value))
+      && !(e.system?.properties ?? []).includes?.("mgc")).sort((x, y) => x.name.localeCompare(y.name));
+    if ( !choices.length ) return {};
+    const user = Creatures.controllerOf(bearer);
+    const payload = { title: `${trigger.label ?? source.name} — ${bearer.name}`, prompt: "<p>What do you conjure?</p>",
+      options: choices.map(e => ({ value: e.uuid, label: e.name })) };
+    const uuid = (user && (user.id !== game.user.id)) ? await Creatures.runAs(user, "pickFromList", payload) : await Creatures.HANDLERS.pickFromList(payload);
+    if ( !uuid ) return {};
+    const original = await fromUuid(uuid);
+    if ( !original ) return {};
+    // dnd5e creates a compendium item on the user's actor when enchanting it.
+    const profile = enchant.effects?.[0]?._id;
+    const enchantment = profile ? await enchant.applyEnchantment(profile, original) : null;
+    const item = enchantment?.parent;
+    if ( !(item instanceof Item) ) return {};
+    await item.update({ [`flags.${MODULE_ID}.conjured`]: true, "system.equipped": true });
+    await announce(trigger, effect, bearer, event, `${bearer.name} conjures <strong>${original.name}</strong>.`);
+    return { item };
+  },
+
   async spendHitDie(trigger, effect, bearer, event, context={}) {
     const recipients = trigger.action.to
       ? await Creatures.selectCreatures(bearer, trigger.action.to, selectorContext(effect, bearer, context, trigger))

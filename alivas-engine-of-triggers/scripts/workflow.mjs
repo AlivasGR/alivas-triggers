@@ -94,9 +94,35 @@ export async function resolveSave(activity, targets, { usage=null, label, origin
   await summary(activity, label, ability, dc, results, mode === "roll");
 }
 
+/**
+ * Choose the damage type (setting damageTypeChoice): the engine rolls damage without dnd5e's dialog, where a part that
+ * can deal several types (Sacred Weapon's Radiant, a Pact Weapon, Chromatic Orb…) would offer the choice. Ask the roller
+ * for each such part, then store the answer where dnd5e keeps its own last choice (item flag
+ * dnd5e.last.<activity>.damageType.<part index>), so dnd5e's roll uses it. Healing is never asked.
+ */
+export async function chooseDamageTypes(activity) {
+  if ( !deps.setting?.("damageTypeChoice") || !activity?.item?.isOwner ) return;
+  const parts = activity.damage?.parts ?? [];
+  const update = {};
+  for ( const [index, part] of parts.entries() ) {
+    let types = Array.from(part.types ?? []);
+    if ( !types.length && part.base ) types = Array.from(activity.item.system.damage?.base?.types ?? []);
+    types = types.filter(t => t in CONFIG.DND5E.damageTypes);
+    if ( types.length < 2 ) continue;
+    const last = activity.item.getFlag("dnd5e", `last.${activity.id}.damageType.${index}`);
+    const answer = await Creatures.HANDLERS.pickOption({
+      title: `${activity.item.name} — damage type`, prompt: `<p>Which damage type${parts.length > 1 ? ` (part ${index + 1})` : ""}?</p>`,
+      options: [...types].sort((a, b) => (b === last) - (a === last)).map(t => ({ value: t, label: CONFIG.DND5E.damageTypes[t]?.label ?? t }))
+    });
+    if ( answer && (answer !== last) ) update[`flags.dnd5e.last.${activity.id}.damageType.${index}`] = answer;
+  }
+  if ( Object.keys(update).length ) await activity.item.update(update);
+}
+
 /** Roll a save activity's damage once, its card targeting those creatures. → { damages, message } */
 async function rollSaveDamage(activity, actors, { label, origin }={}) {
   if ( !activity.damage?.parts?.length || !actors.length ) return { damages: null, message: null };
+  await chooseDamageTypes(activity);
   const rolls = await activity.rollDamage({}, { configure: false }, { data: {
     flavor: `${label ?? activity.item.name} — damage`,
     system: { targets: actors.flatMap(descriptors), ...(origin ? { origin } : {}) }
@@ -329,6 +355,15 @@ const followUps = new Map();   // actor uuid → turn key of the Extra Attack al
  * @param {string} spec.label
  * @param {Activity} [spec.swap]         An alternative (e.g. a heal) usable instead of one of them, free.
  */
+/** A strike count: a number, or a deterministic formula on the actor's roll data (0 when it can't be read). */
+export function strikeCount(count, actor) {
+  if ( Number.isFinite(Number(count)) ) return Math.floor(Number(count));
+  try {
+    const f = Roll.replaceFormulaData(String(count ?? ""), actor.getRollData(), { missing: 0 });
+    return Math.floor(new Roll(f).evaluateSync({ strict: false }).total) || 0;
+  } catch(err) { return 0; }
+}
+
 export async function followUpAttacks(actor, { count, activities, label, swap=null }) {
   let swapLeft = !!swap;
   for ( let i = 0; i < count; i++ ) {
@@ -354,22 +389,30 @@ export async function followUpAttacks(actor, { count, activities, label, swap=nu
 Hooks.on("dnd5e.postUseActivity", (activity, usageConfig) => {
   const actor = activity?.actor;
   if ( !actor?.isOwner || usageConfig?.[MODULE_ID]?.followUp || (activity.type !== "attack") ) return;
-  // Activity flag repeat: { count, swap: identifier } (Flurry of Blows: two strikes, one may be Hand of Healing).
+  // Activity flag repeat: { count, swap: identifier } (Flurry of Blows: two strikes, one may be Hand of Healing). count
+  // may be a formula on the user's roll data (Heightened Focus: "2 + floor(min(@classes.monk.levels, 10) / 10)").
   const repeat = activity.flags?.[MODULE_ID]?.repeat;
-  if ( repeat?.count > 1 ) {
+  const strikes = repeat ? strikeCount(repeat.count, actor) : 0;
+  if ( strikes > 1 ) {
     const swapItem = repeat.swap ? actor.items.find(i => i.system.identifier === repeat.swap) : null;
     const swap = swapItem?.system.activities.find(a => ["heal", "utility"].includes(a.type)) ?? null;
-    setTimeout(() => followUpAttacks(actor, { count: repeat.count - 1, activities: [activity], label: activity.item.name, swap }), 1500);
+    setTimeout(() => followUpAttacks(actor, { count: strikes - 1, activities: [activity], label: activity.item.name, swap }), 1500);
     return;
   }
-  // Effect rule extraAttack: { count } — after an attack made with the Attack action, once per turn.
-  const extra = (actor.appliedEffects ?? []).map(e => e.getFlag(MODULE_ID, "extraAttack")?.count ?? 0).reduce((a, b) => Math.max(a, b), 0);
+  // Effect rule extraAttack: { count, item } — after an attack made with the Attack action, once per turn. `item`: a
+  // filter on the weapon (Creatures.itemFilterData: identifier, bonds…) — only attacks with matching weapons count and
+  // the follow-ups use them (Thirsting Blade: the pact weapon only).
+  const passes = (rule, item) => !rule.item?.length || dnd5e.Filter.performCheck(Creatures.itemFilterData(item), rule.item);
+  const rules = (actor.appliedEffects ?? []).map(e => e.getFlag(MODULE_ID, "extraAttack")).filter(r => (r?.count > 0) && passes(r, activity.item));
+  const rule = rules.sort((a, b) => b.count - a.count)[0];
+  const extra = rule?.count ?? 0;
   if ( !extra || (activity.activation?.type !== "action") ) return;
   const combat = game.combats.find(c => c.started && c.combatants.some(cb => cb.actor?.uuid === actor.uuid || cb.actorId === actor.id));
   const turn = combat ? `${combat.id}:${combat.round}:${combat.turn}` : null;
   if ( turn && (followUps.get(actor.uuid) === turn) ) return;
   if ( turn ) followUps.set(actor.uuid, turn);
-  const activities = actor.items.filter(i => ["weapon"].includes(i.type) && (i.system.equipped !== false || i.system.identifier === "unarmed-strike"))
+  const activities = actor.items.filter(i => ["weapon"].includes(i.type) && (i.system.equipped !== false || i.system.identifier === "unarmed-strike")
+    && passes(rule, i))
     .flatMap(i => i.system.activities.filter(a => (a.type === "attack") && (a.activation?.type === "action")));
   setTimeout(() => followUpAttacks(actor, { count: extra, activities, label: "Extra Attack" }), 1500);
 });
@@ -430,6 +473,7 @@ async function rollHitDamage(activity, hit, roll) {
   // The attack's mode (two-handed, off-hand, thrown…) carries over: versatile damage and mode-based rules depend on it.
   const mode = { isCritical: !!roll?.isCritical };
   if ( roll?.options?.attackMode ) mode.attackMode = roll.options.attackMode;
+  await chooseDamageTypes(activity);
   const rolls = await activity.rollDamage(mode, { configure: false }, { data: {
     system: { targets: hit.flatMap(descriptors) }
   } });

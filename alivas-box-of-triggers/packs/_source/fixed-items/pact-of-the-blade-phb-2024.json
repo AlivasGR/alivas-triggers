@@ -1,0 +1,424 @@
+{
+  "_id": "4U4KVgFb9aaraat9",
+  "name": "Pact of the Blade",
+  "type": "feat",
+  "img": "icons/skills/melee/weapons-crossed-swords-teal.webp",
+  "system": {
+    "activities": {
+      "8MSXmrGSgc6xHotB": {
+        "type": "enchant",
+        "name": "Forge Pact Weapon",
+        "_id": "8MSXmrGSgc6xHotB",
+        "sort": 0,
+        "activation": {
+          "type": "bonus",
+          "value": null,
+          "override": false,
+          "condition": ""
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [
+          {
+            "_id": "QElum2XYhYUYQ5l2",
+            "level": {
+              "min": null,
+              "max": null
+            },
+            "riders": {
+              "activity": [
+                "UTEfakL3rBtTIu1K"
+              ],
+              "effect": [],
+              "item": []
+            }
+          }
+        ],
+        "range": {
+          "override": false,
+          "units": "self",
+          "special": ""
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "type": ""
+          },
+          "affects": {
+            "choice": false,
+            "count": "",
+            "type": ""
+          },
+          "override": false,
+          "prompt": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "enchant": {
+          "identifier": ""
+        },
+        "restrictions": {
+          "allowMagical": true,
+          "categories": [
+            "simpleM",
+            "martialM"
+          ],
+          "properties": [],
+          "type": "weapon"
+        }
+      },
+      "UTEfakL3rBtTIu1K": {
+        "type": "attack",
+        "name": "Spellcasting Attack",
+        "sort": 0,
+        "activation": {
+          "type": "action",
+          "value": null,
+          "override": false,
+          "condition": ""
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [],
+        "range": {
+          "override": false,
+          "units": "self",
+          "special": ""
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "type": ""
+          },
+          "affects": {
+            "choice": false,
+            "count": "",
+            "type": ""
+          },
+          "override": false,
+          "prompt": true
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "attack": {
+          "critical": {
+            "threshold": null
+          },
+          "flat": false,
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          },
+          "ability": "spellcasting",
+          "bonus": ""
+        },
+        "damage": {
+          "critical": {
+            "bonus": ""
+          },
+          "includeBase": true,
+          "parts": []
+        },
+        "img": "systems/dnd5e/icons/svg/properties/magical.svg",
+        "_id": "UTEfakL3rBtTIu1K",
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "castingAbility": {
+              "class": "warlock"
+            }
+          }
+        }
+      },
+      "fOlCiaMI4DNY1zxf": {
+        "_id": "fOlCiaMI4DNY1zxf",
+        "type": "utility",
+        "name": "Conjure Pact Weapon",
+        "sort": 0,
+        "img": "",
+        "activation": {
+          "type": "bonus",
+          "value": null,
+          "override": false,
+          "condition": ""
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false,
+            "max": ""
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [],
+        "range": {
+          "override": false,
+          "units": "self",
+          "special": ""
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "type": ""
+          },
+          "affects": {
+            "choice": false,
+            "count": "",
+            "type": "self",
+            "special": ""
+          },
+          "override": false,
+          "prompt": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "conjureItem",
+                "pack": "dnd5e.equipment24",
+                "itemType": "weapon",
+                "categories": [
+                  "simpleM",
+                  "martialM"
+                ],
+                "enchant": "8MSXmrGSgc6xHotB"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "uses": {
+      "spent": 0,
+      "recovery": [],
+      "max": ""
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Pact of the Blade (PHB 2024 p. 156). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "156",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "enchant": {},
+    "type": {
+      "value": "class",
+      "subtype": "eldritchInvocation"
+    },
+    "prerequisites": {
+      "level": null,
+      "repeatable": false
+    },
+    "properties": [],
+    "requirements": "",
+    "identifier": "pact-of-the-blade"
+  },
+  "effects": [
+    {
+      "type": "enchantment",
+      "name": "Pact Weapon",
+      "img": "icons/skills/melee/weapons-crossed-swords-teal.webp",
+      "disabled": true,
+      "_id": "QElum2XYhYUYQ5l2",
+      "system": {
+        "changes": [
+          {
+            "key": "name",
+            "value": ", Pact Weapon",
+            "priority": null,
+            "type": "add",
+            "phase": "initial",
+            "_id": "y94nZgqUe7Yy9geT"
+          },
+          {
+            "key": "system.proficient",
+            "value": 1,
+            "priority": null,
+            "type": "override",
+            "phase": "initial",
+            "_id": "X5sk4LXtZX779wDd"
+          },
+          {
+            "key": "system.properties",
+            "value": "foc",
+            "priority": null,
+            "type": "add",
+            "phase": "initial",
+            "_id": "iU6EUPSr8U4EA1fP"
+          },
+          {
+            "key": "system.damage.base.types",
+            "value": "necrotic",
+            "priority": null,
+            "type": "add",
+            "phase": "initial",
+            "_id": "eWzOUfbK9gxtOOgq"
+          },
+          {
+            "key": "system.damage.base.types",
+            "value": "psychic",
+            "priority": null,
+            "type": "add",
+            "phase": "initial",
+            "_id": "0qgzJL2k4P8exBWM"
+          },
+          {
+            "key": "system.damage.base.types",
+            "value": "radiant",
+            "priority": null,
+            "type": "add",
+            "phase": "initial",
+            "_id": "aaqOjsd1b6V8asuQ"
+          },
+          {
+            "key": "system.damage.versatile.types",
+            "value": "necrotic",
+            "priority": null,
+            "type": "add",
+            "phase": "initial",
+            "_id": "Psluz2LyOW7mzZe6"
+          },
+          {
+            "key": "system.damage.versatile.types",
+            "value": "psychic",
+            "priority": null,
+            "type": "add",
+            "phase": "initial",
+            "_id": "WFN1Sfc4ID6yXFZj"
+          },
+          {
+            "key": "system.damage.versatile.types",
+            "value": "radiant",
+            "priority": null,
+            "type": "add",
+            "phase": "initial",
+            "_id": "HJI3JBaaU5eLBE7S"
+          }
+        ]
+      },
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "description": "",
+      "origin": null,
+      "tint": "#ffffff",
+      "transfer": true,
+      "statuses": [],
+      "sort": 0,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "bond": {
+            "id": "pact-of-the-blade",
+            "single": true,
+            "range": 5,
+            "away": 60,
+            "endOnDeath": true
+          }
+        }
+      },
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1791028000154,
+        "modifiedTime": 1791028000154,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "start": null,
+      "showIcon": 1,
+      "folder": null,
+      "_key": "!items.effects!4U4KVgFb9aaraat9.QElum2XYhYUYQ5l2"
+    }
+  ],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "pact-of-the-blade",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "feat",
+          "identifier": "pact-of-the-blade",
+          "compendiumSource": "Compendium.dnd5e.classes24.Item.phbinvPactBlade0"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1791028000154,
+    "modifiedTime": 1791028000154,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!4U4KVgFb9aaraat9"
+}

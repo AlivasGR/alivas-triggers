@@ -95,16 +95,7 @@
               "from": [
                 "channel-divinity"
               ]
-            },
-            "onUse": [
-              {
-                "type": "giveEffect",
-                "effect": "Sacred Weapon (Light)",
-                "to": {
-                  "who": "self"
-                }
-              }
-            ]
+            }
           }
         },
         "range": {
@@ -140,7 +131,7 @@
   "img": "icons/weapons/swords/sword-gold-holy.webp",
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "type": "feat",
@@ -210,6 +201,18 @@
       "flags": {
         "dnd5e": {
           "persistSourceMigration": true
+        },
+        "alivas-engine-of-triggers": {
+          "bond": {
+            "id": "sacred-weapon",
+            "single": true,
+            "carried": true
+          },
+          "light": {
+            "bright": 20,
+            "dim": 40,
+            "color": "#fff5c0"
+          }
         }
       },
       "type": "enchantment",
@@ -231,37 +234,6 @@
         "exportSource": null
       },
       "_key": "!items.effects!aowPqE0XAMHyxEm1.sacredWeaponxxxx"
-    },
-    {
-      "_id": "sacredWeaponLigh",
-      "name": "Sacred Weapon (Light)",
-      "img": "icons/weapons/swords/sword-gold-holy.webp",
-      "type": "base",
-      "transfer": false,
-      "disabled": false,
-      "statuses": [],
-      "tint": "#ffffff",
-      "sort": 0,
-      "origin": null,
-      "description": "",
-      "duration": {
-        "value": 600,
-        "units": "seconds",
-        "expiry": null
-      },
-      "system": {
-        "changes": []
-      },
-      "flags": {
-        "alivas-engine-of-triggers": {
-          "light": {
-            "bright": 20,
-            "dim": 40,
-            "color": "#fff5c0"
-          }
-        }
-      },
-      "_key": "!items.effects!aowPqE0XAMHyxEm1.sacredWeaponLigh"
     }
   ],
   "_stats": {

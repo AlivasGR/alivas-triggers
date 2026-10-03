@@ -36,11 +36,31 @@
  *     pool:       "nearby" | "targets" | "combat",   where candidates come from (default nearby on the scene)
  *     able:       true,      not Incapacitated
  *     actorType:  "character"  only this actor type (e.g. player characters)
+ *     grappledBy: true,      only creatures the chooser is grappling (a tether of the chooser's on them, maneuvers.mjs)
  *   }
  */
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const SOCKET = `module.${MODULE_ID}`;
+
+/* -------------------------------------------- */
+/*  Items: bonds and filter data                */
+/* -------------------------------------------- */
+
+/** The bond flag of an active enchantment (see main.mjs "Bonds"), or null. */
+export const bondOf = effect => (effect?.type === "enchantment") && !effect.disabled ? (effect.getFlag?.(MODULE_ID, "bond") ?? null) : null;
+
+/** The bond ids an item currently carries (e.g. ["pact-of-the-blade"]). */
+export function bondsOf(item) {
+  return (item?.effects ?? []).map(e => bondOf(e)?.id).filter(Boolean);
+}
+
+/** Filter data for an item: identifier, name, type, bonds, properties. */
+export function itemFilterData(item) {
+  if ( !item ) return {};
+  return { identifier: item.system?.identifier ?? "", name: item.name, type: item.type, bonds: bondsOf(item),
+    properties: [...(item.system?.properties ?? [])] };
+}
 
 /* -------------------------------------------- */
 /*  Geometry and vision                         */
@@ -156,6 +176,7 @@ export function findCreatures(from, spec={}, ctx={}) {
     if ( !actor || seen.has(actor.uuid) || t.hidden || actor.statuses?.has("dead") ) continue;
     if ( spec.able && actor.statuses?.has("incapacitated") ) continue;
     if ( spec.actorType && (actor.type !== spec.actorType) ) continue;
+    if ( spec.grappledBy && !actor.effects.some(e => origin && (e.getFlag(MODULE_ID, "tether")?.source === origin.uuid)) ) continue;
     const isSelf = actor.uuid === from?.uuid;
     if ( isSelf && (spec.self === false) ) continue;
     if ( spec.notSubject && ctx.subject && (actor.uuid === ctx.subject.uuid) ) continue;
@@ -255,7 +276,8 @@ export function describeSelector(selector={}, { you="you", bearerWord="the beare
   const side = { ally: "ally", enemy: "enemy", notAlly: "non-ally" }[selector.side] ?? "creature";
   const within = selector.range ? ` within ${selector.range} ft${selector.from === "subject" ? " of the triggering creature" : ""}` : "";
   const seeing = selector.sight ? ` that ${you} can see` : "";
-  const notSubject = selector.notSubject ? " (not the triggering creature)" : "";
+  const notSubject = (selector.notSubject ? " (not the triggering creature)" : "")
+    + (selector.grappledBy ? ` that ${you} ${you === "you" ? "are" : "is"} grappling` : "");
   const pool = selector.pool === "targets" ? " among the targets" : selector.pool === "combat" ? " in the combat" : "";
   switch ( selector.who ?? "choose" ) {
     case "self": return you;
@@ -505,6 +527,9 @@ HANDLERS.pickCreatures = async function({ title, prompt, choices, count, allowNo
   return pickOnMap({ title, prompt, choices, count, allowNone });
 };
 
+/** A list that scrolls instead of growing the dialog past the screen (many creatures on the map). */
+const scrollList = rows => `<div class="aet-pick-list" style="max-height:min(50vh, 440px);overflow-y:auto;padding-right:4px">${rows}</div>`;
+
 /**
  * The creature picker. Picking a row pans the camera to that creature and targets it; targeting a listed creature on the
  * map picks its row. One pick = radio buttons, several = checkboxes (up to count). Cancelling restores the targets.
@@ -542,7 +567,7 @@ async function pickOnMap({ title, prompt, choices, count=1, allowNone=true }) {
   if ( allowNone !== false ) buttons.push({ action: "none", label: "No one", icon: "fa-solid fa-xmark", callback: () => null });
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title }, position: { width: 420 }, rejectClose: false,
-    content: `${prompt || ""}<p class="hint"><em>${single ? "Pick one" : `Pick up to ${count}`} — or target ${single ? "it" : "them"} on the map.</em></p>${rows}`,
+    content: `${prompt || ""}<p class="hint"><em>${single ? "Pick one" : `Pick up to ${count}`} — or target ${single ? "it" : "them"} on the map.</em></p>${scrollList(rows)}`,
     render: (event, dialog) => {
       const boxes = [...dialog.element.querySelectorAll('input[name="pick"]')];
       const ok = dialog.element.querySelector('button[data-action="ok"]');
@@ -562,6 +587,7 @@ async function pickOnMap({ title, prompt, choices, count=1, allowNone=true }) {
         const box = boxes.find(b => b.value === token.actor?.uuid);
         if ( !box ) return;
         if ( targeted ) {
+          box.closest("label")?.scrollIntoView({ block: "nearest" });
           if ( single ) boxes.forEach(b => { b.checked = b === box; });
           else if ( !box.checked && (boxes.filter(b => b.checked).length < count) ) box.checked = true;
         } else if ( !single ) box.checked = false;
@@ -589,7 +615,7 @@ HANDLERS.pickMany = async function({ title, prompt, options, count }) {
     <input type="checkbox" name="pick" value="${o.value}"> <span>${foundry.utils.escapeHTML(o.label)}</span></label>`).join("");
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title }, position: { width: 440 }, rejectClose: false,
-    content: `${prompt || ""}<p><em>Choose ${count > 1 ? `up to ${count}` : "one"}.</em></p>${rows}`,
+    content: `${prompt || ""}<p><em>Choose ${count > 1 ? `up to ${count}` : "one"}.</em></p>${scrollList(rows)}`,
     render: (event, dialog) => {
       const boxes = dialog.element.querySelectorAll('input[name="pick"]');
       const limit = () => {
@@ -701,6 +727,17 @@ HANDLERS.teleport = async function({ tokenUuid, range, sight, label }) {
     ui.notifications.warn(`${label}: that spot is ${feet > Number(range) ? `${feet} ft away` : (!visible ? "out of sight" : "occupied")} — try again.`);
   }
   return null;
+};
+
+/** Pick one entry from a long list (a dropdown); resolves to the chosen value or null. */
+HANDLERS.pickFromList = async function({ title, prompt, options }) {
+  const esc = foundry.utils.escapeHTML ?? (s => s);
+  const content = `${prompt || ""}<select name="choice" style="width:100%">${options.map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join("")}</select>`;
+  const choice = await foundry.applications.api.DialogV2.prompt({
+    window: { title }, position: { width: 380 }, rejectClose: false, content,
+    ok: { label: "Choose", callback: (event, button) => button.form.elements.choice.value }
+  });
+  return choice ?? null;
 };
 
 /** Show a one-of-several choice; resolves to the chosen value or null. */

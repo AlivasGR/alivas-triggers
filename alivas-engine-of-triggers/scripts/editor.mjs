@@ -128,6 +128,7 @@ const TRIGGER_ACTIONS = [
   ["toggleLight", "fa-lightbulb", "Light on / off", "Switch the bearer's token light"],
   ["random", "fa-dice", "Roll on a table", "Roll a die; the matching row's effect is given (Wild Surge)"],
   ["teleport", "fa-person-through-window", "Teleport", "Move a creature to a spot its player picks within range (Misty Step)"],
+  ["conjureItem", "fa-wand-magic", "Conjure an item", "Pick an item from a compendium; it appears equipped and enchanted by this item (Pact of the Blade)"],
   ["push", "fa-arrows-left-right", "Push or pull", "Move creatures straight away from (or toward) the bearer (Thunderous Smite)"],
   ["sense", "fa-eye", "Sense nearby", "Privately tell the bearer's player what's nearby (Divine Sense, Detect Magic)"],
   ["inspire", "fa-star", "Heroic Inspiration", "Give Heroic Inspiration to chosen creatures"],
@@ -227,6 +228,7 @@ const DEFAULT_ACTIONS = {
   toggleLight: { type: "toggleLight", bright: 20, dim: 40, color: "#ffb86b" },
   random: { type: "random", formula: "1d8", results: [{ roll: "1", effect: "" }] },
   teleport: { type: "teleport", range: 30, sight: true },
+  conjureItem: { type: "conjureItem", pack: "dnd5e.equipment24", itemType: "weapon", categories: ["simpleM", "martialM"] },
   push: { type: "push", distance: 10 },
   sense: { type: "sense", range: 60, creatures: [{ k: "details.type.value", o: "in", v: ["celestial", "fiend", "undead"] }] },
   inspire: { type: "inspire", to: { who: "choose", side: "ally", count: "@prof", self: false } },
@@ -372,6 +374,7 @@ const REACTION_PRESETS = [
 /*
  * A field describes one thing a condition can test.
  *   kind: number | select | bool | status (has / doesn't have) | listStatus (includes) | listDamage (includes) | listProperty (includes)
+ *         | listText (includes free text, e.g. a bond name)
  *   key:  data path, or a function of the chosen status for status fields (match: regex to read it back)
  *   on:   events / windows where the field exists (omit = always)
  */
@@ -458,6 +461,10 @@ const REACTION_FIELDS = [
   { id: "failedSkill", label: "The skill is", kind: "select", key: "skill", on: ["d20Failed"], entries: skillEntries },
   { id: "failedTool", label: "The tool's id is", kind: "text", key: "tool", on: ["d20Failed"] },
   { id: "weaponProps", label: "The weapon's properties", kind: "listProperty", key: "weaponProperties", on: ["hitting"] },
+  { id: "itemBond", label: "Your weapon's bonds", kind: "listText", key: "item.bonds", on: ["hitting"] },
+  { id: "itemId", label: "Your weapon's identifier", kind: "text", key: "item.identifier", on: ["hitting"] },
+  { id: "targetSize", label: "The target's size", kind: "select", key: "target.traits.size", on: ["hitting"],
+    entries: () => Object.entries(CONFIG.DND5E.actorSizes).map(([k, v]) => [k, v.label ?? k]) },
   { id: "damageTotal", label: "The damage amount", kind: "number", key: "total", on: ["damageIncoming"] },
   { id: "damageTypes", label: "The damage types", kind: "listDamage", key: "types", on: ["damageIncoming"] },
   { id: "ally", label: "The creature is you or an ally", kind: "bool", key: "subjectIsAlly" },
@@ -491,6 +498,7 @@ const OPS = {
   listStatus: [["has", "includes"], ["not", "doesn't include"]],
   listDamage: [["has", "include"], ["not", "don't include"]],
   listProperty: [["has", "include"], ["not", "don't include"]],
+  listText: [["has", "include"], ["not", "don't include"]],
   custom: [["exact", "equals"], ["not", "does not equal"], ["gte", "is at least"], ["gt", "is more than"],
     ["lte", "is at most"], ["lt", "is less than"], ["has", "contains"]]
 };
@@ -529,7 +537,7 @@ function rowToFilter(row, catalogue) {
   }
   switch ( field.kind ) {
     case "status": entry = { k: field.key(row.value), o: "gte", v: 1 }; break;
-    case "listStatus": case "listDamage": case "listProperty": entry = { k: field.key, o: "has", v: row.value }; break;
+    case "listStatus": case "listDamage": case "listProperty": case "listText": entry = { k: field.key, o: "has", v: row.value }; break;
     case "bool": entry = { k: field.key, v: row.value === "true" }; break;
     case "yes1":
       entry = { k: field.key, o: "gte", v: 1 };
@@ -563,7 +571,7 @@ function filterToRow(entry, catalogue) {
       continue;
     }
     if ( e.k !== field.key ) continue;
-    if ( ["listStatus", "listDamage", "listProperty"].includes(field.kind) && (o === "has") ) {
+    if ( ["listStatus", "listDamage", "listProperty", "listText"].includes(field.kind) && (o === "has") ) {
       return { field: field.id, op: negate ? "not" : "has", value: e.v };
     }
     if ( field.kind === "number" ) {
@@ -769,6 +777,9 @@ function validateTrigger(model) {
       }
       if ( a.to ) errors.push(...selectorErrors(a.to));
       break;
+    case "conjureItem":
+      if ( !String(a.pack ?? "").trim() ) errors.push("Conjure an item: the compendium to pick from (e.g. dnd5e.equipment24).");
+      break;
     case "teleport":
       if ( !(Number(a.range) > 0) ) errors.push("Teleport: the range must be a number of feet.");
       if ( a.to ) errors.push(...selectorErrors(a.to));
@@ -951,6 +962,7 @@ function describeTriggerModel(model, sub=false) {
     case "activityDamage": what = `${Number(a.multiplier) === 0.5 ? "half" : `×${a.multiplier}`} of that attack or spell's own damage to ${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the creature it was aimed at"}`; break;
     case "toggleLight": what = `the bearer's light turns on or off (${a.bright}/${a.dim} ft)`; break;
     case "random": what = `roll ${a.formula || "?"}: ${(a.results ?? []).map(r => `${r.roll} → “${r.label || r.effect || "?"}”`).join(", ")}${a.to ? ` for ${describeSelector(a.to, { you: "the bearer" })}` : ""}`; break;
+    case "conjureItem": what = `the user picks ${a.itemType || "weapon"}${[a.categories ?? []].flat().join("") ? ` (${[a.categories].flat().join(", ")})` : ""} from ${a.pack || "dnd5e.equipment24"}; it appears equipped and enchanted by this item${a.enchant ? ` (${a.enchant})` : ""}`; break;
     case "teleport": what = `${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the bearer"} teleports up to ${a.range} ft${a.sight !== false ? " to a spot it can see" : ""}`; break;
     case "push": what = `${a.to ? describeSelector(a.to, { you: "the bearer" }) : "the creature concerned"} is ${Number(a.distance) < 0 ? "pulled" : "pushed"} ${Math.abs(Number(a.distance))} ft ${Number(a.distance) < 0 ? "toward" : "away from"} ${a.from === "source" ? "the source" : "the bearer"}`; break;
     case "sense": {
@@ -1062,6 +1074,7 @@ function describeReactionModel(model, item) {
     const src = g.item ? `“${g.item}”` : `“${item?.system?.activities?.get(g.activity)?.name || "another activity"}”`;
     grant = `; then ${src} is used on ${whom(g.to)}${g.when === "zeroed" ? " if the damage was reduced to 0" : ""}`;
   } else if ( g ) grant = `; then “${gName}” goes to ${whom(g.to)}`;
+  if ( g?.ask ) grant += " (if you say yes)";
   const refund = model.extra?.refundUnlessSuccess?.item ? `; refunded if the roll still fails` : "";
   const castFree = model.extra?.cost?.spell ? `; casts ${item?.actor?.items?.get(model.extra.cost.spell)?.name ?? "a spell"} free` : "";
   return `When ${subject}${cond}: ${what}${castFree}${grant}${refund}${act ? ` (uses “${act}”)` : ""}.`;
@@ -1073,7 +1086,15 @@ function describeReactionModel(model, item) {
 
 /** Actions offered in an activity's "right after it's used" steps. */
 const ACTIVITY_ACTIONS = ["giveEffect", "removeStatus", "inspire", "tempHp", "damage", "spendHitDie", "recoverSlots", "storeSpell", "toggleLight",
-  "random", "teleport", "push", "sense", "note", "check", "passThrough", "place", "release", "escape", "endEffect", "useReaction", "dropHeld"];
+  "random", "teleport", "conjureItem", "push", "sense", "note", "check", "passThrough", "place", "release", "escape", "endEffect", "useReaction", "dropHeld"];
+
+/** A stored strike count: a number above 1, or a formula (kept as text); null for 1 / empty. */
+function repeatCount(value) {
+  const text = String(value ?? "").trim();
+  if ( !text ) return null;
+  if ( Number.isFinite(Number(text)) ) return Number(text) > 1 ? Number(text) : null;
+  return text;
+}
 
 /** Activity requirements (flag `requires`): [key, label]. maxSizeAbove is a number and handled separately. */
 const REQUIREMENTS = [
@@ -1126,12 +1147,17 @@ function readRules(effect) {
     evasion: [...(f.evasion ?? [])], ownRollsOnly: !!f.ownRollsOnly,
     attackedMode: f.attackedWith?.mode ?? "", attackedOnce: !!f.attackedWith?.once,
     attacksMode: f.attacksWith?.mode ?? "", attacksOnce: !!f.attacksWith?.once, disengaged: !!f.disengaged,
-    extraAttack: f.extraAttack?.count ?? "", saveAdvStatuses: [...(f.saveAdvantageAgainst ?? [])], healingExtraDie: !!f.healingExtraDie,
+    extraAttack: f.extraAttack?.count ?? "", extraItem: JSON.stringify(f.extraAttack?.item ?? []),
+    noUnseenAdvantage: !!f.noUnseenAdvantage,
+    bondOn: !!f.bond, bondId: f.bond?.id ?? "", bondRange: f.bond?.range ?? 5, bondAway: f.bond?.away ?? "",
+    bondDeath: !!f.bond?.endOnDeath, bondSingle: !!f.bond?.single, bondCarried: !!f.bond?.carried, saveAdvStatuses: [...(f.saveAdvantageAgainst ?? [])], healingExtraDie: !!f.healingExtraDie,
     noHealing: !!f.noHealing, onlyIfStatus: onlyIfStatusOf(f.onlyIf), onlyIfRaw: f.onlyIf ?? null,
     dropSave: !!f.dropSave, dropAbility: f.dropSave?.ability ?? "con", dropDc: f.dropSave?.dc ?? "5 + @damage",
     dropRadiant: (f.dropSave?.unlessTypes ?? ["radiant"]).includes("radiant"), dropCrit: f.dropSave?.unlessCritical ?? true,
     reduceFormula: f.reduceDamage?.formula ?? "", reduceTypes: [...(f.reduceDamage?.types ?? [])], reduceOnce: !!f.reduceDamage?.oncePerTurn,
     diceMin: f.damageDice?.min ?? "", diceFilter: JSON.stringify(f.damageDice?.filter ?? []),
+    baseRows: [f.baseDamage ?? []].flat().filter(x => x && (typeof x === "object"))
+      .map(({ filter, ...rest }) => ({ ...clone(rest), filterText: JSON.stringify(filter ?? []) })),
     attackedBy: f.attackedWith?.by ?? "",
     tetherOn: !!f.tether, tetherRange: f.tether?.range ?? 5, tetherDrag: !!f.tether?.drag, tetherDc: f.tether?.dc ?? "",
     tetherRaw: f.tether ? clone(f.tether) : null,
@@ -1153,7 +1179,11 @@ function readRules(effect) {
 
 /** Effect rules stored as objects (a rule's fields the editor doesn't know are kept as they are). */
 const RULE_OBJECTS = ["area", "light", "armorClass", "dropSave", "saveDamage", "reduceDamage", "damageDice", "attackedWith", "attacksWith",
-  "checksWith", "sustain", "ignoreCover", "extraAttack", "attackAbilities"];
+  "checksWith", "sustain", "ignoreCover", "extraAttack", "attackAbilities", "bond"];
+
+/** Weapon filter presets for the extraAttack rule (Creatures.itemFilterData). */
+const EXTRA_ITEM_FILTERS = { "": [], pact: [{ k: "bonds", o: "has", v: "pact-of-the-blade" }] };
+const extraItemMode = r => Object.entries(EXTRA_ITEM_FILTERS).find(([, f]) => JSON.stringify(f) === JSON.stringify(parseFilterText(r.extraItem) ?? []))?.[0] ?? "custom";
 
 /** An activity flag object → an update: set fields are written, null/undefined ones are removed (not stored as null). */
 function cleanFlagUpdate(flags) {
@@ -1173,6 +1203,15 @@ function parseFilterText(text) {
     return list.length ? list : null;
   } catch(err) { return null; }
 }
+
+/** Filter presets for the baseDamage rule. */
+const BASE_FILTERS = {
+  "": [],
+  unarmed: [{ k: "roll.attack.classification", v: "unarmed" }],
+  unarmedEmpty: [{ k: "roll.attack.classification", v: "unarmed" }, { k: "held.weapons", v: 0 }, { k: "held.shield", v: false }]
+};
+const BASE_FILTER_LABELS = [["", "any attack"], ["unarmed", "Unarmed Strikes"], ["unarmedEmpty", "Unarmed Strikes, holding no weapon or shield"]];
+const baseMode = row => Object.entries(BASE_FILTERS).find(([, f]) => JSON.stringify(f) === JSON.stringify(parseFilterText(row.filterText) ?? []))?.[0] ?? "custom";
 
 /** Filter presets for the damageDice rule. */
 const DICE_FILTERS = {
@@ -1226,6 +1265,13 @@ function rulesUpdate(r) {
     ...(r.reduceOnce ? { oncePerTurn: true } : {}) }), reduce);
   const diceFilter = parseFilterText(r.diceFilter);
   set("damageDice", keepRest("damageDice", ["min", "filter"], { min: Number(r.diceMin), ...(diceFilter ? { filter: diceFilter } : {}) }), Number(r.diceMin) > 1);
+  const baseRows = (r.baseRows ?? []).filter(row => String(row.formula ?? "").trim()).map(({ filterText, filter: _f, ...rest }) => {
+    const filter = parseFilterText(filterText);
+    const row = { ...rest, formula: String(rest.formula).trim(), ...(filter ? { filter } : {}) };
+    if ( !row.type ) delete row.type;
+    return row;
+  });
+  set("baseDamage", baseRows, baseRows.length);
   set("light", keepRest("light", ["bright", "dim", "color", "animation"], { bright: Number(r.lightBright) || 0, dim: Number(r.lightDim) || 0, color: r.lightColor || null,
     ...(r.lightAnimation ? { animation: r.lightAnimation } : {}) }), (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0));
   set("noSpells", true, r.noSpells);
@@ -1239,7 +1285,13 @@ function rulesUpdate(r) {
   const sustainFilter = parseFilterText(r.sustainFilter);
   set("sustain", keepRest("sustain", ["events", "filter"], { events: [...(r.sustainEvents ?? [])], ...(sustainFilter ? { filter: sustainFilter } : {}) }), r.sustainEvents?.length);
   set("disengaged", true, r.disengaged);
-  set("extraAttack", keepRest("extraAttack", ["count"], { count: Number(r.extraAttack) }), Number(r.extraAttack) > 0);
+  const extraItem = parseFilterText(r.extraItem);
+  set("extraAttack", keepRest("extraAttack", ["count", "item"], { count: Number(r.extraAttack), ...(extraItem ? { item: extraItem } : {}) }), Number(r.extraAttack) > 0);
+  set("noUnseenAdvantage", true, r.noUnseenAdvantage);
+  const bondId = String(r.bondId ?? "").trim();
+  set("bond", keepRest("bond", ["id", "range", "away", "endOnDeath", "single", "carried"], { id: bondId, range: Number(r.bondRange) > 0 ? Number(r.bondRange) : 5,
+    ...(Number(r.bondAway) > 0 ? { away: Number(r.bondAway) } : {}), ...(r.bondDeath ? { endOnDeath: true } : {}), ...(r.bondSingle ? { single: true } : {}),
+    ...(r.bondCarried ? { carried: true } : {}) }), r.bondOn && bondId);
   set("saveAdvantageAgainst", r.saveAdvStatuses, r.saveAdvStatuses?.length);
   set("healingExtraDie", true, r.healingExtraDie);
   set("stopOnCollision", true, r.stopOnCollision);
@@ -1351,7 +1403,8 @@ export class TriggerEditor extends ApplicationV2 {
         targetFilter: f.targetFilter ? clone(f.targetFilter) : null, summonEffects: Array.isArray(f.summonEffects) ? [...f.summonEffects] : [],
         repeat: f.repeat ? clone(f.repeat) : null, mastery: f.mastery ?? "", properties: [...(f.properties ?? [])],
         requires: f.requires ? clone(f.requires) : {}, offerWhenBlocked: !!f.offerWhenBlocked, applyToTargets: !!f.applyToTargets,
-        saveAdvantage: !!f.saveAdvantage };
+        saveAdvantage: !!f.saveAdvantage, castFrom: f.castingAbility?.class ? "class" : f.castingAbility?.spell ? "spell" : "",
+        castId: f.castingAbility?.class ?? f.castingAbility?.spell ?? "" };
     } else if ( this.mode === "area" ) {
       const list = this.activity.flags?.[MODULE_ID]?.area?.triggers;
       this.models = (Array.isArray(list) ? list : []).map(x => triggerToModel(x));
@@ -1584,11 +1637,11 @@ export class TriggerEditor extends ApplicationV2 {
     const groups = {
       spells: [r.noReactions, r.noComponents, r.askFirst, r.minLevel, r.saveDamageOnSave, r.ownRollsOnly, r.noSpells, r.sustainEvents?.length, String(r.whileStatus ?? "").trim()],
       damage: [r.ignoreDamageFrom, r.evasion?.length, r.noHealing, r.dropSave, r.onlyIfStatus, r.saveAdvStatuses?.length, r.healingExtraDie,
-        String(r.reduceFormula ?? "").trim(), Number(r.diceMin) > 1],
+        String(r.reduceFormula ?? "").trim(), Number(r.diceMin) > 1, (r.baseRows ?? []).some(row => String(row.formula ?? "").trim())],
       area: [Number(r.areaRadius) > 0, r.stopOnCollision, r.disengaged, (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0)],
-      weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0, String(r.acFormula ?? "").trim(),
+      weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0, String(r.acFormula ?? "").trim(), r.noUnseenAdvantage,
         r.coverLevel],
-      holds: [r.tetherOn, r.checksMode]
+      holds: [r.tetherOn, r.checksMode, r.bondOn]
     };
     const typePills = (list, key, entries) => entries.map(([id, label]) => `<label class="aet-check aet-small-check">
       <input type="checkbox" data-rule-list="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
@@ -1635,6 +1688,16 @@ export class TriggerEditor extends ApplicationV2 {
         <label class="aet-inline"><span>The bearer's damage dice count at least</span><input type="number" class="aet-num" data-rule="diceMin" data-rerender value="${esc(r.diceMin)}" placeholder="—">
           ${Number(r.diceMin) > 1 ? `<span>for</span><select data-rule="diceMode" data-rerender>${options([["", "all its damage"], ["gwf", "melee weapon attacks made two-handed"], ...(diceMode === "custom" ? [["custom", "a custom filter (below)"]] : [])], diceMode)}</select>` : ""}</label>
         ${Number(r.diceMin) > 1 && (diceMode === "custom") ? `<label class="aet-inline"><span>Filter</span><input type="text" class="aet-wide" data-rule="diceFilter" value="${esc(r.diceFilter)}"></label>` : ""}
+        ${[...(r.baseRows ?? []), { formula: "", filterText: "[]" }].map((row, i) => {
+          const mode = baseMode(row);
+          const has = String(row.formula ?? "").trim();
+          return `<label class="aet-inline"><span>${i ? "Or" : "Instead of a weapon's own damage, the bearer may deal"}</span>
+            <input type="text" class="aet-formula" data-base-row="${i}" data-base-field="formula" data-rerender value="${esc(row.formula ?? "")}" placeholder="e.g. 1d6 + @abilities.str.mod">
+            ${has ? `<select data-base-row="${i}" data-base-field="type">${options([["", "of its own type"], ...damageEntries().filter(([id]) => id in CONFIG.DND5E.damageTypes)], row.type ?? "")}</select>
+            <span>with</span><select data-base-row="${i}" data-base-field="mode" data-rerender>${options([...BASE_FILTER_LABELS, ...(mode === "custom" ? [["custom", "a custom filter (below)"]] : [])], mode)}</select>` : ""}</label>
+            ${has && (mode === "custom") ? `<label class="aet-inline"><span>Filter</span><input type="text" class="aet-wide" data-base-row="${i}" data-base-field="filterText" value="${esc(row.filterText)}"></label>` : ""}`;
+        }).join("")}
+        ${(r.baseRows ?? []).some(row => String(row.formula ?? "").trim()) ? `<p class="aet-muted">Used only when it's higher on average; the first matching line wins. Filters can use held.weapons and held.shield.</p>` : ""}
         <label class="aet-inline"><span>When auto-applied, only to a target that has</span><select data-rule="onlyIfStatus">${options([["", "— (always)"], ...statusEntries(), ...(r.onlyIfStatus === "custom" ? [["custom", "Custom filter (kept)"]] : [])], r.onlyIfStatus)}</select></label>`)}
       ${group("area", "Area and movement", `
         <label class="aet-inline"><span>Area around the bearer</span><input type="number" class="aet-num" data-rule="areaRadius" data-rerender value="${esc(r.areaRadius)}" placeholder="—"><span class="aet-muted">ft, moving with it</span>
@@ -1665,12 +1728,24 @@ export class TriggerEditor extends ApplicationV2 {
           <label class="aet-check aet-small-check"><input type="checkbox" data-rule="acUnarmored"${r.acUnarmored ? " checked" : ""}><span>only without armor</span></label>
           <select data-rule="acShield">${options([["", "with or without a shield"], ["true", "only with a shield"], ["false", "only without a shield"]], r.acShield)}</select></label>
         <p class="aet-muted">dnd5e uses the best of its own calculations and this one; a shield adds as usual.</p>
-        <label class="aet-inline"><span>Extra attacks with the Attack action</span><input type="number" class="aet-num" data-rule="extraAttack" value="${esc(r.extraAttack)}" placeholder="0"><span class="aet-muted">offered after the first (Extra Attack = 1)</span></label>
+        <label class="aet-inline"><span>Extra attacks with the Attack action</span><input type="number" class="aet-num" data-rule="extraAttack" data-rerender value="${esc(r.extraAttack)}" placeholder="0"><span class="aet-muted">offered after the first (Extra Attack = 1)</span>
+          ${Number(r.extraAttack) > 0 ? `<span>with</span><select data-rule="extraItemMode" data-rerender>${options([["", "any weapon"], ["pact", "the pact weapon only"], ...(extraItemMode(r) === "custom" ? [["custom", "a custom weapon filter (below)"]] : [])], extraItemMode(r))}</select>` : ""}</label>
+        ${Number(r.extraAttack) > 0 && (extraItemMode(r) === "custom") ? `<label class="aet-inline"><span>Weapon filter</span><input type="text" class="aet-wide" data-rule="extraItem" value="${esc(r.extraItem)}"></label>` : ""}
+        <label class="aet-check"><input type="checkbox" data-rule="noUnseenAdvantage"${r.noUnseenAdvantage ? " checked" : ""}><span>Attackers gain no advantage from being unseen by the bearer (2014 Alert; with the setting “Unseen attackers and targets”)</span></label>
         <div class="aet-subtitle">May also use</div><div class="aet-pills">${abilityBoxes(r.attackAdd, "attackAdd")}</div>
         <label class="aet-check"><input type="checkbox" data-rule="attackProficient"${r.attackProficient ? " checked" : ""}><span>…only with weapons the bearer is proficient with</span></label>
         <div class="aet-subtitle">Must use one of</div><div class="aet-pills">${abilityBoxes(r.attackOnly, "attackOnly")}</div>
         <p class="aet-muted">The best allowed ability is used and shown on the sheet; the roll dialog offers the others.</p>`)}
       ${group("holds", "Holds and ability checks", `
+        <label class="aet-check"><input type="checkbox" data-rule="bondOn" data-rerender${r.bondOn ? " checked" : ""}><span>Bond (on an enchantment): the enchanted item is bonded to whoever enchanted it</span></label>
+        ${r.bondOn ? `<div class="aet-sub">
+          <label class="aet-inline"><span>Bond name</span><input type="text" class="aet-formula" data-rule="bondId" value="${esc(r.bondId)}" placeholder="e.g. pact-of-the-blade"><span class="aet-muted">filters see it as item.bonds</span></label>
+          <label class="aet-check"><input type="checkbox" data-rule="bondSingle"${r.bondSingle ? " checked" : ""}><span>Bonding again ends the earlier bond</span></label>
+          <label class="aet-inline"><span>Ends when the item is more than</span><input type="number" class="aet-num" data-rule="bondRange" value="${esc(r.bondRange)}" min="0"><span>ft away for</span>
+            <input type="number" class="aet-num" data-rule="bondAway" value="${esc(r.bondAway)}" min="0" placeholder="—"><span class="aet-muted">seconds of game time (empty: never)</span></label>
+          <label class="aet-check"><input type="checkbox" data-rule="bondDeath"${r.bondDeath ? " checked" : ""}><span>Ends when the bonder dies</span></label>
+          <label class="aet-check"><input type="checkbox" data-rule="bondCarried"${r.bondCarried ? " checked" : ""}><span>Ends as soon as the bonder isn't carrying it</span></label>
+          <p class="aet-muted">A conjured item (the “Conjure an item” action) disappears when its bond ends.</p></div>` : ""}
         <label class="aet-check"><input type="checkbox" data-rule="tetherOn" data-rerender${r.tetherOn ? " checked" : ""}><span>Holds the creature (grapple) — the bearer is held by whoever applied it</span></label>
         ${r.tetherOn ? `<div class="aet-sub">
           <label class="aet-inline"><span>Hold range</span><input type="number" class="aet-num" data-rule="tetherRange" value="${esc(r.tetherRange)}" min="0"><span class="aet-muted">ft — the hold ends when they are farther apart, or the holder is Incapacitated</span></label>
@@ -1717,12 +1792,15 @@ export class TriggerEditor extends ApplicationV2 {
         <button type="button" class="aet-btn aet-edit" data-action="openArea"><i class="fa-solid fa-burst"></i>
           Area triggers (${this.activity.flags?.[MODULE_ID]?.area?.triggers?.length ?? 0})</button>
         <p class="aet-muted">What happens in the ${esc(this.activity.target.template.type)} it places: when it appears, as creatures enter, leave, or start/end their turns in it.</p>` : ""}
-      ${this.activity.type === "attack" ? `<label class="aet-inline"><span>Strikes per use</span><input type="number" class="aet-num" min="1" data-setting="repeat.count" value="${esc(s.repeat?.count ?? 1)}">
+      ${this.activity.type === "attack" ? `<label class="aet-inline"><span>Strikes per use</span><input type="text" class="aet-formula" data-setting="repeat.count" value="${esc(s.repeat?.count ?? 1)}" placeholder="2, or a formula">
         <span>one may instead be</span><input type="text" class="aet-formula" data-setting="repeat.swap" value="${esc(s.repeat?.swap ?? "")}" placeholder="item identifier (optional)"></label>
-        <p class="aet-muted">After the first strike, each next one asks for its target (Flurry of Blows: 2, swap “hand-of-healing”, free).</p>
+        <p class="aet-muted">After the first strike, each next one asks for its target (Flurry of Blows: <code>2 + floor(min(@classes.monk.levels, 10) / 10)</code>, swap “hand-of-healing”, free).</p>
         <label class="aet-inline"><span>Weapon mastery it always has</span><select data-setting="mastery">${options([["", "— (the weapon's, if chosen)"],
           ...Object.entries(CONFIG.DND5E.weaponMasteries ?? {}).map(([k, v]) => [k, v.label ?? k])], s.mastery)}</select></label>
         <label class="aet-inline"><span>Counts as having</span><input type="text" class="aet-wide" data-setting="propertiesText" value="${esc((s.properties ?? []).join(", "))}" placeholder="weapon properties, e.g. fin, thr (for Sneak Attack and the like)"></label>` : ""}
+      <label class="aet-inline"><span>Its spellcasting ability comes from</span><select data-setting="castFrom" data-rerender>${options([["", "dnd5e's default (the best class ability)"], ["class", "a class"], ["spell", "a spell of the user's"]], s.castFrom ?? "")}</select>
+        ${s.castFrom ? `<input type="text" class="aet-formula" data-setting="castId" value="${esc(s.castId ?? "")}" placeholder="${s.castFrom === "class" ? "class identifier, e.g. warlock" : "spell identifier, e.g. true-strike"}">` : ""}</label>
+      ${s.castFrom ? `<p class="aet-muted">“Spellcasting” attacks and DCs of this activity use ${s.castFrom === "class" ? "that class's" : "that spell's own (e.g. Magic Initiate's chosen)"} ability.</p>` : ""}
       <div class="aet-subtitle">Requirements <span class="aet-muted">(checked before it is used; if one isn't met, the use is blocked with a notice)</span></div>
       ${REQUIREMENTS.map(([k, label]) => `<label class="aet-check"><input type="checkbox" data-setting="req.${k}" data-rerender${s.requires?.[k] ? " checked" : ""}><span>${esc(label)}</span></label>`).join("")}
       <label class="aet-inline"><span>Target size</span><span class="aet-muted">at most</span><input type="number" class="aet-num" min="0" data-setting="req.maxSizeAbove" data-rerender value="${esc(s.requires?.maxSizeAbove ?? "")}" placeholder="any"><span class="aet-muted">sizes larger than the user</span>
@@ -1867,6 +1945,13 @@ export class TriggerEditor extends ApplicationV2 {
           ${a.to ? this.#selectorFields(`${P}.to`, a.to, "trigger") : ""}
           <p class="aet-muted">Each result is an effect of this item — give it triggers of its own (a save when applied, a bonus while it lasts…).</p></div>`;
       }
+      case "conjureItem":
+        return `<div class="aet-fields">
+          <label class="aet-inline"><span>Compendium</span><input type="text" class="aet-wide" data-path="${P}.pack" value="${esc(a.pack ?? "dnd5e.equipment24")}"></label>
+          <label class="aet-inline"><span>Item type</span><input type="text" class="aet-formula" data-path="${P}.itemType" value="${esc(a.itemType ?? "weapon")}">
+            <span>categories</span><input type="text" class="aet-formula" data-path="${P}.categories" value="${esc([a.categories ?? []].flat().join(", "))}" placeholder="e.g. simpleM, martialM (empty: any)"></label>
+          <label class="aet-inline"><span>Enchant with</span><input type="text" class="aet-formula" data-path="${P}.enchant" value="${esc(a.enchant ?? "")}" placeholder="enchant activity name (empty: the first)"></label>
+          <p class="aet-muted">Magic items aren't offered. The enchantment's own restrictions apply; give it a Bond so the item vanishes when the bond ends.</p></div>`;
       case "teleport":
         return `<div class="aet-fields"><label class="aet-inline"><span>Up to</span>
           <input type="number" class="aet-num" data-path="${P}.range" data-type="number" value="${esc(a.range)}"><span class="aet-muted">ft</span></label>
@@ -2095,10 +2180,12 @@ export class TriggerEditor extends ApplicationV2 {
       ${m.window === "damageIncoming" ? `<label class="aet-check"><input type="checkbox" data-special="afterZeroed"${g.when === "zeroed" ? " checked" : ""}>
         <span>Only if the damage was reduced to 0 (Deflect Attacks' redirect)</span></label>` : ""}
       ${g.to?.who === "hit" ? "" : this.#selectorFields("extra.after.to", g.to, "reaction")}
+      <label class="aet-inline"><span>Ask first</span><input type="text" class="aet-wide" data-path="extra.after.ask" value="${esc(g.ask ?? "")}" placeholder="optional yes/no question, e.g. Spend a Hit Point Die to heal?"></label>
       <p class="aet-muted">The activity's own cost and save apply. When creatures are picked, no one skips it.</p></div>`;
     return `${pick}<div class="aet-sub">
       <label class="aet-inline"><span>Effect</span><select data-path="extra.after.effect">${options(effects.map(e => [e.id, e.name]), g.effect)}</select></label>
       ${this.#selectorFields("extra.after.to", g.to, "reaction")}
+      <label class="aet-inline"><span>Ask first</span><input type="text" class="aet-wide" data-path="extra.after.ask" value="${esc(g.ask ?? "")}" placeholder="optional yes/no question, e.g. Knock the target Prone?"></label>
       <p class="aet-muted">An earlier copy of the same effect on a creature is replaced.</p>
     </div>`;
   }
@@ -2120,6 +2207,7 @@ export class TriggerEditor extends ApplicationV2 {
       ${context === "trigger" ? `<label class="aet-inline"><span>Chosen by</span><select data-path="${path}.by" data-rerender>${options([["", you], ["source", "the effect's source (range from them)"]], sel.by ?? "")}</select></label>` : ""}
       <label class="aet-inline"><span>Kind of creature</span><select data-path="${path}.actorType">${options([["", "Any"], ["character", "Player characters only"], ["npc", "NPCs only"]], sel.actorType ?? "")}</select></label>
       <label class="aet-check"><input type="checkbox" data-path="${path}.able" data-type="boolean"${sel.able ? " checked" : ""}><span>Not Incapacitated</span></label>
+      <label class="aet-check"><input type="checkbox" data-path="${path}.grappledBy" data-type="boolean"${sel.grappledBy ? " checked" : ""}><span>Only creatures ${you} ${you === "you" ? "are" : "is"} grappling</span></label>
       <label class="aet-check"><input type="checkbox" data-path="${path}.sight" data-type="boolean"${sel.sight ? " checked" : ""}><span>Only creatures ${you} can see</span></label>
       <label class="aet-check"><input type="checkbox" data-path="${path}.self" data-type="boolean" data-invert${sel.self === false ? " checked" : ""}><span>Not ${you === "you" ? "yourself" : "the bearer"}</span></label>
       <label class="aet-check"><input type="checkbox" data-path="${path}.notSubject" data-type="boolean"${sel.notSubject ? " checked" : ""}><span>Not the triggering creature</span></label>` : ""}
@@ -2392,6 +2480,17 @@ export class TriggerEditor extends ApplicationV2 {
       this.rules[el.dataset.ruleList] = [...list];
       return false;
     }
+    if ( el.dataset.baseRow !== undefined ) {
+      const rows = this.rules.baseRows ??= [];
+      const row = rows[Number(el.dataset.baseRow)] ??= { formula: "", filterText: "[]" };
+      if ( el.dataset.baseField === "mode" ) { if ( el.value in BASE_FILTERS ) row.filterText = JSON.stringify(BASE_FILTERS[el.value]); }
+      else row[el.dataset.baseField] = el.value;
+      return el.hasAttribute("data-rerender");
+    }
+    if ( el.dataset.rule === "extraItemMode" ) {
+      if ( el.value in EXTRA_ITEM_FILTERS ) this.rules.extraItem = JSON.stringify(EXTRA_ITEM_FILTERS[el.value]);
+      return true;
+    }
     if ( el.dataset.rule === "diceMode" ) {
       if ( el.value in DICE_FILTERS ) this.rules.diceFilter = JSON.stringify(DICE_FILTERS[el.value]);
       return true;
@@ -2427,6 +2526,7 @@ export class TriggerEditor extends ApplicationV2 {
     if ( key === "offerWhenBlocked" ) { this.settings.offerWhenBlocked = el.checked; return true; }
     if ( key === "applyToTargets" ) { this.settings.applyToTargets = el.checked; return false; }
     if ( key === "saveAdvantage" ) { this.settings.saveAdvantage = el.checked; return false; }
+    if ( key === "castFrom" ) { this.settings.castFrom = el.value; return true; }
     if ( key === "chooseOn" ) { this.settings.chooseEffects = el.checked ? { count: "1" } : null; return true; }
     if ( key === "pay.from" ) { this.settings.pay.from = el.value.split(",").map(s => s.trim()).filter(Boolean); return false; }
     if ( key === "pay.cost" ) { this.settings.pay.cost = Number(el.value) || 1; return false; }
@@ -2740,10 +2840,11 @@ export class TriggerEditor extends ApplicationV2 {
         onUse: onUse.length ? onUse : null, onHit: onHit.length ? onHit : null, onFail: onFail.length ? onFail : null,
         pay: s.pay?.from?.length ? s.pay : null, chooseEffects: s.chooseEffects ?? null,
         targetFilter: s.targetFilter?.length ? s.targetFilter : null, summonEffects: s.summonEffects?.length ? s.summonEffects : null,
-        repeat: (Number(s.repeat?.count) > 1) ? { count: Number(s.repeat.count), ...(s.repeat.swap ? { swap: s.repeat.swap } : {}) } : null,
+        repeat: repeatCount(s.repeat?.count) ? { count: repeatCount(s.repeat.count), ...(s.repeat.swap ? { swap: s.repeat.swap } : {}) } : null,
         mastery: s.mastery || null, properties: s.properties?.length ? s.properties : null,
         requires: Object.keys(s.requires ?? {}).length ? s.requires : null, offerWhenBlocked: s.offerWhenBlocked ? true : null,
-        applyToTargets: s.applyToTargets ? true : null, saveAdvantage: s.saveAdvantage ? true : null
+        applyToTargets: s.applyToTargets ? true : null, saveAdvantage: s.saveAdvantage ? true : null,
+        castingAbility: s.castFrom && String(s.castId ?? "").trim() ? { [s.castFrom]: String(s.castId).trim() } : null
       }));
     } else if ( this.mode === "area" ) {
       await this.activity.update(cleanFlagUpdate({
@@ -2828,7 +2929,9 @@ function describeRules(effect) {
   if ( r.disengaged ) list.push("Moving doesn't offer Opportunity Attacks.");
   if ( r.attacksMode ) list.push(`The bearer's attacks have ${r.attacksMode}${r.attacksOnce ? " (the next one only)" : ""}.`);
   if ( r.attackedMode ) list.push(`Attacks against the bearer have ${r.attackedMode}${r.attackedOnce ? " (the next one only)" : ""}.`);
-  if ( Number(r.extraAttack) > 0 ) list.push(`${r.extraAttack} extra attack${Number(r.extraAttack) > 1 ? "s" : ""} with the Attack action.`);
+  if ( Number(r.extraAttack) > 0 ) list.push(`${r.extraAttack} extra attack${Number(r.extraAttack) > 1 ? "s" : ""} with the Attack action${extraItemMode(r) === "pact" ? " (pact weapon only)" : extraItemMode(r) === "custom" ? " (matching weapons only)" : ""}.`);
+  if ( r.noUnseenAdvantage ) list.push("Attackers gain no advantage from being unseen by the bearer.");
+  if ( r.bondOn && String(r.bondId ?? "").trim() ) list.push(`Bonds the enchanted item (${r.bondId})${r.bondSingle ? "; a new bond ends the old one" : ""}${Number(r.bondAway) > 0 ? `; ends after ${r.bondAway} s more than ${r.bondRange || 5} ft away` : ""}${r.bondDeath ? "; ends if the bonder dies" : ""}${r.bondCarried ? "; ends if the bonder isn't carrying it" : ""}.`);
   if ( r.attackAdd?.length ) list.push(`Weapon attacks may also use ${abl(r.attackAdd)}${r.attackProficient ? " (proficient weapons)" : ""}.`);
   if ( r.attackOnly?.length ) list.push(`Weapon attacks must use ${abl(r.attackOnly)}.`);
   const typeNames = ids => ids.map(id => game.i18n.localize(CONFIG.DND5E.creatureTypes[id]?.label ?? id)).join(", ");
@@ -2836,6 +2939,10 @@ function describeRules(effect) {
   if ( r.attackedMode && (byText || r.attackedTypes?.length) ) list.push(`(${r.attackedMode} only ${byText ? `for ${byText}` : ""}${byText && r.attackedTypes?.length ? " and " : ""}${r.attackedTypes?.length ? `from ${typeNames(r.attackedTypes)}` : ""}.)`);
   if ( r.attacksMode && r.attacksUnlessSource ) list.push("(not against the source.)");
   if ( String(r.reduceFormula ?? "").trim() ) list.push(`Incoming ${r.reduceTypes?.length ? r.reduceTypes.map(damageLabel).join(" / ").toLowerCase() + " " : ""}damage is reduced by ${r.reduceFormula}${r.reduceOnce ? " (once per turn)" : ""}.`);
+  for ( const row of (r.baseRows ?? []).filter(x => String(x.formula ?? "").trim()) ) {
+    const when = BASE_FILTER_LABELS.find(([k]) => k === baseMode(row))?.[1] ?? "matching attacks";
+    list.push(`${when === "any attack" ? "Attacks" : when.charAt(0).toUpperCase() + when.slice(1)} may deal ${row.formula}${row.type ? ` ${damageLabel(row.type).toLowerCase()}` : ""} instead of their own damage, when higher.`);
+  }
   if ( Number(r.diceMin) > 1 ) list.push(`The bearer's damage dice count at least ${r.diceMin}${(parseFilterText(r.diceFilter) ?? []).length ? " (on matching attacks)" : ""}.`);
   if ( (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0) ) list.push(`Sheds light (${r.lightBright || 0}/${r.lightDim || 0} ft${r.lightAnimation ? `, ${r.lightAnimation}` : ""}) while it lasts.`);
   if ( r.noSpells ) list.push("The bearer can't cast spells or concentrate.");
@@ -2877,7 +2984,7 @@ function describeActivityAutomation(activity) {
   if ( needs.length ) list.push(`Needs: ${needs.join(", ")}.`);
   if ( f.offerWhenBlocked ) list.push("Offered when a hostile creature blocks the user's move.");
   if ( f.applyToTargets ) list.push("Its effects go on its targets, enemies included.");
-  if ( f.repeat?.count > 1 ) list.push(`${f.repeat.count} strikes per use${f.repeat.swap ? ` (one may be ${f.repeat.swap})` : ""}.`);
+  if ( repeatCount(f.repeat?.count) ) list.push(`${f.repeat.count} strikes per use${f.repeat.swap ? ` (one may be ${f.repeat.swap})` : ""}.`);
   for ( const tr of f.area?.triggers ?? [] ) {
     try { list.push(`Its area: ${describeTrigger(tr)}`); } catch(err) { list.push("Its area: (a trigger the editor can't read)"); }
   }

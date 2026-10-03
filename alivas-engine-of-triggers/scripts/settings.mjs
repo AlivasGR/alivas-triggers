@@ -55,6 +55,8 @@ const DEFS = {
   /* Cover */
   coverDialog: bool("Cover choice in the attack dialog", "A \"Target's cover\" selector in the attack roll dialog (Half +2 AC, Three-Quarters +5 AC)."),
   coverButtons: bool("Cover buttons on attack cards", "\"½ cover\" / \"¾ cover\" buttons on attack chat cards, to apply cover after the roll (undoing a lost hit)."),
+  damageTypeChoice: bool("Choose the damage type", "When the engine rolls damage that can be of several types (Sacred Weapon's Radiant, a Pact Weapon, Chromatic Orb, weapon options), the roller picks the type each time. Off: dnd5e's last choice on that item, else its first type."),
+  unseenAttacks: bool("Unseen attackers and targets", "Attack rolls against a target the attacker can't see have Disadvantage; attacks by an attacker the target can't see have Advantage. Uses token vision (darkness, Invisible, Blinded; Blindsight, Truesight and See Invisibility count). Scenes without token vision are unaffected."),
 
   /* Action economy and maneuvers */
   economyTracking: bool("Action economy tracking", "Track each creature's Action, Bonus Action and free object interaction per combat turn, and ask before a creature spends one it doesn't have (trading, looting, pickpocketing, retrieving)."),
@@ -77,7 +79,7 @@ export const GROUPS = {
   interactions: ["interactMenu", "interactHud", "interactionRange"],
   trading: ["tradeRules", "tradeAnyDistanceOutOfCombat", "tradeThrowRange", "tradeThrowCheck", "tradeThrowCheckDc", "tradeCatchDc", "tradeCatchHeavyDc",
     "tradeHeavyLb", "tradeRetrieveUtilize", "fragileHeuristic", "fragilePattern", "tradeAskTimeout"],
-  cover: ["coverDialog", "coverButtons"],
+  cover: ["coverDialog", "coverButtons", "unseenAttacks", "damageTypeChoice"],
   economy: ["economyTracking", "freeHandChecks", "blockedOffers", "skillAbilityMenu"],
   locks: ["doorLocks", "defaultLockDc", "dropTiming", "pileComposite", "pileNames", "pileSingleScale"]
 };

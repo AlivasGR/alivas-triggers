@@ -3879,21 +3879,6 @@
             }
           ]
         }
-      },
-      "Sacred Weapon (Light)": {
-        "active": {
-          "steps": [
-            {
-              "kind": "onToken",
-              "file": "jb2a.markers.light.loop.yellow",
-              "at": "bearer",
-              "persist": true,
-              "opacity": 0.45,
-              "scale": 1.1,
-              "below": true
-            }
-          ]
-        }
       }
     }
   },

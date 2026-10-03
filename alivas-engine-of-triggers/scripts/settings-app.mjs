@@ -28,7 +28,7 @@ const SECTIONS = [
     keys: GROUPS.bodies },
   { title: "Trading", icon: "fa-hands-holding", hint: "Handing over, throwing and catching items, and retrieving from containers.",
     keys: GROUPS.trading },
-  { title: "Cover", icon: "fa-shield-halved", hint: "Half and Three-Quarters cover on attacks.",
+  { title: "Attacks", icon: "fa-shield-halved", hint: "Half and Three-Quarters cover, unseen attackers and targets, choosing the damage type.",
     keys: GROUPS.cover },
   { title: "Locks & loot piles", icon: "fa-lock", hint: "Item Piles integration: locks, doors, drops and pile appearance.",
     keys: GROUPS.locks }

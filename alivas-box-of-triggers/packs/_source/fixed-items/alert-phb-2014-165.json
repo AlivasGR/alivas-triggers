@@ -1,0 +1,133 @@
+{
+  "name": "Alert",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Alert (PHB 2014 p. 165). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "PHB",
+      "page": "165",
+      "license": "",
+      "rules": "2014",
+      "revision": 1
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "feat",
+      "subtype": ""
+    },
+    "prerequisites": {
+      "level": null,
+      "repeatable": false
+    },
+    "properties": [],
+    "requirements": "",
+    "activities": {},
+    "enchant": {},
+    "identifier": "alert"
+  },
+  "_id": "TwI931RxNrxITtdM",
+  "type": "feat",
+  "img": "icons/creatures/eyes/human-single-brown.webp",
+  "effects": [
+    {
+      "name": "Alert",
+      "img": "icons/creatures/eyes/human-single-brown.webp",
+      "_id": "15fJEd3oURbhEi3u",
+      "type": "base",
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.init.bonus",
+            "value": "5",
+            "priority": null,
+            "type": "add",
+            "phase": "initial"
+          }
+        ]
+      },
+      "disabled": false,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "description": "",
+      "origin": null,
+      "tint": "#ffffff",
+      "transfer": true,
+      "statuses": [],
+      "sort": 0,
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "noUnseenAdvantage": true
+        }
+      },
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1791028000154,
+        "modifiedTime": 1791028000154,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "start": null,
+      "showIcon": 1,
+      "folder": null,
+      "_key": "!items.effects!TwI931RxNrxITtdM.15fJEd3oURbhEi3u"
+    }
+  ],
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "alert",
+          "book": "PHB"
+        },
+        {
+          "type": "feat",
+          "name": "Alert",
+          "book": "PHB"
+        },
+        {
+          "type": "feat",
+          "identifier": "alert",
+          "book": "PHB 2014"
+        },
+        {
+          "type": "feat",
+          "name": "Alert",
+          "book": "PHB 2014"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1791028000154,
+    "modifiedTime": 1791028000154,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!TwI931RxNrxITtdM"
+}

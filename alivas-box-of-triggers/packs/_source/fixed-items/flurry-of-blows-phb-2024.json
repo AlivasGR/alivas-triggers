@@ -107,7 +107,7 @@
         "flags": {
           "alivas-engine-of-triggers": {
             "repeat": {
-              "count": 2,
+              "count": "2 + floor(min(@classes.monk.levels, 10) / 10)",
               "swap": "hand-of-healing"
             }
           }
@@ -148,7 +148,7 @@
       "hash": "flurry%20of%20blows_monk_xphb_2_xphb"
     },
     "alivas-box-of-triggers": {
-      "version": 2,
+      "version": 3,
       "match": [
         {
           "type": "feat",

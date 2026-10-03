@@ -1,0 +1,124 @@
+{
+  "_id": "NcGpjcUUuGcXRRFP",
+  "name": "Thirsting Blade",
+  "type": "feat",
+  "img": "icons/skills/melee/blade-tip-chipped-blood-red.webp",
+  "system": {
+    "activities": {},
+    "uses": {
+      "spent": 0,
+      "recovery": [],
+      "max": ""
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Thirsting Blade (PHB 2024 p. 157). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "157",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "enchant": {},
+    "type": {
+      "value": "class",
+      "subtype": "eldritchInvocation"
+    },
+    "prerequisites": {
+      "level": 5,
+      "repeatable": false
+    },
+    "properties": [],
+    "requirements": "Pact of the Blade Invocation",
+    "identifier": "thirsting-blade"
+  },
+  "effects": [
+    {
+      "_id": "F6mCGW1AwTAuY2eB",
+      "name": "Thirsting Blade",
+      "img": "icons/skills/melee/blade-tip-chipped-blood-red.webp",
+      "type": "base",
+      "description": "",
+      "disabled": false,
+      "transfer": true,
+      "system": {
+        "changes": []
+      },
+      "statuses": [],
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "start": null,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1791028000154,
+        "modifiedTime": 1791028000154,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "extraAttack": {
+            "count": 1,
+            "item": [
+              {
+                "k": "bonds",
+                "o": "has",
+                "v": "pact-of-the-blade"
+              }
+            ]
+          }
+        }
+      },
+      "_key": "!items.effects!NcGpjcUUuGcXRRFP.F6mCGW1AwTAuY2eB"
+    }
+  ],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "thirsting-blade",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "feat",
+          "identifier": "thirsting-blade",
+          "compendiumSource": "Compendium.dnd5e.classes24.Item.phbinvThirstingB"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1791028000154,
+    "modifiedTime": 1791028000154,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!NcGpjcUUuGcXRRFP"
+}

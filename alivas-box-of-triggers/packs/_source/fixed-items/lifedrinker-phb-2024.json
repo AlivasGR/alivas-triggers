@@ -1,0 +1,326 @@
+{
+  "_id": "UFeEr8P5HXrkgTsO",
+  "name": "Lifedrinker",
+  "type": "feat",
+  "img": "icons/skills/melee/strike-sword-blood-red.webp",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Lifedrinker (PHB 2024 p. 156). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "156",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": "eldritchInvocation"
+    },
+    "prerequisites": {
+      "level": 9,
+      "repeatable": false,
+      "items": [
+        "pact-of-the-blade"
+      ]
+    },
+    "properties": [],
+    "requirements": "",
+    "activities": {
+      "emx17h6kO4xmSqC6": {
+        "type": "heal",
+        "name": "Heal (Largest Hit Die)",
+        "activation": {
+          "type": "",
+          "value": null,
+          "override": false,
+          "condition": "Once per turn when you hit a creature with your pact weapon"
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": [
+            {
+              "type": "hitDice",
+              "value": "1",
+              "target": "largest",
+              "scaling": {}
+            }
+          ]
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [],
+        "range": {
+          "override": false,
+          "units": "self",
+          "special": ""
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "type": ""
+          },
+          "affects": {
+            "choice": false,
+            "count": "",
+            "type": "self",
+            "special": ""
+          },
+          "override": false,
+          "prompt": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "sort": 0,
+        "healing": {
+          "number": null,
+          "denomination": 0,
+          "types": [
+            "healing"
+          ],
+          "custom": {
+            "enabled": true,
+            "formula": "@attributes.hd.largestAvailable + (max(1,@abilities.con.mod))"
+          },
+          "scaling": {
+            "number": 1
+          },
+          "bonus": ""
+        },
+        "_id": "emx17h6kO4xmSqC6"
+      },
+      "oMHxbcnQh38wZEKU": {
+        "type": "heal",
+        "name": "Heal (Smallest Hit Die)",
+        "activation": {
+          "type": "",
+          "value": null,
+          "override": false,
+          "condition": "Once per turn when you hit a creature with your pact weapon"
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": [
+            {
+              "type": "hitDice",
+              "value": "1",
+              "target": "smallest",
+              "scaling": {}
+            }
+          ]
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [],
+        "range": {
+          "override": false,
+          "units": "self",
+          "special": ""
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "type": ""
+          },
+          "affects": {
+            "choice": false,
+            "count": "",
+            "type": "self",
+            "special": ""
+          },
+          "override": false,
+          "prompt": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "sort": 0,
+        "healing": {
+          "number": null,
+          "denomination": 0,
+          "types": [
+            "healing"
+          ],
+          "custom": {
+            "enabled": true,
+            "formula": "@attributes.hd.smallestAvailable + (max(1,@abilities.con.mod))"
+          },
+          "scaling": {
+            "number": 1
+          },
+          "bonus": ""
+        },
+        "_id": "oMHxbcnQh38wZEKU"
+      }
+    },
+    "enchant": {},
+    "identifier": "lifedrinker"
+  },
+  "effects": [],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "lifedrinker",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "feat",
+          "identifier": "lifedrinker",
+          "compendiumSource": "Compendium.dnd5e.classes24.Item.phbinvLifedrinke"
+        }
+      ]
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "free": true,
+          "oncePerTurn": true,
+          "onceKey": "lifedrinker",
+          "label": "Lifedrinker (Necrotic)",
+          "filter": [
+            {
+              "k": "item.bonds",
+              "o": "has",
+              "v": "pact-of-the-blade"
+            }
+          ],
+          "detail": "extra 1d6 Necrotic damage; then you may spend a Hit Point Die to heal",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "1d6",
+            "damageType": "necrotic",
+            "critDouble": true
+          },
+          "after": {
+            "type": "useActivity",
+            "activity": "emx17h6kO4xmSqC6",
+            "to": {
+              "who": "self"
+            },
+            "ask": "Spend a Hit Point Die to regain Hit Points?"
+          }
+        },
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "free": true,
+          "oncePerTurn": true,
+          "onceKey": "lifedrinker",
+          "label": "Lifedrinker (Psychic)",
+          "filter": [
+            {
+              "k": "item.bonds",
+              "o": "has",
+              "v": "pact-of-the-blade"
+            }
+          ],
+          "detail": "extra 1d6 Psychic damage; then you may spend a Hit Point Die to heal",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "1d6",
+            "damageType": "psychic",
+            "critDouble": true
+          },
+          "after": {
+            "type": "useActivity",
+            "activity": "emx17h6kO4xmSqC6",
+            "to": {
+              "who": "self"
+            },
+            "ask": "Spend a Hit Point Die to regain Hit Points?"
+          }
+        },
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "free": true,
+          "oncePerTurn": true,
+          "onceKey": "lifedrinker",
+          "label": "Lifedrinker (Radiant)",
+          "filter": [
+            {
+              "k": "item.bonds",
+              "o": "has",
+              "v": "pact-of-the-blade"
+            }
+          ],
+          "detail": "extra 1d6 Radiant damage; then you may spend a Hit Point Die to heal",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "1d6",
+            "damageType": "radiant",
+            "critDouble": true
+          },
+          "after": {
+            "type": "useActivity",
+            "activity": "emx17h6kO4xmSqC6",
+            "to": {
+              "who": "self"
+            },
+            "ask": "Spend a Hit Point Die to regain Hit Points?"
+          }
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1791028000154,
+    "modifiedTime": 1791028000154,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!UFeEr8P5HXrkgTsO"
+}

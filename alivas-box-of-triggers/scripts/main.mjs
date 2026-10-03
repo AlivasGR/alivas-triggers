@@ -599,6 +599,32 @@ function weaponDamageParts(weapon, spec) {
   return parts;
 }
 
+/**
+ * A weapon option's "spellcasting" attack uses the ability of the spell it comes from, not the actor's best class
+ * ability: the actor's spell whose identifier is the option id, through dnd5e's own
+ * availableAbilities — the spell's chosen ability (Magic Initiate, species and feat spells) or its class's. Without such a
+ * spell on the actor, dnd5e's default applies. Works for options already on weapons (their activities carry the option id).
+ */
+Hooks.once("setup", () => {
+  const cls = CONFIG.DND5E.activityTypes?.attack?.documentClass;
+  if ( !cls ) return;
+  let proto = cls.prototype, base;
+  while ( proto && !(base = Object.getOwnPropertyDescriptor(proto, "spellcastingAbility")) ) proto = Object.getPrototypeOf(proto);
+  if ( !base?.get ) return;
+  Object.defineProperty(cls.prototype, "spellcastingAbility", {
+    configurable: true,
+    get() {
+      const option = this.flags?.[MODULE_ID]?.option;
+      if ( option && (this.item?.type === "weapon") ) {
+        const spell = this.actor?.items.find(i => (i.type === "spell") && (i.system.identifier === option));
+        const ability = spell?.system.availableAbilities?.first?.();
+        if ( ability ) return ability;
+      }
+      return base.get.call(this);
+    }
+  });
+});
+
 Hooks.on("dnd5e.dropItemSheetData", (item, sheet, data) => {
   if ( (data?.type !== "Item") || !data.uuid?.startsWith(`Compendium.${OPTIONS_PACK_ID}.`) ) return;
   if ( !item.isOwner ) return false;

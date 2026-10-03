@@ -12,7 +12,8 @@
  *   spellCast       a creature starts casting a spell                 subject = the caster
  *   hitting         the reactor itself just hit with an attack roll    subject = the attacker (e.g. Divine Smite)
  *                   data: attackType (melee/ranged), classification (weapon/spell/unarmed), critical, targetType
- *                   (creature type of the target), target (its roll data)
+ *                   (creature type of the target), target (its roll data), item (the weapon: identifier, name, type,
+ *                   bonds — e.g. { k: "item.bonds", o: "has", v: "pact-of-the-blade" }, properties)
  *   d20Failed       a creature fails a check with a known DC             subject = that creature
  *                   data: skill, tool, proficient
  *   d20Rolling      a creature has rolled a d20 test with advantage or disadvantage, before the result is posted
@@ -42,6 +43,7 @@
  *     atTarget:  true,                           // hitting: use the activity on the creature that was hit
  *     after:     { type: "giveEffect", effect, to: SELECTOR }
  *              | { type: "useActivity", activity, to: SELECTOR, when: "zeroed" }
+ *                                                // any after may carry ask: "question?" — asked first; No skips it
  *                                                // use another activity of the item on creatures the SELECTOR picks
  *                                                //   (damageIncoming, when: "zeroed" = only if the damage became 0)
  *                                                // afterwards, give one of this item's effects (id or name) to the
@@ -78,7 +80,7 @@
  */
 
 import {
-  tokenFor, distanceFt, canSee, relation, controllerOf, lowestSlot, selectCreatures, giveEffect, describeSelector, isLeadGM,
+  itemFilterData, tokenFor, distanceFt, canSee, relation, controllerOf, lowestSlot, selectCreatures, giveEffect, describeSelector, isLeadGM,
   runAs, HANDLERS, displaceToken
 } from "./creatures.mjs";
 
@@ -387,14 +389,26 @@ function announceReaction(reactor, picked) {
 }
 
 /** Run a picked reaction's afterwards step (after its outcome is resolved and announced). */
-function afterReaction(reactor, picked, { zeroed=false, castLevel=null }={}) {
+async function afterReaction(reactor, picked, { zeroed=false, castLevel=null }={}) {
   announceReaction(reactor, picked);
   const after = picked?.option?.after;
   if ( !after ) return;
   if ( (after.when === "zeroed") && !zeroed ) return;
+  // after.ask: a yes/no question to the reactor's controller first (an optional follow-up, e.g. Lifedrinker's Hit Die).
+  if ( after.ask && !(await askYesNo(reactor, picked.label ?? "Reaction", after.ask)) ) return;
   // after.item: the follow-up belongs to another item of the reactor (identifier), e.g. a Cunning Strike option.
   const item = after.item ? reactor.items.find(i => i.system.identifier === after.item) : reactor.items.get(picked.option.itemId);
   return item ? runAfter(reactor, item, after, picked.option.subjectUuid, picked.option.hitUuid, castLevel) : undefined;
+}
+
+/** Yes / No to the actor's controller (the GM when no player is connected). */
+async function askYesNo(actor, title, question) {
+  const user = controllerOf(actor);
+  if ( !user ) return false;
+  const payload = { title: `${title} — ${actor.name}`, prompt: `<p>${question}</p>`,
+    options: [{ value: "yes", label: "Yes" }, { value: "no", label: "No" }] };
+  const answer = user.id === game.user.id ? await HANDLERS.pickOption(payload) : await runAs(user, "pickOption", payload);
+  return answer === "yes";
 }
 
 async function runAfter(reactor, item, after, subjectUuid, hitUuid, castLevel=null) {
@@ -532,7 +546,8 @@ export async function attackHit(state) {
       weaponProperties: [...(state.activity?.item?.system?.properties ?? []), ...(state.activity?.flags?.[MODULE_ID]?.properties ?? [])],
       allyNearTarget: allyNear(target, attacker, scene),
       attackType: state.activity?.attack?.type?.value ?? "", classification: state.activity?.attack?.type?.classification ?? "",
-      targetType: target.system?.details?.type?.value ?? "", target: target.getRollData?.() ?? {}
+      targetType: target.system?.details?.type?.value ?? "", target: target.getRollData?.() ?? {},
+      item: itemFilterData(state.activity?.item)
     };
     // Several things can follow one hit (Stunning Strike and Hand of Harm): after each pick, offer the rest.
     let opts = eligible(attacker, "hitting", { scene, subject: attacker, data, target });

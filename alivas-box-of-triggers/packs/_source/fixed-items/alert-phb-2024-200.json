@@ -48,13 +48,23 @@
       "advancementOrigin": "XM50CpCXaThkrO2z.zhrH7ckUVLifhVgK"
     },
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "name": "Alert",
           "type": "feat",
           "book": "PHB 2024",
           "page": "200"
+        },
+        {
+          "type": "feat",
+          "identifier": "alert",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "feat",
+          "identifier": "alert",
+          "compendiumSource": "Compendium.dnd5e.feats24.Item.phbftAlert000000"
         }
       ]
     }

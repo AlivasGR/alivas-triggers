@@ -1,0 +1,253 @@
+{
+  "_id": "YO2aZTL41b1Oo5If",
+  "name": "Eldritch Smite",
+  "type": "feat",
+  "img": "icons/skills/melee/strike-axe-energy-pink.webp",
+  "system": {
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Eldritch Smite (PHB 2024 p. 155). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "155",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "type": {
+      "value": "class",
+      "subtype": "eldritchInvocation"
+    },
+    "prerequisites": {
+      "level": 5,
+      "repeatable": false,
+      "items": [
+        "pact-of-the-blade"
+      ]
+    },
+    "properties": [],
+    "requirements": "",
+    "activities": {
+      "CXJlzDUkMYU9w9i9": {
+        "_id": "CXJlzDUkMYU9w9i9",
+        "type": "utility",
+        "name": "Smite",
+        "sort": 0,
+        "img": "",
+        "activation": {
+          "type": "",
+          "value": null,
+          "override": false,
+          "condition": ""
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false,
+            "max": ""
+          },
+          "spellSlot": true,
+          "targets": [
+            {
+              "type": "attribute",
+              "value": "1",
+              "target": "spells.pact.value",
+              "scaling": {}
+            }
+          ]
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "effects": [],
+        "range": {
+          "override": false,
+          "units": "self",
+          "special": ""
+        },
+        "target": {
+          "template": {
+            "contiguous": false,
+            "units": "ft",
+            "type": ""
+          },
+          "affects": {
+            "choice": false,
+            "count": "",
+            "type": "self",
+            "special": ""
+          },
+          "override": false,
+          "prompt": false
+        },
+        "uses": {
+          "spent": 0,
+          "recovery": [],
+          "max": ""
+        },
+        "flags": {}
+      }
+    },
+    "enchant": {},
+    "identifier": "eldritch-smite"
+  },
+  "effects": [
+    {
+      "_id": "spmGWlhny6ZE7crI",
+      "name": "Prone",
+      "img": "systems/dnd5e/icons/svg/statuses/prone.svg",
+      "type": "base",
+      "description": "",
+      "disabled": false,
+      "transfer": false,
+      "system": {
+        "changes": []
+      },
+      "statuses": [
+        "prone"
+      ],
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "origin": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "start": null,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1791028000154,
+        "modifiedTime": 1791028000154,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "flags": {},
+      "_key": "!items.effects!YO2aZTL41b1Oo5If.spmGWlhny6ZE7crI"
+    }
+  ],
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "feat",
+          "identifier": "eldritch-smite",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "feat",
+          "identifier": "eldritch-smite",
+          "compendiumSource": "Compendium.dnd5e.classes24.Item.phbinvEldritchSm"
+        }
+      ]
+    },
+    "alivas-engine-of-triggers": {
+      "reactions": [
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "configure": false,
+          "activity": "CXJlzDUkMYU9w9i9",
+          "oncePerTurn": true,
+          "onceKey": "eldritch-smite",
+          "label": "Eldritch Smite",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(1 + @spells.pact.level)d8",
+            "damageType": "force",
+            "critDouble": true
+          },
+          "filter": [
+            {
+              "k": "item.bonds",
+              "o": "has",
+              "v": "pact-of-the-blade"
+            },
+            {
+              "o": "NOT",
+              "v": {
+                "k": "target.traits.size",
+                "v": "grg"
+              }
+            }
+          ],
+          "detail": "spend a Pact Magic slot: extra Force damage, 1d8 + 1d8 per slot level (doubled on a critical hit); you may knock the target Prone",
+          "after": {
+            "type": "giveEffect",
+            "effect": "spmGWlhny6ZE7crI",
+            "to": {
+              "who": "hit"
+            },
+            "ask": "Knock the target Prone?"
+          }
+        },
+        {
+          "window": "hitting",
+          "who": "self",
+          "reaction": false,
+          "configure": false,
+          "activity": "CXJlzDUkMYU9w9i9",
+          "oncePerTurn": true,
+          "onceKey": "eldritch-smite",
+          "label": "Eldritch Smite",
+          "outcome": {
+            "type": "damageNext",
+            "mode": "add",
+            "formula": "(1 + @spells.pact.level)d8",
+            "damageType": "force",
+            "critDouble": true
+          },
+          "filter": [
+            {
+              "k": "item.bonds",
+              "o": "has",
+              "v": "pact-of-the-blade"
+            },
+            {
+              "k": "target.traits.size",
+              "v": "grg"
+            }
+          ],
+          "detail": "spend a Pact Magic slot: extra Force damage, 1d8 + 1d8 per slot level (doubled on a critical hit)"
+        }
+      ]
+    }
+  },
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1791028000154,
+    "modifiedTime": 1791028000154,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!YO2aZTL41b1Oo5If"
+}
