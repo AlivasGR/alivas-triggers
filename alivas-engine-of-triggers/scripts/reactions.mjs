@@ -878,6 +878,8 @@ export async function leavesReach(tokenDoc, movement) {
     if ( !reactor || !reactorToken || (reactorToken.id === tokenDoc.id) || (reactorToken.parent !== tokenDoc.parent) ) continue;
     if ( reactorToken.disposition === tokenDoc.disposition ) continue;
     if ( NO_REACT.some(s => reactor.statuses?.has(s)) || reactionUsed(reactor) ) continue;
+    // A creature the mover drags along (grapple) moves with it: it isn't left behind.
+    if ( reactor.effects.some(e => (e.getFlag(MODULE_ID, "tether")?.source === tokenDoc.uuid) && e.getFlag(MODULE_ID, "tether")?.drag) ) continue;
     const attacks = reactor.items.filter(i => i.type === "weapon").flatMap(item => item.system.activities
       .filter(a => (a.type === "attack") && (a.attack?.type?.value === "melee")).map(activity => ({ item, activity })));
     if ( !attacks.length ) continue;

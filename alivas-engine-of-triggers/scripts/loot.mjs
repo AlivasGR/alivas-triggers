@@ -20,12 +20,15 @@
  * dnd5e: hook `dnd5e.getItemContextOptions(item, menuItems)` (sheet context menu), `actor.rollToolCheck`, `actor.rollSkill`.
  * Engine: `Creatures.runAs` / `Creatures.HANDLERS` for GM-only writes, `renderTokenHUD` for the HUD button.
  *
+ * WORLD SETTINGS (Automation settings → Locks & loot piles): defaultLockDc (15), doorLocks, dropTiming, pileComposite, pileNames,
+ *   pileSingleScale (0.75). Each default is the value this file used before they were settings.
+ *
  * DROPPING (api.loot.dropItems(actor, items, { position, pile, skipTiming, verb }))
  *   items: Item documents, { item, quantity } entries or item ids belonging to `actor`. The quantity defaults to the
  *   whole stack. Each is moved into a pile: an existing REGULAR pile in the same grid space is added to (no second
  *   token), otherwise a pile token is created at `position` (default: the actor's token's top-left, snapped).
  *   The pile is created with displayOne / showItemName / overrideSingleItemScale, so a single item shows its own icon
- *   at 0.75 scale; several items get the combined image (see PILE APPEARANCE).
+ *   at the single-item scale (0.75); several items get the combined image (see PILE APPEARANCE).
  *   Dropped items are unequipped/unattuned in the pile. Containers take their contents along (whole stack only).
  *   Order: pile created/extended first, then the items removed from the actor (a failure never loses items).
  *   Sheet entry: "Drop on the ground" in the item context menu (owned weapon/equipment/consumable/tool/loot/container).
@@ -82,11 +85,12 @@
  */
 
 import * as Creatures from "./creatures.mjs";
+import { opt } from "./settings.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const IP_ID = "item-piles";
-const DEFAULT_DC = 15;
-const SINGLE_ITEM_SCALE = 0.75;
+/** Default lock / force DC: the world setting `defaultLockDc` (15). */
+const defaultDc = () => Number(opt("defaultLockDc")) || 15;
 const LOCK_PRESETS = { Inferior: 10, Good: 15, Superior: 20 };
 const FORCE_PRESETS = { Glass: 10, Wood: 15, Stone: 20, Metal: 25 };
 const DROPPABLE_TYPES = ["weapon", "equipment", "consumable", "tool", "loot", "container"];
@@ -199,7 +203,7 @@ const gmUser = () => (game.user.isGM ? game.user : (game.users.activeGM ?? null)
 
 /** "ok" | "refuse" | "confirm" for dropping this item now. Only meaningful in a started combat. */
 export function dropTiming(actor, item) {
-  if ( !inStartedCombat(actor) ) return "ok";
+  if ( !opt("dropTiming") || !inStartedCombat(actor) ) return "ok";
   const kind = item.system?.type?.value;
   if ( (item.type === "equipment") && item.system.equipped && ARMOR_TYPES.includes(kind) ) return "refuse";
   if ( (item.type === "equipment") && item.system.equipped && (kind === "shield") ) return "confirm";
@@ -411,7 +415,7 @@ export function readObstacle(pile) {
   const token = tokenOf(pile), actor = actorOf(pile) ?? token?.actor;
   const own = actor?.getFlag?.(MODULE_ID, "obstacle") ?? {};
   const locked = (typeof own.locked === "boolean") ? own.locked : (token ? ipTest("isItemPileLocked", token) : false);
-  return { ...own, locked, lockDC: Number(own.lockDC) || DEFAULT_DC, forceDC: Number(own.forceDC) || null, keyItem: own.keyItem ?? "" };
+  return { ...own, locked, lockDC: Number(own.lockDC) || defaultDc(), forceDC: Number(own.forceDC) || null, keyItem: own.keyItem ?? "" };
 }
 
 /** Merge values into the obstacle on the pile actor. GM only (players go through the lootUnlock handler). */
@@ -482,14 +486,14 @@ async function attemptPick({ name, lockDC, actor, unlock, force }) {
 
 /** Shared Force open check: Strength (Athletics) against the force DC (15 when none is set, and it says so). */
 async function attemptForce({ name, forceDC, actor, unlock }) {
-  const dc = forceDC ?? DEFAULT_DC;
-  if ( !forceDC ) ui.notifications.info(`No force DC is set on ${name}: using ${DEFAULT_DC}.`);
+  const dc = forceDC ?? defaultDc();
+  if ( !forceDC ) ui.notifications.info(`No force DC is set on ${name}: using ${defaultDc()}.`);
   const rolls = (typeof actor.rollSkill === "function") ? await actor.rollSkill({ skill: "ath", ability: "str", target: dc }, { configure: false }, {})
     : await actor.rollAbilityCheck({ ability: "str", target: dc }, { configure: false }, {});
   const total = rolls?.[0]?.total;
   if ( total === undefined || total === null ) return { success: false, cancelled: true };
   const success = total >= dc;
-  if ( success ) await unlock(`forces open${forceDC ? "" : ` (no force DC set, used ${DEFAULT_DC})`}`);
+  if ( success ) await unlock(`forces open${forceDC ? "" : ` (no force DC set, used ${defaultDc()})`}`);
   return { success, total, dc, defaulted: !forceDC };
 }
 
@@ -586,9 +590,9 @@ export async function configureObstacle(pile) {
       <select name="lockPreset">${presetOptions(LOCK_PRESETS)}</select></div>
       <p class="hint">Thieves' tools, Dexterity (Sleight of Hand). Inferior 10 / Good 15 / Superior 20.</p></div>
     <div class="form-group"><label>Force DC</label><div class="form-fields">
-      <input type="number" name="forceDC" min="1" step="1" value="${o.forceDC ?? ""}" placeholder="${DEFAULT_DC}">
+      <input type="number" name="forceDC" min="1" step="1" value="${o.forceDC ?? ""}" placeholder="${defaultDc()}">
       <select name="forcePreset">${presetOptions(FORCE_PRESETS)}</select></div>
-      <p class="hint">Strength (Athletics). Blank uses ${DEFAULT_DC}.</p></div>
+      <p class="hint">Strength (Athletics). Blank uses ${defaultDc()}.</p></div>
     <div class="form-group"><label>Key item</label><div class="form-fields"><input type="text" name="keyItem" value="${esc(o.keyItem)}" placeholder="Item name"></div></div>`;
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: `Lock — ${token.name}` }, position: { width: 420 }, rejectClose: false, content,
@@ -603,7 +607,7 @@ export async function configureObstacle(pile) {
     buttons: [
       { action: "save", label: "Save", icon: "fa-solid fa-check", default: true, callback: (event, button) => {
         const f = button.form.elements;
-        return { locked: f.locked.checked, lockDC: f.lockDC.valueAsNumber || DEFAULT_DC, forceDC: f.forceDC.valueAsNumber || null, keyItem: f.keyItem.value.trim() };
+        return { locked: f.locked.checked, lockDC: f.lockDC.valueAsNumber || defaultDc(), forceDC: f.forceDC.valueAsNumber || null, keyItem: f.keyItem.value.trim() };
       } },
       { action: "cancel", label: "Cancel" }
     ]
@@ -640,7 +644,7 @@ const wallOf = x => {
 export function readDoorObstacle(wall) {
   wall = wallOf(wall) ?? wall;
   const own = wall?.flags?.[MODULE_ID]?.obstacle ?? {};
-  return { ...own, locked: wall?.ds === doorStates().LOCKED, lockDC: Number(own.lockDC) || DEFAULT_DC,
+  return { ...own, locked: wall?.ds === doorStates().LOCKED, lockDC: Number(own.lockDC) || defaultDc(),
     forceDC: Number(own.forceDC) || null, keyItem: own.keyItem ?? "" };
 }
 
@@ -748,7 +752,7 @@ function wrapDoorControl() {
   proto._onRightDown = function(event, ...rest) {
     try {
       const wall = this.wall?.document;
-      if ( !game.user.isGM && wall && (wall.ds === doorStates().LOCKED) ) {
+      if ( opt("doorLocks") && !game.user.isGM && wall && (wall.ds === doorStates().LOCKED) ) {
         const near = characterNearDoor(this.wall);
         if ( near ) {
           event?.stopPropagation?.();
@@ -763,7 +767,7 @@ function wrapDoorControl() {
 
 /** WallConfig: lock DC, force DC and key item for doors, saved with the form. */
 function injectWallConfig(app, html) {
-  if ( !game.user.isGM ) return;
+  if ( !game.user.isGM || !opt("doorLocks") ) return;
   const root = html instanceof HTMLElement ? html : (html?.[0] ?? app.element);
   const wall = app.document ?? app.object;
   if ( !root || !wall ) return;
@@ -774,11 +778,11 @@ function injectWallConfig(app, html) {
   fs.className = "alivas-door-obstacle";
   fs.innerHTML = `<legend>Lock (Engine of Triggers)</legend>
     <div class="form-group"><label>Lock DC</label><div class="form-fields">
-      <input type="number" name="${name("lockDC")}" min="1" step="1" value="${o.lockDC ?? ""}" placeholder="${DEFAULT_DC}"></div>
-      <p class="hint">Thieves' tools, Dexterity (Sleight of Hand). Blank uses ${DEFAULT_DC}.</p></div>
+      <input type="number" name="${name("lockDC")}" min="1" step="1" value="${o.lockDC ?? ""}" placeholder="${defaultDc()}"></div>
+      <p class="hint">Thieves' tools, Dexterity (Sleight of Hand). Blank uses ${defaultDc()}.</p></div>
     <div class="form-group"><label>Force DC</label><div class="form-fields">
-      <input type="number" name="${name("forceDC")}" min="1" step="1" value="${o.forceDC ?? ""}" placeholder="${DEFAULT_DC}"></div>
-      <p class="hint">Strength (Athletics). Blank uses ${DEFAULT_DC}.</p></div>
+      <input type="number" name="${name("forceDC")}" min="1" step="1" value="${o.forceDC ?? ""}" placeholder="${defaultDc()}"></div>
+      <p class="hint">Strength (Athletics). Blank uses ${defaultDc()}.</p></div>
     <div class="form-group"><label>Key item</label><div class="form-fields">
       <input type="text" name="${name("keyItem")}" value="${esc(o.keyItem ?? "")}" placeholder="Item name"></div></div>`;
   const form = root.matches?.("form") ? root : (root.querySelector("form") ?? root);
@@ -922,16 +926,16 @@ async function refreshPile(actor) {
     if ( single ) src = items[0].img;
     else {
       const paths = items.map(i => i.img).filter(Boolean);
-      src = paths.length ? await compositePath(paths) : null;
+      src = (paths.length && opt("pileComposite")) ? await compositePath(paths) : null;
     }
 
     const wanted = single ? items[0].name : `Loot pile (${items.length})`;
     const current = actor.isToken ? (actor.token?.name ?? actor.name) : actor.name;
     const auto = actor.getFlag(MODULE_ID, "autoName");
     // Only names this module (or Item Piles) gave are replaced; a name the GM typed stays.
-    const rename = (current !== wanted) && ((current === auto) || DEFAULT_PILE_NAMES.has(String(current).toLowerCase())
+    const rename = opt("pileNames") && (current !== wanted) && ((current === auto) || DEFAULT_PILE_NAMES.has(String(current).toLowerCase())
       || actor.items.some(i => i.name === current) || /^Loot pile \(\d+\)$/.test(current));
-    const scale = single ? SINGLE_ITEM_SCALE : 1;
+    const scale = single ? (Number(opt("pileSingleScale")) || 0.75) : 1;
 
     const tokens = pileTokens(actor);
     const linked = !actor.isToken;

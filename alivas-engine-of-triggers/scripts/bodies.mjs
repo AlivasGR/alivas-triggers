@@ -13,7 +13,8 @@
  *   Flag on the container item: flags[MODULE_ID].body = { actorUuid, actorLink, tokenData, sceneId, combat? }
  *   (tokenData = the token's toObject() after its items were removed, including the delta of an unlinked token;
  *   combat = { id, initiative } when the body was a combatant).
- *   World setting `bodyWeightBySize` (JSON string, config: false) overrides the per-size defaults.
+ *   World settings `bodyWeightTiny` … `bodyWeightGrg` (lb) override the per-size defaults below. `bodiesCarry` switches Pick up off
+ *   (putting a carried body down always works).
  *   Chat: "X picks up Y."
  *
  * PUT DOWN (api.bodies.putDown(carrierActor, containerItem, position?))
@@ -25,16 +26,16 @@
  *   feet instead of losing it. A copy of a body container that shows up on an Item Pile actor is removed again (best effort).
  *
  * LOOT (interaction "Loot", 5 ft; api.bodies.openLoot(target, looter, { mode }))
- *   On an unconscious/dead/0-HP creature. An ApplicationV2 window lists the target's physical items grouped by container,
+ *   On an unconscious/dead/0-HP creature (world setting `bodiesLoot`). An ApplicationV2 window lists the target's physical items grouped by container,
  *   with Take buttons and a quantity for stacks; it refreshes when the target's items change. Taking a container takes its
  *   contents. No action cost outside combat; in combat each Take is an object interaction (Economy.spendInteraction).
  *
  * PICKPOCKET (interaction "Pickpocket", 5 ft; api.bodies.pickpocket(target, actor))
- *   On a conscious creature that isn't the actor itself. The actor must be hidden (status "hiding" or "invisible"), else the
- *   interaction is disabled ("You must be hidden"). Cost: Utilize (Economy.spendUtilize, Fast Hands may use the Bonus Action).
- *   The GM is asked whether the target is alert or suspicious (disadvantage; 20 s, default No). Sleight of Hand against the
+ *   On a conscious creature that isn't the actor itself (world setting `bodiesPickpocket`). The actor must be hidden (status
+ *   "hiding" or "invisible"; world setting `pickpocketRequiresHidden`), else the interaction is disabled ("You must be hidden"). Cost: Utilize (Economy.spendUtilize, Fast Hands may use the Bonus Action).
+ *   The GM is asked whether the target is alert or suspicious (disadvantage; `gmAskTimeout` s, 20, default No; `pickpocketAskDisadvantage`). Sleight of Hand against the
  *   target's passive Perception. Success opens the loot window in LIMITED mode: only items that aren't equipped, aren't
- *   containers and weigh at most PICKPOCKET_MAX_LB per unit can be taken (the rest are greyed out); Take takes ONE unit,
+ *   containers and weigh at most the world setting `pickpocketMaxLb` (default 1 lb) per unit can be taken (the rest are greyed out); Take takes ONE unit,
  *   then the window closes. Success chat is whispered to the GM and the pickpocket's owners; failure is whispered to the GM
  *   (nothing ends Hidden automatically).
  *
@@ -48,6 +49,7 @@
 import * as Creatures from "./creatures.mjs";
 import * as Economy from "./economy.mjs";
 import { registerInteraction } from "./interact.mjs";
+import { opt } from "./settings.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 
@@ -56,11 +58,7 @@ const MODULE_ID = "alivas-engine-of-triggers";
  * Body weight in lb by creature size (used when the actor has no parsable system.details.weight).
  */
 const BODY_WEIGHT_BY_SIZE = { tiny: 8, sm: 35, med: 150, lg: 500, huge: 2000, grg: 10000 };
-/** PLACEHOLDER — heaviest single unit (lb) a pickpocket can lift; the maintainer has not confirmed it. */
-const PICKPOCKET_MAX_LB = 1;
 
-const RANGE = 5;
-const ASK_TIMEOUT_MS = 20000;
 const PHYSICAL_TYPES = new Set(["weapon", "equipment", "consumable", "tool", "loot", "container"]);
 /** lb per unit of dnd5e weight units. */
 const LB_PER_UNIT = { lb: 1, tn: 2000, kg: 2.20462, Mg: 2204.62 };
@@ -139,13 +137,16 @@ function parseWeight(text) {
   return n; // lb, lbs, pounds, or a bare number
 }
 
+/** Per-size body weights: the world settings, else the defaults. */
 function bodyWeightTable() {
-  let custom = {};
-  try {
-    const raw = game.settings.get(MODULE_ID, "bodyWeightBySize");
-    custom = (typeof raw === "string") ? JSON.parse(raw || "{}") : (raw ?? {});
-  } catch(err) { /* setting missing or malformed: defaults */ }
-  return { ...BODY_WEIGHT_BY_SIZE, ...custom };
+  const table = { ...BODY_WEIGHT_BY_SIZE };
+  for ( const size of Object.keys(table) ) {
+    try {
+      const v = Number(opt(`bodyWeight${size[0].toUpperCase()}${size.slice(1)}`));
+      if ( v > 0 ) table[size] = v;
+    } catch(err) { /* setting missing: default */ }
+  }
+  return table;
 }
 
 function bodyWeightLb(actor) {
@@ -453,7 +454,7 @@ function lootWindowClass() {
     /** Can this item be taken in this mode? */
     eligible(item) {
       if ( this.cfg.mode !== "limited" ) return true;
-      return !item.system.equipped && (item.type !== "container") && (unitWeightLb(item) <= PICKPOCKET_MAX_LB);
+      return !item.system.equipped && (item.type !== "container") && (unitWeightLb(item) <= (Number(opt("pickpocketMaxLb")) || 0));
     }
 
     async _renderHTML() {
@@ -559,7 +560,10 @@ async function askDisadvantageLocal({ pickpocket, target }) {
       window: { title: "Pickpocket" }, rejectClose: false,
       content: `<p>Impose disadvantage on <strong>${esc(pickpocket)}</strong>'s pickpocket attempt against <strong>${esc(target)}</strong>? (alert or suspicious)</p>`,
       buttons: [{ action: "yes", label: "Yes" }, { action: "no", label: "No", default: true }],
-      render: (event, dialog) => setTimeout(() => { try { dialog.close(); } catch(err) { /* already closed */ } }, ASK_TIMEOUT_MS)
+      render: (event, dialog) => {
+        const seconds = Number(opt("gmAskTimeout")) || 0;
+        if ( seconds > 0 ) setTimeout(() => { try { dialog.close(); } catch(err) { /* already closed */ } }, seconds * 1000);
+      }
     });
     return answer === "yes";
   } catch(err) { return false; }
@@ -573,11 +577,11 @@ async function askDisadvantageLocal({ pickpocket, target }) {
 export async function pickpocket(target, actor) {
   const tActor = target?.documentName === "Token" ? target.actor : target;
   if ( !tActor || !actor ) return null;
-  if ( !isHidden(actor) ) { ui.notifications.warn("You must be hidden."); return null; }
+  if ( opt("pickpocketRequiresHidden") && !isHidden(actor) ) { ui.notifications.warn("You must be hidden."); return null; }
   if ( !(await Economy.spendUtilize(actor, { label: "Pickpocket", fastHands: true })) ) return null;
 
   const gm = gmUser();
-  const disadvantage = gm
+  const disadvantage = (gm && opt("pickpocketAskDisadvantage"))
     ? !!(await Creatures.runAs(gm, "bodiesAskDisadvantage", { pickpocket: actor.name, target: tActor.name }))
     : false;
 
@@ -607,20 +611,20 @@ export async function pickpocket(target, actor) {
 function registerInteractions() {
   const notSelf = (target, actor) => !!target.actor && (target.actor !== actor);
   registerInteraction({
-    id: "bodies.pickUp", label: "Pick up", icon: "fa-solid fa-person-walking-luggage", range: RANGE,
-    available: (target, actor) => notSelf(target, actor) && isDown(target.actor),
+    id: "bodies.pickUp", label: "Pick up", icon: "fa-solid fa-person-walking-luggage",
+    available: (target, actor) => opt("bodiesCarry") && notSelf(target, actor) && isDown(target.actor),
     run: (target, actor) => pickUp(actor, target)
   });
   registerInteraction({
-    id: "bodies.loot", label: "Loot", icon: "fa-solid fa-sack-xmark", range: RANGE,
-    available: (target, actor) => notSelf(target, actor) && isDown(target.actor),
+    id: "bodies.loot", label: "Loot", icon: "fa-solid fa-sack-xmark",
+    available: (target, actor) => opt("bodiesLoot") && notSelf(target, actor) && isDown(target.actor),
     run: async (target, actor) => { openLoot(target.actor, actor, { mode: "full" }); }
   });
   registerInteraction({
-    id: "bodies.pickpocket", label: "Pickpocket", icon: "fa-solid fa-hand-holding", range: RANGE,
-    available: (target, actor) => notSelf(target, actor) && isCreature(target.actor) && !isDown(target.actor)
+    id: "bodies.pickpocket", label: "Pickpocket", icon: "fa-solid fa-hand-holding",
+    available: (target, actor) => opt("bodiesPickpocket") && notSelf(target, actor) && isCreature(target.actor) && !isDown(target.actor)
       && (game.user.isGM || !target.isOwner),
-    blocked: (target, actor) => (isHidden(actor) ? null : "You must be hidden"),
+    blocked: (target, actor) => (!opt("pickpocketRequiresHidden") || isHidden(actor) ? null : "You must be hidden"),
     run: (target, actor) => pickpocket(target.actor, actor)
   });
 }
@@ -682,15 +686,21 @@ function registerHooks() {
 
 /** Called once at ready by main.mjs with the engine's shared helpers. */
 export function registerBodies(deps) {
-  try {
-    game.settings.register(MODULE_ID, "bodyWeightBySize", {
-      name: "Body weight by size (lb)", scope: "world", config: false, type: String,
-      default: JSON.stringify(BODY_WEIGHT_BY_SIZE)
-    });
-  } catch(err) { console.warn(`${MODULE_ID} | bodies: could not register bodyWeightBySize`, err); }
   registerHandlers();
   registerInteractions();
   registerHooks();
+  // A carried body dragged from a sheet to the map: put its token down there (before Item Piles offers a pile).
+  Hooks.on("dropCanvasData", (_canvas, data) => {
+    try {
+      if ( (data?.type !== "Item") || !data.uuid ) return;
+      const item = fromUuidSync(data.uuid);
+      const carrier = item?.parent;
+      if ( !isBodyContainer(item) || (carrier?.documentName !== "Actor") || !carrier.isOwner ) return;
+      const spot = canvas.grid.getTopLeftPoint({ x: data.x, y: data.y });
+      putDown(carrier, item, { x: spot.x, y: spot.y });
+      return false;
+    } catch(err) { console.error(`${MODULE_ID} | bodies: drop on canvas`, err); }
+  });
   console.log(`${MODULE_ID} | bodies: ready`);
 }
 

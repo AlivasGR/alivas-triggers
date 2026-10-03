@@ -5,6 +5,8 @@
  *   roll.options["alivas-engine-of-triggers"].cover = "half" | "threeQuarters"
  * and the engine's hit check (main.mjs, dnd5e.rollAttackV2) adds coverBonus() to each target's AC.
  *
+ * World settings `coverDialog` / `coverButtons` (default on) switch the dialog choice and the card buttons off.
+ *
  * After the roll (message flag `cover` records it): attack roll chat cards get "½ cover" / "¾ cover" buttons (GM and the card's author). Applying cover
  * re-checks each target against AC + cover; a target that was hit and now isn't has what the hit did to it undone —
  * the HP and temporary HP it lost, and the effects that landed on it during the attack (the ledger below). Things the
@@ -23,6 +25,7 @@
  */
 
 import * as Creatures from "./creatures.mjs";
+import { opt } from "./settings.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const LEVELS = { none: 0, half: 2, threeQuarters: 5 };
@@ -61,6 +64,7 @@ export const messageCover = message => message?.getFlag?.(MODULE_ID, "cover") ??
 const chosen = new WeakMap();   // dialog app → level
 
 function onRenderAttackDialog(app, html) {
+  if ( !opt("coverDialog") ) return;
   const root = html instanceof HTMLElement ? html : (html?.[0] ?? app.element);
   const form = root?.querySelector?.("form") ?? root;
   if ( !form || form.querySelector("[name=aetCover]") ) return;
@@ -190,7 +194,7 @@ export async function applyCoverAfter(message, level) {
 }
 
 function onRenderChatMessage(message, html) {
-  if ( !isAttackMessage(message) || !(game.user.isGM || message.isAuthor) ) return;
+  if ( !opt("coverButtons") || !isAttackMessage(message) || !(game.user.isGM || message.isAuthor) ) return;
   const root = html instanceof HTMLElement ? html : html?.[0];
   if ( !root ) return;
   const current = messageCover(message);

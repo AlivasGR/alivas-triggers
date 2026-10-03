@@ -76,6 +76,7 @@ alivas-engine-of-triggers/
   scripts/areas.mjs        automated areas (Region behavior): appear / enter / leave / turn start / turn end
   scripts/editor.mjs       trigger editor (triggers / reactions / activity / area modes), sheet summaries
   scripts/settings-app.mjs the grouped "Automation settings" window
+  scripts/settings.mjs     registers the table-ruling settings (bodies, trading, cover, economy, locks); read with opt(key)
   scripts/maneuvers.mjs    2024 maneuvers: holds (tether), pass-through, check/place/escape actions, requirements, blocked-move offers
   scripts/loot.mjs         Item Piles integration: drops (2024 timing), disarm, pile images, locks on piles and doors
   scripts/economy.mjs      action economy per combat turn: Action, Bonus Action, free object interaction, Utilize, Fast Hands

@@ -43,6 +43,7 @@ import * as Creatures from "./creatures.mjs";
 import * as Economy from "./economy.mjs";
 import * as Reactions from "./reactions.mjs";
 import { rollSkillWith } from "./skills.mjs";
+import { opt } from "./settings.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const INCAPACITATING = ["incapacitated", "paralyzed", "petrified", "stunned", "unconscious", "dead"];
@@ -69,6 +70,7 @@ const tokenDoc = actor => Creatures.tokenFor(actor);
 
 /** Does the actor have a hand free (2024: no two-handed weapon; not two things in hand)? */
 export function hasFreeHand(actor) {
+  if ( !opt("freeHandChecks") ) return true;   // world setting freeHandChecks (default on)
   // dnd5e "equipped" also means "carried ready", so weapons alone don't prove both hands are busy. No free hand: a
   // two-handed weapon, or a shield plus a weapon. Unarmed strikes and natural weapons never count.
   const held = actor.items.filter(i => (i.type === "weapon") && i.system.equipped && (i.system.type?.value !== "natural")
@@ -155,21 +157,23 @@ async function checkTethersNow(actor) {
 }
 
 /** Drag: when a holder moves, the creatures it holds (drag tethers) move by the same offset, if the space is free. */
-async function dragAlong(tokenDocument, change) {
-  if ( !Creatures.isLeadGM() || !(("x" in change) || ("y" in change)) ) return;
-  const before = DRAG_FROM.get(tokenDocument.id);
-  DRAG_FROM.delete(tokenDocument.id);
-  if ( !before ) return;
-  const dx = tokenDocument.x - before.x, dy = tokenDocument.y - before.y;
+/**
+ * A holder moved (Foundry's moveToken: origin → destination, reported on every client): the creatures it holds with a
+ * drag tether move by the same offset, if the space is free. Lead GM. Uses source positions, not the animated ones.
+ */
+async function dragAlong(tokenDocument, movement) {
+  if ( !Creatures.isLeadGM() ) return;
+  const from = movement?.origin, to = movement?.destination;
+  if ( !from || !to ) return;
+  const dx = to.x - from.x, dy = to.y - from.y;
   if ( !dx && !dy ) return;
   for ( const e of tethersBy(tokenDocument.actor).filter(e => e.getFlag(MODULE_ID, "tether")?.drag) ) {
     const held = tokenDoc(e.parent);
     if ( !held || (held.parent !== tokenDocument.parent) ) continue;
-    const x = held.x + dx, y = held.y + dy;
+    const x = held._source.x + dx, y = held._source.y + dy;
     if ( Creatures.spaceFree(held, x, y) ) await Creatures.displaceToken(held, { x, y }, "drag");
   }
 }
-const DRAG_FROM = new Map();
 
 /** Movement cost while dragging: 1 extra foot per foot unless the held creature is Tiny or 2+ sizes smaller. */
 function dragCostMultiplier(actor) {
@@ -353,6 +357,21 @@ export const MANEUVER_ACTIONS = {
 /*  Placement handler (runs on the chooser's client) */
 /* -------------------------------------------- */
 
+/**
+ * What TokenPlacement previews: the moved creature's prototype token when this user owns it; otherwise (a player moving
+ * an enemy — Foundry only lets you place tokens you own) a stand-in built on the user's own creature (the holder, or
+ * their character) with the moved token's size and image. Only the chosen position is used.
+ */
+function placementStandIn(token, center) {
+  if ( token.actor?.isOwner ) return token.actor.prototypeToken;
+  const own = (center?.actor?.isOwner ? center.actor : null) ?? game.user.character;
+  if ( !own ) return token.actor?.prototypeToken ?? token;
+  const data = foundry.utils.mergeObject(own.prototypeToken.toObject(), {
+    width: token.width, height: token.height, texture: foundry.utils.deepClone(token._source.texture), name: token.name
+  }, { inplace: false });
+  return new foundry.data.PrototypeToken(data, { parent: own });
+}
+
 Creatures.HANDLERS.placeCreature = async function({ tokenUuid, centerUuid, range, reach, label }) {
   const token = fromUuidSync(tokenUuid);
   const center = centerUuid ? fromUuidSync(centerUuid) : null;
@@ -361,7 +380,8 @@ Creatures.HANDLERS.placeCreature = async function({ tokenUuid, centerUuid, range
   for ( let attempt = 0; attempt < 3; attempt++ ) {
     ui.notifications.info(`${label}: choose where ${token.name} ends up (within ${range} ft${reach ? `, and within ${reach} ft of you` : ""}).`);
     let placed;
-    try { placed = await Placement.place({ tokens: [token.actor?.prototypeToken ?? token] }); } catch(err) { return null; }
+    try { placed = await Placement.place({ tokens: [placementStandIn(token, center)] }); }
+    catch(err) { console.warn(`${MODULE_ID} | placement`, err); return null; }
     const spot = placed?.[0];
     if ( !spot ) return null;
     const feet = Creatures.distanceFt(token, token, { x: spot.x, y: spot.y });
@@ -408,13 +428,12 @@ export function registerManeuverHooks() {
     if ( hostile.length ) offerWhenBlocked(token, hostile);
   });
 
-  // Drag: remember where a holder starts a move, follow when it lands.
-  Hooks.on("preUpdateToken", (doc, change) => {
-    if ( ("x" in change) || ("y" in change) ) DRAG_FROM.set(doc.id, { x: doc.x, y: doc.y });
+  // Drag: held creatures follow their holder's move, then every tether is re-measured.
+  Hooks.on("moveToken", (doc, movement) => {
+    dragAlong(doc, movement).then(() => checkTethers(doc.actor));
   });
   Hooks.on("updateToken", (doc, change) => {
-    if ( !(("x" in change) || ("y" in change)) ) return;
-    dragAlong(doc, change).then(() => checkTethers(doc.actor));
+    if ( ("x" in change) || ("y" in change) ) checkTethers(doc.actor);
   });
   // Statuses changing (Incapacitated) can end tethers.
   const onEffect = effect => { if ( effect.parent?.documentName === "Actor" ) checkTethers(effect.parent); };
@@ -448,7 +467,7 @@ export function bonusActionUsed(actor) {
 const offered = new Map();   // token id → time offered (debounce)
 async function offerWhenBlocked(token, blockers) {
   const actor = token.actor;
-  if ( !actor?.isOwner || !blockers.length ) return;
+  if ( !opt("blockedOffers") || !actor?.isOwner || !blockers.length ) return;
   if ( Date.now() - (offered.get(token.id) ?? 0) < 4000 ) return;
   const choices = actor.items.contents.flatMap(i => [...(i.system.activities ?? [])]
     .filter(a => a.flags?.[MODULE_ID]?.offerWhenBlocked)

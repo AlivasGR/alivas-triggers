@@ -4,11 +4,11 @@
  *   - right-clicking a token you don't own (players usually) opens a small menu of the interactions available now;
  *   - the Token HUD (owners and the GM) shows the same interactions as buttons.
  * The acting character is the user's controlled token other than the target, else their assigned character's token on
- * the scene. Each interaction states a range (default 5 ft, measured between the two tokens).
+ * the scene. Each interaction states a range (default: world setting `interactionRange`, 5 ft; measured between the two tokens).
  *
  * registerInteraction({
  *   id, label, icon,                        icon: a Font Awesome class, e.g. "fa-solid fa-hand"
- *   range = 5,                               feet; null = any distance on the scene
+ *   range?,                                  feet; null = any distance on the scene; omitted = world setting `interactionRange` (5)
  *   available(target, actor) → boolean       shown at all? (target: TokenDocument, actor: the acting Actor)
  *   blocked?(target, actor) → string|null    shown but disabled, with this reason
  *   run(target, actor) → Promise             does it (on the acting user's client)
@@ -17,6 +17,7 @@
  */
 
 import * as Creatures from "./creatures.mjs";
+import { opt } from "./settings.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -24,7 +25,7 @@ const REGISTRY = new Map();
 
 export function registerInteraction(def) {
   if ( !def?.id || (typeof def.run !== "function") ) throw new Error("registerInteraction: id and run() are required");
-  REGISTRY.set(def.id, { range: 5, icon: "fa-solid fa-hand", available: () => true, ...def });
+  REGISTRY.set(def.id, { icon: "fa-solid fa-hand", available: () => true, ...def });
 }
 
 /** The token the user acts with against `target`: a controlled token, else their character's token on the scene. */
@@ -46,7 +47,8 @@ export function interactionsFor(target, from) {
     try { ok = def.available(target, actor); } catch(err) { console.error(`${MODULE_ID} | interaction ${def.id}`, err); }
     if ( !ok ) continue;
     let reason = null;
-    if ( Number.isFinite(def.range) && (Creatures.distanceFt(from, target) > def.range) ) reason = `Within ${def.range} ft`;
+    const range = (def.range === undefined) ? opt("interactionRange") : def.range;
+    if ( Number.isFinite(range) && (Creatures.distanceFt(from, target) > range) ) reason = `Within ${range} ft`;
     if ( !reason && def.blocked ) { try { reason = def.blocked(target, actor) ?? null; } catch(err) { reason = null; } }
     out.push({ def, reason });
   }
@@ -86,7 +88,7 @@ function wrapTokenRightClick() {
   proto._onClickRight = function(event, ...rest) {
     try {
       const target = this.document;
-      if ( !target.isOwner && REGISTRY.size ) {
+      if ( opt("interactMenu") && !target.isOwner && REGISTRY.size ) {
         const from = actingToken(target);
         if ( from && interactionsFor(target, from).length ) {
           event?.stopPropagation?.();
@@ -101,6 +103,7 @@ function wrapTokenRightClick() {
 
 /** Owners (and the GM): the interactions as Token HUD buttons, acting with another controlled token. */
 function onRenderTokenHUD(app, html) {
+  if ( !opt("interactHud") ) return;
   const target = app.document ?? app.object?.document;
   const root = html instanceof HTMLElement ? html : html?.[0];
   if ( !target || !root ) return;

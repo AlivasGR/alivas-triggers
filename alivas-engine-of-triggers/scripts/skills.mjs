@@ -69,7 +69,7 @@ export function registerSkills(deps) {
     new foundry.applications.ux.ContextMenu(element, SELECTOR, [{
       label: "Roll using a different ability…",
       icon: "fa-solid fa-dice-d20",
-      visible: () => actor.isOwner,
+      visible: () => actor.isOwner && game.settings.get(MODULE_ID, "skillAbilityMenu"),
       onClick: (event, target) => {
         const skill = target?.dataset?.key ?? target?.closest?.("[data-key]")?.dataset.key;
         if ( skill ) pickAndRoll(actor, skill);

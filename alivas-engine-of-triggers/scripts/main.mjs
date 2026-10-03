@@ -130,6 +130,7 @@ import * as Workflow from "./workflow.mjs";
 import * as Areas from "./areas.mjs";
 import * as Delay from "./delay.mjs";
 import { registerSettingsMenu } from "./settings-app.mjs";
+import { registerAutomationSettings } from "./settings.mjs";
 import { TriggerEditor, describeTrigger, describeReaction, registerActionType, registerEditorSection } from "./editor.mjs";
 import * as Maneuvers from "./maneuvers.mjs";
 import * as Loot from "./loot.mjs";
@@ -2819,6 +2820,7 @@ Hooks.once("init", () => {
     hint: "After an automated save spell resolves, remove its area (Fireball's sphere). Areas of spells with a duration stay.",
     scope: "world", config: true, type: Boolean, default: true
   });
+  registerAutomationSettings();
   registerSettingsMenu();
 });
 

@@ -7,6 +7,9 @@
  *   interaction  its one free object interaction (drawing, handing over, retrieving needs Utilize — see below)
  * The reaction is tracked by reactions.mjs (reactionUsed / markReactionUsed) and is not repeated here.
  *
+ * World setting `economyTracking` (default on): off, nothing is tracked or asked (every spend succeeds, nothing counts as used);
+ * inCombat / isTurnOf still report the combat so other features keep their combat rules.
+ *
  * Outside a started combat nothing is spent and every helper says "go ahead". Off its own turn a creature has no Action,
  * Bonus Action or free interaction: the helpers ask the user to confirm (a GM ruling) instead of refusing outright.
  *
@@ -21,6 +24,7 @@
  */
 
 import * as Creatures from "./creatures.mjs";
+import { opt } from "./settings.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const KINDS = ["action", "bonus", "interaction"];
@@ -38,6 +42,8 @@ function combatantOf(actor) {
   }
   return {};
 }
+
+const tracking = () => opt("economyTracking");
 
 export const inCombat = actor => !!combatantOf(actor).combatant;
 
@@ -62,6 +68,7 @@ function state(actor) {
 
 /** Has the creature used this kind on its current turn? (Off its turn: true — it has none to use.) */
 export function used(actor, kind) {
+  if ( !tracking() ) return false;
   const s = state(actor);
   if ( !s ) return false;
   if ( !isTurnOf(actor) ) return true;
@@ -70,7 +77,7 @@ export function used(actor, kind) {
 
 /** Mark a kind used for the creature's current turn (written by an owner, or the GM on a player's behalf). */
 export async function mark(actor, kind) {
-  if ( !KINDS.includes(kind) ) return;
+  if ( !tracking() || !KINDS.includes(kind) ) return;
   const s = state(actor);
   if ( !s ) return;
   const value = { ...s.flag, key: s.key, [kind]: true };
@@ -94,7 +101,7 @@ async function confirm(title, html) {
  * turn: the user may confirm anyway (the GM's call), else false.
  */
 export async function spend(actor, kind, { label="" }={}) {
-  if ( !inCombat(actor) ) return true;
+  if ( !tracking() || !inCombat(actor) ) return true;
   const what = KIND_LABEL[kind] ?? kind;
   if ( !isTurnOf(actor) ) {
     if ( !(await confirm(`${actor.name} — ${label || what}`,
@@ -119,7 +126,7 @@ export function hasFastHands(actor) {
  * it's chosen automatically when only one of the two is left, asked when both are.
  */
 export async function spendUtilize(actor, { label="Utilize", fastHands=true }={}) {
-  if ( !inCombat(actor) ) return true;
+  if ( !tracking() || !inCombat(actor) ) return true;
   if ( fastHands && hasFastHands(actor) && isTurnOf(actor) ) {
     const a = !used(actor, "action"), b = !used(actor, "bonus");
     if ( a && b ) {
@@ -139,7 +146,7 @@ export async function spendUtilize(actor, { label="Utilize", fastHands=true }={}
  * An object interaction: the turn's free one if unused, otherwise the Utilize action (asked first).
  */
 export async function spendInteraction(actor, { label="Interact with an object" }={}) {
-  if ( !inCombat(actor) ) return true;
+  if ( !tracking() || !inCombat(actor) ) return true;
   if ( isTurnOf(actor) && !used(actor, "interaction") ) { await mark(actor, "interaction"); return true; }
   if ( isTurnOf(actor) && !(await confirm(`${actor.name} — ${label}`,
     `<p><strong>${esc(actor.name)}</strong> has used its free object interaction this turn; <em>${esc(label)}</em> takes the Utilize action.</p>`)) ) return false;
@@ -149,6 +156,7 @@ export async function spendInteraction(actor, { label="Interact with an object" 
 /** Activities mark what they cost. */
 export function registerEconomyHooks() {
   Hooks.on("dnd5e.postUseActivity", activity => {
+    if ( !tracking() ) return;
     const type = activity?.activation?.type;
     const kind = (type === "action") ? "action" : (type === "bonus") ? "bonus" : null;
     if ( !kind || !activity.actor || !isTurnOf(activity.actor) ) return;

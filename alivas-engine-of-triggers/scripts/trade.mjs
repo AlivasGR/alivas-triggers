@@ -37,6 +37,11 @@
  *                Reaction (and always succeeds). Failure: it falls into the catcher's space as a loot pile, or, if fragile,
  *                shatters and is lost (see isFragile).
  *
+ * WORLD SETTINGS (Automation settings → Trading): tradeRules (off: no interception at all), tradeAnyDistanceOutOfCombat,
+ *   tradeThrowRange (20 ft), tradeThrowCheck ask|always|never + tradeThrowCheckDc (10), tradeCatchDc (10), tradeCatchHeavyDc (15),
+ *   tradeHeavyLb (10), tradeRetrieveUtilize, fragileHeuristic + fragilePattern, tradeAskTimeout (0 = wait). The numbers in
+ *   brackets are the defaults.
+ *
  * TRANSFER — a container goes with its contents (re-created on the receiver with nesting kept, then deleted from the giver);
  *   anything else goes through game.itempiles.API.transferItems(source, target, [{ _id, quantity }]) when available, else
  *   by creating on the receiver and deleting/reducing on the giver. Equipped/attuned state is cleared on arrival. When the
@@ -59,11 +64,10 @@ import * as Economy from "./economy.mjs";
 import * as Maneuvers from "./maneuvers.mjs";
 import * as Reactions from "./reactions.mjs";
 import * as Loot from "./loot.mjs";
+import { opt } from "./settings.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const IP_ID = "item-piles";
-const THROW_RANGE = 20;
-const HEAVY_LB = 10;
 const RETRIEVE_FLAG = "alivasRetrieve";
 const INCAPACITATED = ["incapacitated", "unconscious", "paralyzed", "petrified", "stunned", "dead"];
 
@@ -97,8 +101,12 @@ function actorOf(x) {
 export function isFragile(item) {
   const flag = item?.getFlag?.(MODULE_ID, "fragile");
   if ( typeof flag === "boolean" ) return flag;
+  if ( !opt("fragileHeuristic") ) return false;
   if ( (item?.type === "consumable") && (item.system?.type?.value === "potion") ) return true;
-  return /vial|flask|bottle|potion|glass/i.test(item?.name ?? "");
+  let pattern;
+  try { pattern = new RegExp(opt("fragilePattern") || "vial|flask|bottle|potion|glass", "i"); }
+  catch(err) { pattern = /vial|flask|bottle|potion|glass/i; }
+  return pattern.test(item?.name ?? "");
 }
 
 /* -------------------------------------------- */
@@ -107,10 +115,15 @@ export function isFragile(item) {
 
 /** Yes / No popup. { title, html, defaultYes } → boolean. */
 async function askHandler({ title, html, defaultYes=true }) {
+  const seconds = Number(opt("tradeAskTimeout")) || 0;
   const pick = await foundry.applications.api.DialogV2.wait({
     window: { title }, content: html, rejectClose: false,
-    buttons: [{ action: "yes", label: "Yes", default: defaultYes }, { action: "no", label: "No", default: !defaultYes }]
+    buttons: [{ action: "yes", label: "Yes", default: defaultYes }, { action: "no", label: "No", default: !defaultYes }],
+    render: (event, dialog) => {
+      if ( seconds > 0 ) setTimeout(() => { try { dialog.close(); } catch(err) { /* already closed */ } }, seconds * 1000);
+    }
   });
+  if ( !pick ) return defaultYes;
   return pick === "yes";
 }
 
@@ -324,7 +337,7 @@ async function giveFlow(giver, receiver, item, quantity) {
   if ( !gt || !rt || (gt.parent !== rt.parent) ) { note("both creatures need a token on the same scene."); return false; }
   const distance = Creatures.distanceFt(gt, rt);
   const combat = Economy.inCombat(giver);
-  const handOver = !combat || (distance <= reachOf(giver));
+  const handOver = (!combat && opt("tradeAnyDistanceOutOfCombat")) || (distance <= reachOf(giver));
 
   const move = () => runWrite("tradeTransfer", { giverUuid: giver.uuid, receiverUuid: receiver.uuid, itemId: item.id, quantity: qty }, [giver, receiver]);
 
@@ -336,29 +349,25 @@ async function giveFlow(giver, receiver, item, quantity) {
   }
 
   // Throw.
-  if ( distance > THROW_RANGE ) { note(`${receiver.name} is ${distance} ft away; a controlled throw reaches ${THROW_RANGE} ft.`); return false; }
+  const throwRange = Number(opt("tradeThrowRange")) || 0;
+  if ( distance > throwRange ) { note(`${receiver.name} is ${distance} ft away; a controlled throw reaches ${throwRange} ft.`); return false; }
   if ( !(await Economy.spendUtilize(giver, { label: `Throw ${item.name}`, fastHands: false })) ) return false;
   const who = `<strong>${esc(giver.name)}</strong> throws <strong>${esc(receiver.name)}</strong> ${esc(name)}`;
 
   const pressed = gt.parent.tokens.some(t => t.actor && (t.id !== gt.id) && !incapacitated(t.actor)
     && (Creatures.relation(t.actor, giver) === "enemy") && (Creatures.distanceFt(gt, t) <= 5));
-  if ( pressed && await askGM(`${giver.name} — throw`,
-    `<p>Require a DC 10 Strength or Dexterity check for <strong>${esc(giver.name)}</strong>'s throw? (enemy within 5 ft)</p>`, true) ) {
+  const throwMode = opt("tradeThrowCheck"), throwDc = Number(opt("tradeThrowCheckDc")) || 10;
+  if ( pressed && (throwMode !== "never") && ((throwMode === "always") || await askGM(`${giver.name} — throw`,
+    `<p>Require a DC ${throwDc} Strength or Dexterity check for <strong>${esc(giver.name)}</strong>'s throw? (enemy within 5 ft)</p>`, true)) ) {
     const mod = a => Number(giver.system?.abilities?.[a]?.mod ?? 0);
     const ability = (mod("str") > mod("dex")) ? "str" : "dex";
-    const r = await check(giver, ability, 10);
+    const r = await check(giver, ability, throwDc);
     if ( !r?.success ) {
-      await chat(giver, `${who} — the toss goes wild (${r ? `${r.total} vs DC 10` : "no roll"}).`);
+      await chat(giver, `${who} — the toss goes wild (${r ? `${r.total} vs DC ${throwDc}` : "no roll"}).`);
       await Loot.dropItems(giver, [{ item, quantity: qty }], { position: scatterSpot(rt), skipTiming: true, verb: "throws", quiet: true });
       return false;
     }
   }
-
-  const lb = weightLb(item, qty);
-  const heavy = await askGM(`${giver.name} — throw`,
-    `<p>Is <strong>${esc(name)}</strong> awkward or heavy to catch (DC 15 instead of DC 10)?${lb >= HEAVY_LB ? ` <em>It weighs ${Math.round(lb)} lb.</em>` : ""}</p>`,
-    lb >= HEAVY_LB);
-  const dc = heavy ? 15 : 10;
 
   const fall = async reason => {
     if ( isFragile(item) ) {
@@ -373,6 +382,14 @@ async function giveFlow(giver, receiver, item, quantity) {
 
   if ( incapacitated(receiver) || !Maneuvers.hasFreeHand(receiver) ) return fall(`${esc(receiver.name)} can't catch it.`);
   if ( Reactions.reactionUsed(receiver) ) return fall(`${esc(receiver.name)} has no Reaction left.`);
+
+  // Only a creature that can catch it gets the GM's "awkward or heavy?" question.
+  const lb = weightLb(item, qty);
+  const normalDc = Number(opt("tradeCatchDc")) || 10, heavyDc = Number(opt("tradeCatchHeavyDc")) || 15, heavyLb = Number(opt("tradeHeavyLb")) || 10;
+  const heavy = await askGM(`${giver.name} — throw`,
+    `<p>Is <strong>${esc(name)}</strong> awkward or heavy to catch (DC ${heavyDc} instead of DC ${normalDc})?${lb >= heavyLb ? ` <em>It weighs ${Math.round(lb)} lb.</em>` : ""}</p>`,
+    lb >= heavyLb);
+  const dc = heavy ? heavyDc : normalDc;
   const answer = await Reactions.ask(receiver, `<strong>${esc(giver.name)}</strong> throws you <strong>${esc(name)}</strong>.`,
     [{ id: "catch", label: "Catch it (Reaction)", detail: `Dexterity check, DC ${dc}.`, free: true, reaction: false }]);
   if ( answer?.choice !== "catch" ) return fall(`${esc(receiver.name)} doesn't catch it.`);
@@ -392,7 +409,7 @@ async function giveFlow(giver, receiver, item, quantity) {
 
 /** Pay for taking an item out of a container in combat: a free hand and the Utilize action. Outside combat: free. */
 async function retrievalAllowed(actor, item) {
-  if ( !Economy.inCombat(actor) ) return true;
+  if ( !opt("tradeRetrieveUtilize") || !Economy.inCombat(actor) ) return true;
   if ( !Maneuvers.hasFreeHand(actor) ) { note(`${actor.name} needs a free hand to retrieve ${item.name}.`); return false; }
   return Economy.spendUtilize(actor, { label: `Retrieve ${item.name}`, fastHands: true });
 }
@@ -437,6 +454,7 @@ export function registerTrade(d) {
   // Item Piles' give flow: replace it with ours.
   Hooks.on("item-piles-preGiveItem", (sourceActor, targetActor, itemData, userId) => {
     try {
+      if ( !opt("tradeRules") ) return;
       const item = sourceActor?.items?.get(itemData?.item?._id ?? itemData?.item?.id);
       if ( !item || !targetActor ) return;   // not an actor-to-actor give from a sheet: leave it to Item Piles
       give(sourceActor, targetActor, item, { quantity: itemData.quantity });
@@ -447,7 +465,7 @@ export function registerTrade(d) {
   // Without Item Piles' giving, a drop on a token is a give.
   Hooks.on("dropCanvasData", (_canvas, data) => {
     try {
-      if ( (data?.type !== "Item") || !data.uuid || ipGiving() ) return;
+      if ( !opt("tradeRules") || (data?.type !== "Item") || !data.uuid || ipGiving() ) return;
       const item = fromUuidSync(data.uuid);
       const source = item?.parent;
       if ( !source || (source.documentName !== "Actor") || !source.isOwner ) return;
@@ -461,7 +479,7 @@ export function registerTrade(d) {
   // Retrieving from a container in combat costs a free hand and the Utilize action.
   Hooks.on("preUpdateItem", (item, changes, options, userId) => {
     try {
-      if ( (userId !== game.user.id) || options?.[RETRIEVE_FLAG] ) return;
+      if ( (userId !== game.user.id) || options?.[RETRIEVE_FLAG] || !opt("tradeRetrieveUtilize") ) return;
       const actor = item.parent;
       if ( (actor?.documentName !== "Actor") || !item._source.system?.container ) return;
       if ( !foundry.utils.hasProperty(changes, "system.container") || foundry.utils.getProperty(changes, "system.container") ) return;

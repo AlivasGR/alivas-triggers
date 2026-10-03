@@ -3,6 +3,8 @@
  * settings"). The individual settings stay registered (hidden from the flat list) and are read as before.
  */
 
+import { GROUPS } from "./settings.mjs";
+
 const MODULE_ID = "alivas-engine-of-triggers";
 const { ApplicationV2 } = foundry.applications.api;
 
@@ -17,7 +19,19 @@ const SECTIONS = [
   { title: "Areas", icon: "fa-burst", hint: "Spell templates and auras.",
     keys: ["wfRemoveTemplates"] },
   { title: "Combat", icon: "fa-hourglass-half", hint: "Turn options on the combat tracker.",
-    keys: ["delayTurn", "delayExpiry"] }
+    keys: ["delayTurn", "delayExpiry"] },
+  { title: "Action economy", icon: "fa-person-running", hint: "Per-turn Action, Bonus Action and object interaction tracking, and related maneuver rules.",
+    keys: GROUPS.economy },
+  { title: "Token interactions", icon: "fa-hand-pointer", hint: "The right-click menu and Token HUD buttons for acting on other tokens.",
+    keys: GROUPS.interactions },
+  { title: "Bodies & looting", icon: "fa-sack-xmark", hint: "Carrying, looting and pickpocketing. Body weights and the pickpocket limit are table placeholders.",
+    keys: GROUPS.bodies },
+  { title: "Trading", icon: "fa-hands-holding", hint: "Handing over, throwing and catching items, and retrieving from containers.",
+    keys: GROUPS.trading },
+  { title: "Cover", icon: "fa-shield-halved", hint: "Half and Three-Quarters cover on attacks.",
+    keys: GROUPS.cover },
+  { title: "Locks & loot piles", icon: "fa-lock", hint: "Item Piles integration: locks, doors, drops and pile appearance.",
+    keys: GROUPS.locks }
 ];
 export const GROUPED_SETTINGS = SECTIONS.flatMap(s => s.keys);
 
@@ -77,7 +91,7 @@ export function registerSettingsMenu() {
   }
   game.settings.registerMenu(MODULE_ID, "automation", {
     name: "Automation settings", label: "Open automation settings", icon: "fa-solid fa-sliders",
-    hint: "Rolling, applying, reactions and areas — everything the engine automates, in one place.",
+    hint: "Rolling, applying, reactions, areas, looting, trading and cover — everything the engine automates, in one place.",
     type: AutomationSettings, restricted: true
   });
 }
