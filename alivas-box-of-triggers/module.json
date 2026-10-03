@@ -2,7 +2,7 @@
   "id": "alivas-box-of-triggers",
   "title": "Alivas's Box of Triggers",
   "description": "Mechanics patches for specific spells, features and monster abilities (no rules text — your items keep their own descriptions), applied on import or via Review & apply, plus weapon options. Requires Alivas's Engine of Triggers.",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "authors": [
     {
       "name": "Alivas",
@@ -30,7 +30,7 @@
         "type": "module",
         "manifest": "https://github.com/AlivasGR/alivas-triggers/releases/latest/download/alivas-engine-of-triggers.json",
         "compatibility": {
-          "minimum": "0.10.0"
+          "minimum": "0.10.1"
         }
       }
     ]
@@ -68,5 +68,5 @@
   "bugs": "https://github.com/AlivasGR/alivas-triggers/issues",
   "changelog": "https://github.com/AlivasGR/alivas-triggers/releases",
   "manifest": "https://github.com/AlivasGR/alivas-triggers/releases/latest/download/alivas-box-of-triggers.json",
-  "download": "https://github.com/AlivasGR/alivas-triggers/releases/download/v0.10.0/alivas-box-of-triggers.zip"
+  "download": "https://github.com/AlivasGR/alivas-triggers/releases/download/v0.10.1/alivas-box-of-triggers.zip"
 }
