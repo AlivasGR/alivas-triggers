@@ -1807,7 +1807,7 @@ const EVENT_TEXT = {
   roundStart: "— a new round begins", roundEnd: "— the round ends",
   sourceTurnStart: "— its source starts its turn", sourceTurnEnd: "— its source ends its turn",
   hit: "is hit by an attack", save: "makes a saving throw", check: "makes an ability check",
-  rest: "finishes a rest", initiative: "rolls initiative", onUse: "uses it", onHit: "hits", collided: "moves into a creature's space", damageRolled: "rolls damage",
+  rest: "finishes a rest", initiative: "rolls initiative", onUse: "uses it", onHit: "hits", onFail: "— a creature fails its save", collided: "moves into a creature's space", damageRolled: "rolls damage",
   areaCreated: "— its area appears", areaEnter: "— a creature enters its area", areaLeave: "— a creature leaves its area",
   areaTurnStart: "— a creature starts its turn in its area", areaTurnEnd: "— a creature ends its turn in its area",
   interval: "— time passes", missed: "misses with an attack", dealt: "deals damage", applied: "gains it", moved: "moves", statusGained: "gains a condition"
@@ -1820,7 +1820,7 @@ function announce(trigger, effect, bearer, event, detail="") {
   const label = trigger.label ?? effect.name;
   return ChatMessage.implementation.create({
     speaker: ChatMessage.implementation.getSpeaker({ actor: bearer }),
-    content: ["onUse", "onHit"].includes(event) ? `<p><strong>${label}</strong>: ${detail}</p>`
+    content: ["onUse", "onHit", "onFail"].includes(event) ? `<p><strong>${label}</strong>: ${detail}</p>`
       : `<p><strong>${label}</strong> triggers: ${bearer.name} ${EVENT_TEXT[event] ?? event}.${detail ? ` ${detail}` : ""}</p>`
   });
 }

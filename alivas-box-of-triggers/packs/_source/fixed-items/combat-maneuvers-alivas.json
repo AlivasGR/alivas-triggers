@@ -1867,7 +1867,7 @@
   },
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "name": "Combat Maneuvers",

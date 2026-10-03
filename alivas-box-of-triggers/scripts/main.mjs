@@ -443,6 +443,13 @@ Hooks.on("preCreateActor", (actor, data, options, userId) => {
   if ( item ) actor.updateSource({ items: [...items, item] });
 });
 
+/** An actor became an Item Piles pile (Item Piles sets its flag after creating the actor): its copy goes. */
+Hooks.on("updateActor", (actor, changes) => {
+  if ( !foundry.utils.hasProperty(changes, "flags.item-piles") || wantsManeuvers(actor) || !isLeadGM() ) return;
+  const stray = actor.items.filter(i => isManeuvers(i)).map(i => i.id);
+  if ( stray.length ) actor.deleteEmbeddedDocuments("Item", stray, { [MODULE_ID]: { patching: true } }).catch(() => {});
+});
+
 /** Make an existing copy match the homebrew setting: delete homebrew parts when off, add the missing ones when on. */
 async function syncManeuverItem(item, patch) {
   const want = foundry.utils.deepClone(patch.data);
@@ -472,11 +479,22 @@ async function syncManeuvers() {
   const patch = maneuverPatch();
   if ( !patch ) return;
   for ( const actor of game.actors.contents ) {
-    if ( !wantsManeuvers(actor) ) continue;
+    if ( !wantsManeuvers(actor) ) {
+      // An Item Piles pile (or its template actor) that got a copy before it became one: take it away.
+      const stray = MANEUVER_TYPES.includes(actor.type) ? actor.items.filter(i => isManeuvers(i)).map(i => i.id) : [];
+      if ( stray.length ) await actor.deleteEmbeddedDocuments("Item", stray, { [MODULE_ID]: { patching: true } }).catch(() => {});
+      continue;
+    }
     try {
-      const have = actor.items.filter(i => isManeuvers(i));
+      let have = actor.items.filter(i => isManeuvers(i));
+      // An outdated copy (the patch's version went up) is replaced whole.
+      const old = have.filter(i => i.getFlag(MODULE_ID, "version") !== patch.version);
+      if ( old.length ) {
+        await actor.deleteEmbeddedDocuments("Item", old.map(i => i.id), { [MODULE_ID]: { patching: true } });
+        have = have.filter(i => !old.includes(i));
+      }
       if ( !have.length ) {
-        if ( !grantOn() ) continue;
+        if ( !grantOn() && !old.length ) continue;
         const data = maneuverData();
         if ( data ) await actor.createEmbeddedDocuments("Item", [data], { keepId: true, [MODULE_ID]: { patching: true } });
       } else for ( const item of have ) await syncManeuverItem(item, patch);

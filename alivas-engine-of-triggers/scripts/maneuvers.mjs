@@ -124,8 +124,20 @@ async function endTether(effect, why) {
     content: `<p><strong>${foundry.utils.escapeHTML(effect.name)}</strong> ends — ${why}.</p>` });
 }
 
+/**
+ * Check a creature's tethers a moment later: a hold applied mid-move (an Opportunity Attack Grapple) must be measured
+ * after the interrupted move has settled, not against the destination the mover was heading for.
+ */
+const tetherTimers = new Map();
+function checkTethers(actor) {
+  if ( !actor || !Creatures.isLeadGM() ) return;
+  const key = actor.uuid;
+  clearTimeout(tetherTimers.get(key));
+  tetherTimers.set(key, setTimeout(() => { tetherTimers.delete(key); checkTethersNow(actor); }, 800));
+}
+
 /** Check every tether a creature is part of (after moves and status changes). Lead GM. */
-async function checkTethers(actor) {
+async function checkTethersNow(actor) {
   if ( !Creatures.isLeadGM() || !actor ) return;
   const effects = [...tethersOn(actor), ...tethersBy(actor)];
   for ( const e of effects ) {
@@ -343,7 +355,7 @@ Creatures.HANDLERS.placeCreature = async function({ tokenUuid, centerUuid, range
   for ( let attempt = 0; attempt < 3; attempt++ ) {
     ui.notifications.info(`${label}: choose where ${token.name} ends up (within ${range} ft${reach ? `, and within ${reach} ft of you` : ""}).`);
     let placed;
-    try { placed = await Placement.place({ tokens: [token.toObject()] }); } catch(err) { return null; }
+    try { placed = await Placement.place({ tokens: [token.actor?.prototypeToken ?? token] }); } catch(err) { return null; }
     const spot = placed?.[0];
     if ( !spot ) return null;
     const feet = Creatures.distanceFt(token, token, { x: spot.x, y: spot.y });

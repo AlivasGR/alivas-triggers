@@ -25,7 +25,7 @@
  *   whole stack. Each is moved into a pile: an existing REGULAR pile in the same grid space is added to (no second
  *   token), otherwise a pile token is created at `position` (default: the actor's token's top-left, snapped).
  *   The pile is created with displayOne / showItemName / overrideSingleItemScale, so a single item shows its own icon
- *   at 0.75 scale; several items fall back to the pile actor's own token image (Item Piles has no combined image).
+ *   at 0.75 scale; several items get the combined image (see PILE APPEARANCE).
  *   Dropped items are unequipped/unattuned in the pile. Containers take their contents along (whole stack only).
  *   Order: pile created/extended first, then the items removed from the actor (a failure never loses items).
  *   Sheet entry: "Drop on the ground" in the item context menu (owned weapon/equipment/consumable/tool/loot/container).
@@ -66,7 +66,16 @@
  *   Superior 20 per 2024 DMG Locked Door), force DC (glass 10 / wood 15 / stone 20 / metal 25), key item name. A
  *   non-container pile that is set locked is converted to a container (Item Piles can only lock containers).
  *
- * DOORS — TODO: the same obstacle object on a door Wall (wall.flags[MODULE_ID].obstacle); see the stubs at the end.
+ * DOORS — the same flow on a door Wall: wall.flags[MODULE_ID].obstacle = { lockDC, forceDC, keyItem }; "locked" is the wall's own
+ *   door state (ds === LOCKED). pickLockDoor / forceOpenDoor / useKeyDoor / interactDoor share the pile check code. Pick or
+ *   key sets ds CLOSED, force sets OPEN (written by a GM client: handler `lootDoorUnlock`). GM config: a fieldset injected into
+ *   WallConfig (renderWallConfig) with flags.<id>.obstacle.lockDC / forceDC / keyItem, shown for doors. A player right-clicking a
+ *   locked door control with a controlled token within 5 ft gets Pick Lock / Force open / Use key (DoorControl#_onRightDown wrapped).
+ * PILE APPEARANCE — a pile of several items shows a composite (2x2 of the first four item images, 1x2 for two) rendered in the
+ *   lead GM's browser, uploaded to <user data>/alivas-engine-of-triggers-loot/pile-<hash>.webp and set as the token (and, when
+ *   linked, prototype) texture; one item shows its own icon. The pile is named after its single item, or "Loot pile (N)", only
+ *   while its name still equals the auto-name flag (flags[MODULE_ID].autoName). Piles with obstacle data are left untouched.
+ *   Triggered (debounced 300 ms, lead GM) by createItem / deleteItem / updateItem on a pile and after dropItems.
  * TRAPS — TODO: not implemented.
  *
  * Exports are also on game.modules.get("alivas-engine-of-triggers").api.loot.
@@ -84,8 +93,9 @@ const DROPPABLE_TYPES = ["weapon", "equipment", "consumable", "tool", "loot", "c
 const ARMOR_TYPES = ["light", "medium", "heavy"];
 const DOFF_TIME = { light: "1 minute", medium: "1 minute", heavy: "5 minutes" };
 const PILE_FLAGS = {
-  enabled: true, type: "pile", displayOne: true, showItemName: true, overrideSingleItemScale: true,
-  singleItemScale: SINGLE_ITEM_SCALE, deleteWhenEmpty: true
+  // displayOne / showItemName off: Item Piles would override the token's image and name at render time; this module
+  // sets them itself (refreshPile: the item's icon or a composite, the item's name or "Loot pile (N)").
+  enabled: true, type: "pile", displayOne: false, showItemName: false, overrideSingleItemScale: false, deleteWhenEmpty: true
 };
 
 let deps = {};
@@ -304,6 +314,8 @@ export async function dropItems(actor, items, { position=null, pile=null, skipTi
     tokenUuid = created.tokenUuid;
   }
 
+  scheduleRefresh(actorOf(tokenUuid));
+
   // Contents first: deleting a container may take its contents with it.
   const removed = await ip("removeItems", actor, removals);
   if ( removed === undefined ) warn(`items were put in the pile but could not be removed from ${actor.name}; remove them by hand`, { notify: true });
@@ -416,8 +428,9 @@ async function unlockLocal({ pileUuid, actorUuid, how }) {
   const token = tokenOf(pileUuid), actor = actorOf(actorUuid);
   if ( !token ) return false;
   const interacting = (actor && Creatures.tokenFor(actor)) || false;
-  const done = await ip("unlockItemPile", token, interacting);
-  if ( done === undefined ) return false;
+  // unlockItemPile resolves to nothing: judge by the pile's state afterwards.
+  await ip("unlockItemPile", token, interacting);
+  if ( ipTest("isItemPileLocked", token) ) return false;
   await writeObstacle(token, { locked: false });
   await chat(actor, `<strong>${esc(actor?.name ?? "Someone")}</strong> ${esc(how)} <strong>${esc(token.name)}</strong> — it's unlocked.`);
   return true;
@@ -431,18 +444,16 @@ async function requestUnlock(pile, actor, how) {
   return !!result;
 }
 
-/** Pick Lock: a thieves' tools check against the lock's DC. */
-export async function pickLock(pile, actor) {
-  if ( !needIP("pickLock") ) return null;
-  const token = tokenOf(pile);
-  actor = actorOf(actor);
-  if ( !token || !actor ) return null;
-  const { lockDC } = readObstacle(token);
+/**
+ * Shared Pick Lock check (piles and doors). `unlock(how)` performs the unlock; `force()` is the fallback when the
+ * character has no thieves' tools.
+ */
+async function attemptPick({ name, lockDC, actor, unlock, force }) {
   if ( !findThievesTools(actor) ) {
     ui.notifications.warn(`${actor.name} has no thieves' tools.`);
-    const force = await foundry.applications.api.DialogV2.confirm({ window: { title: "No thieves' tools" }, rejectClose: false,
+    const go = await foundry.applications.api.DialogV2.confirm({ window: { title: "No thieves' tools" }, rejectClose: false,
       content: `<p>${esc(actor.name)} has no thieves' tools. Try to force it open instead?</p>` });
-    return force ? forceOpen(token, actor) : { success: false, noTools: true };
+    return go ? force() : { success: false, noTools: true };
   }
   const config = { tool: "thief", skill: "slt", ability: "dex", target: lockDC };
   const rolls = (typeof actor.rollToolCheck === "function") ? await actor.rollToolCheck(config, { configure: false }, {})
@@ -450,9 +461,39 @@ export async function pickLock(pile, actor) {
   const total = rolls?.[0]?.total;
   if ( total === undefined || total === null ) return { success: false, cancelled: true };
   const success = total >= lockDC;
-  if ( success ) await requestUnlock(token, actor, "picks the lock of");
-  else await chat(actor, `<strong>${esc(actor.name)}</strong> fails to pick the lock of <strong>${esc(token.name)}</strong> (${total} vs DC ${lockDC}).`);
+  if ( success ) await unlock("picks the lock of");
+  else await chat(actor, `<strong>${esc(actor.name)}</strong> fails to pick the lock of <strong>${esc(name)}</strong> (${total} vs DC ${lockDC}).`);
   return { success, total, dc: lockDC };
+}
+
+/** Shared Force open check: Strength (Athletics) against the force DC (15 when none is set, and it says so). */
+async function attemptForce({ name, forceDC, actor, unlock }) {
+  const dc = forceDC ?? DEFAULT_DC;
+  if ( !forceDC ) ui.notifications.info(`No force DC is set on ${name}: using ${DEFAULT_DC}.`);
+  const rolls = (typeof actor.rollSkill === "function") ? await actor.rollSkill({ skill: "ath", ability: "str", target: dc }, { configure: false }, {})
+    : await actor.rollAbilityCheck({ ability: "str", target: dc }, { configure: false }, {});
+  const total = rolls?.[0]?.total;
+  if ( total === undefined || total === null ) return { success: false, cancelled: true };
+  const success = total >= dc;
+  if ( success ) await unlock(`forces open${forceDC ? "" : ` (no force DC set, used ${DEFAULT_DC})`}`);
+  return { success, total, dc, defaulted: !forceDC };
+}
+
+/** Shared Use key. */
+async function attemptKey({ keyItem, actor, unlock }) {
+  const key = findKey(actor, keyItem);
+  if ( !key ) { ui.notifications.warn(`${actor.name} doesn't carry the key.`); return { success: false }; }
+  return { success: !!(await unlock(`uses ${key.name} to unlock`)) };
+}
+
+/** Pick Lock: a thieves' tools check against the lock's DC. */
+export async function pickLock(pile, actor) {
+  if ( !needIP("pickLock") ) return null;
+  const token = tokenOf(pile);
+  actor = actorOf(actor);
+  if ( !token || !actor ) return null;
+  return attemptPick({ name: token.name, lockDC: readObstacle(token).lockDC, actor,
+    unlock: how => requestUnlock(token, actor, how), force: () => forceOpen(token, actor) });
 }
 
 /** Force open: a Strength (Athletics) check against the force DC (15 when none is set, and it says so). */
@@ -461,16 +502,7 @@ export async function forceOpen(pile, actor) {
   const token = tokenOf(pile);
   actor = actorOf(actor);
   if ( !token || !actor ) return null;
-  const { forceDC } = readObstacle(token);
-  const dc = forceDC ?? DEFAULT_DC;
-  if ( !forceDC ) ui.notifications.info(`No force DC is set on ${token.name}: using ${DEFAULT_DC}.`);
-  const rolls = (typeof actor.rollSkill === "function") ? await actor.rollSkill({ skill: "ath", ability: "str", target: dc }, { configure: false }, {})
-    : await actor.rollAbilityCheck({ ability: "str", target: dc }, { configure: false }, {});
-  const total = rolls?.[0]?.total;
-  if ( total === undefined || total === null ) return { success: false, cancelled: true };
-  const success = total >= dc;
-  if ( success ) await requestUnlock(token, actor, `forces open${forceDC ? "" : ` (no force DC set, used ${DEFAULT_DC})`}`);
-  return { success, total, dc, defaulted: !forceDC };
+  return attemptForce({ name: token.name, forceDC: readObstacle(token).forceDC, actor, unlock: how => requestUnlock(token, actor, how) });
 }
 
 /** Use key: unlock if the character carries the obstacle's key item. */
@@ -479,13 +511,24 @@ export async function useKey(pile, actor) {
   const token = tokenOf(pile);
   actor = actorOf(actor);
   if ( !token || !actor ) return null;
-  const key = findKey(actor, readObstacle(token).keyItem);
-  if ( !key ) { ui.notifications.warn(`${actor.name} doesn't carry the key.`); return { success: false }; }
-  const ok = await requestUnlock(token, actor, `unlocks with ${key.name}`);
-  return { success: ok };
+  return attemptKey({ keyItem: readObstacle(token).keyItem, actor, unlock: how => requestUnlock(token, actor, how) });
 }
 
 const choosing = new Set();
+
+/** The Pick Lock / Force open / Use key dialog. Resolves "pick" | "force" | "key" | "no" | null. */
+function askLockedChoice({ title, name, actor, keyItem }) {
+  const buttons = [
+    { action: "pick", label: "Pick Lock", icon: "fa-solid fa-key" },
+    { action: "force", label: "Force open", icon: "fa-solid fa-hammer" }
+  ];
+  if ( keyItem && findKey(actor, keyItem) ) buttons.push({ action: "key", label: `Use ${keyItem}`, icon: "fa-solid fa-key" });
+  buttons.push({ action: "no", label: "Leave it", default: true });
+  return foundry.applications.api.DialogV2.wait({
+    window: { title }, rejectClose: false, buttons,
+    content: `<p><strong>${esc(actor.name)}</strong> at <strong>${esc(name)}</strong>.</p>`
+  });
+}
 
 /**
  * The player's choices at a locked pile: Pick Lock / Force open / Use key.
@@ -501,17 +544,7 @@ export async function interact(pile, actor) {
   if ( choosing.has(token.uuid) ) return null;
   choosing.add(token.uuid);
   try {
-    const obstacle = readObstacle(token);
-    const buttons = [
-      { action: "pick", label: "Pick Lock", icon: "fa-solid fa-key" },
-      { action: "force", label: "Force open", icon: "fa-solid fa-hammer" }
-    ];
-    if ( obstacle.keyItem && findKey(actor, obstacle.keyItem) ) buttons.push({ action: "key", label: `Use ${obstacle.keyItem}`, icon: "fa-solid fa-key" });
-    buttons.push({ action: "no", label: "Leave it", default: true });
-    const choice = await foundry.applications.api.DialogV2.wait({
-      window: { title: `${token.name} is locked` }, rejectClose: false, buttons,
-      content: `<p><strong>${esc(actor.name)}</strong> at <strong>${esc(token.name)}</strong>.</p>`
-    });
+    const choice = await askLockedChoice({ title: `${token.name} is locked`, name: token.name, actor, keyItem: readObstacle(token).keyItem });
     if ( choice === "pick" ) return await pickLock(token, actor);
     if ( choice === "force" ) return await forceOpen(token, actor);
     if ( choice === "key" ) return await useKey(token, actor);
@@ -574,31 +607,176 @@ export async function configureObstacle(pile) {
 }
 
 /* -------------------------------------------- */
-/*  Doors and traps (not built)                 */
+/*  Doors                                       */
 /* -------------------------------------------- */
 
+const doorStates = () => CONST.WALL_DOOR_STATES ?? { CLOSED: 0, OPEN: 1, LOCKED: 2 };
+const wallOf = x => {
+  if ( typeof x === "string" ) x = fromUuidSync(x);
+  if ( x?.document?.documentName === "Wall" ) return x.document;
+  return (x?.documentName === "Wall") ? x : null;
+};
+
 /**
- * TODO (doors): the obstacle object on a door Wall: wall.flags[MODULE_ID].obstacle = { locked, lockDC, forceDC, keyItem }.
- * Mirror it with the wall's own door state (wall.ds: CONST.WALL_DOOR_STATES.LOCKED), then give Pick Lock / Force open / Use
- * key the same flow as piles (2024 DMG Locked Door: Sleight of Hand with thieves' tools; Doors table for the force DC).
- * @param {WallDocument} wall
+ * The obstacle on a door Wall: wall.flags[MODULE_ID].obstacle = { lockDC, forceDC, keyItem }. `locked` is the wall's own
+ * door state (ds === LOCKED), never the flag.
+ * @param {WallDocument|Wall} wall
  * @returns {{locked:boolean, lockDC:number, forceDC:number|null, keyItem:string}}
  */
 export function readDoorObstacle(wall) {
+  wall = wallOf(wall) ?? wall;
   const own = wall?.flags?.[MODULE_ID]?.obstacle ?? {};
-  return { ...own, locked: !!own.locked, lockDC: Number(own.lockDC) || DEFAULT_DC, forceDC: Number(own.forceDC) || null, keyItem: own.keyItem ?? "" };
+  return { ...own, locked: wall?.ds === doorStates().LOCKED, lockDC: Number(own.lockDC) || DEFAULT_DC,
+    forceDC: Number(own.forceDC) || null, keyItem: own.keyItem ?? "" };
 }
 
-/** TODO (doors): Pick Lock on a door Wall. Not implemented. @param {WallDocument} wall @param {Actor} actor */
+/** GM client: set the door's state (CLOSED after a pick or key, OPEN after forcing) and post the chat line. */
+async function unlockDoorLocal({ wallUuid, actorUuid, how, open=false }) {
+  const wall = wallOf(wallUuid), actor = actorOf(actorUuid);
+  if ( !wall ) return false;
+  await wall.update({ ds: open ? doorStates().OPEN : doorStates().CLOSED });
+  await chat(actor, `<strong>${esc(actor?.name ?? "Someone")}</strong> ${esc(how)} <strong>the door</strong> — it's ${open ? "open" : "unlocked"}.`);
+  return true;
+}
+
+async function requestDoorUnlock(wall, actor, how, open=false) {
+  const user = gmUser();
+  if ( !user ) { warn("no GM is connected to unlock this", { notify: true }); return false; }
+  return !!(await Creatures.runAs(user, "lootDoorUnlock", { wallUuid: wall.uuid, actorUuid: actor?.uuid ?? null, how, open }));
+}
+
+/** Pick Lock on a locked door Wall (same check, DC and chat as a pile). */
 export async function pickLockDoor(wall, actor) {
-  warn("pickLockDoor: doors are not implemented yet", { notify: true });
-  return null;
+  wall = wallOf(wall);
+  actor = actorOf(actor);
+  if ( !wall || !actor ) return null;
+  return attemptPick({ name: "the door", lockDC: readDoorObstacle(wall).lockDC, actor,
+    unlock: how => requestDoorUnlock(wall, actor, how), force: () => forceOpenDoor(wall, actor) });
 }
 
-/** TODO (doors): Force open a door Wall. Not implemented. @param {WallDocument} wall @param {Actor} actor */
+/** Force open a door Wall: success sets it OPEN. */
 export async function forceOpenDoor(wall, actor) {
-  warn("forceOpenDoor: doors are not implemented yet", { notify: true });
-  return null;
+  wall = wallOf(wall);
+  actor = actorOf(actor);
+  if ( !wall || !actor ) return null;
+  return attemptForce({ name: "the door", forceDC: readDoorObstacle(wall).forceDC, actor, unlock: how => requestDoorUnlock(wall, actor, how, true) });
+}
+
+/** Use key on a door Wall: success sets it CLOSED. */
+export async function useKeyDoor(wall, actor) {
+  wall = wallOf(wall);
+  actor = actorOf(actor);
+  if ( !wall || !actor ) return null;
+  return attemptKey({ keyItem: readDoorObstacle(wall).keyItem, actor, unlock: how => requestDoorUnlock(wall, actor, how) });
+}
+
+/** The player's choices at a locked door. */
+export async function interactDoor(wall, actor) {
+  wall = wallOf(wall);
+  actor = actorOf(actor);
+  if ( !wall || !actor || (wall.ds !== doorStates().LOCKED) ) return null;
+  const id = wall.uuid;
+  if ( choosing.has(id) ) return null;
+  choosing.add(id);
+  try {
+    const choice = await askLockedChoice({ title: "The door is locked", name: "the door", actor, keyItem: readDoorObstacle(wall).keyItem });
+    if ( choice === "pick" ) return await pickLockDoor(wall, actor);
+    if ( choice === "force" ) return await forceOpenDoor(wall, actor);
+    if ( choice === "key" ) return await useKeyDoor(wall, actor);
+    return null;
+  } finally { choosing.delete(id); }
+}
+
+/** Distance in scene units from a token's bounds to the nearest point of a wall segment (0 when they touch). */
+function tokenToWallDistance(token, wall) {
+  const [x0, y0, x1, y1] = wall.c;
+  const size = canvas.dimensions.size;
+  const left = token.document.x, top = token.document.y;
+  const right = left + (token.document.width * size), bottom = top + (token.document.height * size);
+  const segDist = (px, py) => {
+    const dx = x1 - x0, dy = y1 - y0, len2 = (dx * dx) + (dy * dy);
+    const t = len2 ? Math.max(0, Math.min(1, (((px - x0) * dx) + ((py - y0) * dy)) / len2)) : 0;
+    return Math.hypot(px - (x0 + (t * dx)), py - (y0 + (t * dy)));
+  };
+  const rectDist = (px, py) => Math.hypot(Math.max(left - px, 0, px - right), Math.max(top - py, 0, py - bottom));
+  // Does the segment cross the rectangle? (Liang-Barsky clip.)
+  let t0 = 0, t1 = 1, crosses = true;
+  const dx = x1 - x0, dy = y1 - y0;
+  for ( const [p, q] of [[-dx, x0 - left], [dx, right - x0], [-dy, y0 - top], [dy, bottom - y0]] ) {
+    if ( p === 0 ) { if ( q < 0 ) { crosses = false; break; } continue; }
+    const r = q / p;
+    if ( p < 0 ) { if ( r > t1 ) { crosses = false; break; } t0 = Math.max(t0, r); }
+    else { if ( r < t0 ) { crosses = false; break; } t1 = Math.min(t1, r); }
+  }
+  const pixels = crosses ? 0 : Math.min(
+    ...[[left, top], [right, top], [left, bottom], [right, bottom]].map(([x, y]) => segDist(x, y)),
+    rectDist(x0, y0), rectDist(x1, y1));
+  return (pixels / size) * canvas.dimensions.distance;
+}
+
+/** The player's controlled token within 5 ft of the wall (nearest first), or null. */
+function characterNearDoor(wall) {
+  let best = null, bestD = Infinity;
+  for ( const t of (canvas.tokens?.controlled ?? []) ) {
+    if ( !t.actor || !t.isOwner ) continue;
+    const d = tokenToWallDistance(t, wall.document);
+    if ( (d <= 5.01) && (d < bestD) ) { best = t; bestD = d; }
+  }
+  return best;
+}
+
+/** Wrap DoorControl#_onRightDown: a player right-clicking a locked door beside their token gets the choices. */
+function wrapDoorControl() {
+  const cls = foundry.canvas?.containers?.DoorControl ?? globalThis.DoorControl ?? CONFIG.Canvas?.doorControlClass;
+  const proto = cls?.prototype;
+  if ( !proto || (typeof proto._onRightDown !== "function") ) { warn("DoorControl#_onRightDown not found; players can't pick door locks from the map"); return; }
+  const original = proto._onRightDown;
+  proto._onRightDown = function(event, ...rest) {
+    try {
+      const wall = this.wall?.document;
+      if ( !game.user.isGM && wall && (wall.ds === doorStates().LOCKED) ) {
+        const near = characterNearDoor(this.wall);
+        if ( near ) {
+          event?.stopPropagation?.();
+          interactDoor(wall, near.actor);
+          return;
+        }
+      }
+    } catch(err) { console.error(err); }
+    return original.call(this, event, ...rest);
+  };
+}
+
+/** WallConfig: lock DC, force DC and key item for doors, saved with the form. */
+function injectWallConfig(app, html) {
+  if ( !game.user.isGM ) return;
+  const root = html instanceof HTMLElement ? html : (html?.[0] ?? app.element);
+  const wall = app.document ?? app.object;
+  if ( !root || !wall ) return;
+  root.querySelector(".alivas-door-obstacle")?.remove();
+  const o = wall.flags?.[MODULE_ID]?.obstacle ?? {};
+  const name = k => `flags.${MODULE_ID}.obstacle.${k}`;
+  const fs = document.createElement("fieldset");
+  fs.className = "alivas-door-obstacle";
+  fs.innerHTML = `<legend>Lock (Engine of Triggers)</legend>
+    <div class="form-group"><label>Lock DC</label><div class="form-fields">
+      <input type="number" name="${name("lockDC")}" min="1" step="1" value="${o.lockDC ?? ""}" placeholder="${DEFAULT_DC}"></div>
+      <p class="hint">Thieves' tools, Dexterity (Sleight of Hand). Blank uses ${DEFAULT_DC}.</p></div>
+    <div class="form-group"><label>Force DC</label><div class="form-fields">
+      <input type="number" name="${name("forceDC")}" min="1" step="1" value="${o.forceDC ?? ""}" placeholder="${DEFAULT_DC}"></div>
+      <p class="hint">Strength (Athletics). Blank uses ${DEFAULT_DC}.</p></div>
+    <div class="form-group"><label>Key item</label><div class="form-fields">
+      <input type="text" name="${name("keyItem")}" value="${esc(o.keyItem ?? "")}" placeholder="Item name"></div></div>`;
+  const form = root.matches?.("form") ? root : (root.querySelector("form") ?? root);
+  const footer = form.querySelector("footer");
+  if ( footer ) footer.before(fs); else form.append(fs);
+  const doorSelect = form.querySelector("select[name=door]");
+  const sync = () => {
+    const none = CONST.WALL_DOOR_TYPES?.NONE ?? 0;
+    fs.hidden = Number(doorSelect ? doorSelect.value : wall.door) === none;
+  };
+  sync();
+  doorSelect?.addEventListener("change", sync);
 }
 
 /*
@@ -606,6 +784,167 @@ export async function forceOpenDoor(wall, actor) {
  * Detect (Perception/Investigation vs detectDC), Disarm (thieves' tools DC 15 per 2024 PHB Tools, or disarmDC), and
  * trigger → run `effect` through the engine's action runner. Nothing reads or writes `trap` yet.
  */
+
+/* -------------------------------------------- */
+/*  Pile appearance                             */
+/* -------------------------------------------- */
+
+const IMG_DIR = `${MODULE_ID}-loot`;
+const REFRESH_DELAY = 300;
+const TILE = 256;
+const DEFAULT_PILE_NAMES = new Set(["item pile", "loot pile"]);
+const refreshTimers = new Map();
+const knownFiles = new Set();
+
+/** Deterministic 53-bit string hash (cyrb53), hex. */
+function hashString(str, seed=0) {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for ( let i = 0; i < str.length; i++ ) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
+}
+
+const filePicker = () => foundry.applications?.apps?.FilePicker?.implementation ?? globalThis.FilePicker;
+
+function loadImage(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = /^(https?:|data:|blob:|\/)/i.test(src) ? src : (foundry.utils.getRoute?.(src) ?? src);
+  });
+}
+
+/** Cell rectangles for n images on a TILE square: 1x2 for two, 2x2 otherwise. */
+function layoutCells(n) {
+  const h = TILE / 2;
+  if ( n === 2 ) return [{ x: 0, y: h / 2, w: h, h }, { x: h, y: h / 2, w: h, h }];
+  return [{ x: 0, y: 0, w: h, h }, { x: h, y: 0, w: h, h }, { x: 0, y: h, w: h, h }, { x: h, y: h, w: h, h }].slice(0, n);
+}
+
+/** Render the first four images into a transparent webp blob; null when none could be drawn. */
+async function renderComposite(paths) {
+  const imgs = await Promise.all(paths.slice(0, 4).map(loadImage));
+  const canvasEl = document.createElement("canvas");
+  canvasEl.width = canvasEl.height = TILE;
+  const ctx = canvasEl.getContext("2d");
+  const cells = layoutCells(paths.slice(0, 4).length);
+  let drawn = 0;
+  imgs.forEach((img, i) => {
+    if ( !img ) return;
+    const c = cells[i], iw = img.naturalWidth || c.w, ih = img.naturalHeight || c.h;
+    const k = Math.min(c.w / iw, c.h / ih);
+    ctx.drawImage(img, c.x + ((c.w - (iw * k)) / 2), c.y + ((c.h - (ih * k)) / 2), iw * k, ih * k);
+    drawn++;
+  });
+  if ( !drawn ) return null;
+  return new Promise(resolve => canvasEl.toBlob(b => resolve(b), "image/webp", 0.9));
+}
+
+/** Make sure the upload folder exists (the error from an existing one is ignored). */
+async function ensureImageDir(FP) {
+  try { await FP.browse("data", IMG_DIR); return; } catch(err) { /* missing: create it below */ }
+  try { await FP.createDirectory("data", IMG_DIR); } catch(err) { /* already exists */ }
+}
+
+/**
+ * The path of the composite image for these item images, uploading it when it isn't there yet.
+ * @returns {Promise<string|null>} null when it can't be made or uploaded (the caller keeps the current image).
+ */
+async function compositePath(paths) {
+  const FP = filePicker();
+  if ( !FP?.upload ) { warn("no FilePicker to upload the combined pile image with; keeping the current image", { notify: true }); return null; }
+  if ( game.user.can && !game.user.can("FILES_UPLOAD") ) {
+    warn("not permitted to upload files; pile images are left as they are", { notify: true });
+    return null;
+  }
+  const name = `pile-${hashString(paths.slice(0, 4).join("|"))}.webp`;
+  const path = `${IMG_DIR}/${name}`;
+  if ( knownFiles.has(path) ) return path;
+  await ensureImageDir(FP);
+  try {
+    const listing = await FP.browse("data", IMG_DIR);
+    if ( listing?.files?.some(f => decodeURIComponent(f).endsWith(`/${name}`) || (f === path)) ) { knownFiles.add(path); return path; }
+  } catch(err) { /* fall through to upload */ }
+  try {
+    const blob = await renderComposite(paths);
+    if ( !blob ) return null;
+    const res = await FP.upload("data", IMG_DIR, new File([blob], name, { type: "image/webp" }), {}, { notify: false });
+    if ( !res || (res.status === "error") ) throw new Error(res?.message ?? "upload refused");
+    knownFiles.add(path);
+    return res.path ?? path;
+  } catch(err) {
+    warn(`could not upload the combined pile image (${err?.message ?? err}); keeping the current image`, { notify: true });
+    return null;
+  }
+}
+
+/** Physical items in a pile (features such as Combat Maneuvers never count). */
+const pileItems = actor => actor.items.filter(i => ("quantity" in (i.system ?? {})) && ((Number(i.system.quantity) || 0) > 0));
+
+/** The token documents that show a pile actor. */
+function pileTokens(actor) {
+  if ( actor.isToken ) return actor.token ? [actor.token] : [];
+  return game.scenes.contents.flatMap(sc => sc.tokens.filter(t => t.actorId === actor.id && t.actorLink));
+}
+
+/** Refresh one pile's name and token image from its contents (lead GM only). */
+async function refreshPile(actor) {
+  if ( !Creatures.isLeadGM() || !actor || !isActive() ) return;
+  try {
+    if ( !ipTest("isValidItemPile", actor) ) return;
+    if ( actor.flags?.[MODULE_ID]?.obstacle ) return;
+    const items = pileItems(actor);
+    if ( !items.length ) return;
+    const single = items.length === 1;
+
+    let src;
+    if ( single ) src = items[0].img;
+    else {
+      const paths = items.map(i => i.img).filter(Boolean);
+      src = paths.length ? await compositePath(paths) : null;
+    }
+
+    const wanted = single ? items[0].name : `Loot pile (${items.length})`;
+    const current = actor.isToken ? (actor.token?.name ?? actor.name) : actor.name;
+    const auto = actor.getFlag(MODULE_ID, "autoName");
+    // Only names this module (or Item Piles) gave are replaced; a name the GM typed stays.
+    const rename = (current !== wanted) && ((current === auto) || DEFAULT_PILE_NAMES.has(String(current).toLowerCase())
+      || actor.items.some(i => i.name === current) || /^Loot pile \(\d+\)$/.test(current));
+    const scale = single ? SINGLE_ITEM_SCALE : 1;
+
+    const tokens = pileTokens(actor);
+    const linked = !actor.isToken;
+    const actorUpdate = {};
+    if ( rename ) {
+      actorUpdate[`flags.${MODULE_ID}.autoName`] = wanted;
+      if ( linked ) { actorUpdate.name = wanted; actorUpdate["prototypeToken.name"] = wanted; }
+    }
+    if ( src && linked && (actor.prototypeToken?.texture?.src !== src) ) actorUpdate["prototypeToken.texture.src"] = src;
+    if ( Object.keys(actorUpdate).length ) await actor.update(actorUpdate);
+    for ( const t of tokens ) {
+      const update = {};
+      if ( src && (t.texture?.src !== src) ) update["texture.src"] = src;
+      if ( src && (t.texture?.scaleX !== scale) ) Object.assign(update, { "texture.scaleX": scale, "texture.scaleY": scale });
+      if ( rename && (t.name !== wanted) ) update.name = wanted;
+      if ( Object.keys(update).length ) await t.update(update);
+    }
+  } catch(err) { console.error(`${MODULE_ID} | loot: pile refresh failed`, err); }
+}
+
+/** Debounced (per actor) refresh; does nothing on clients that are not the lead GM. */
+function scheduleRefresh(actor) {
+  if ( !actor || !Creatures.isLeadGM() || !isActive() ) return;
+  const key = actor.uuid;
+  clearTimeout(refreshTimers.get(key));
+  refreshTimers.set(key, setTimeout(() => { refreshTimers.delete(key); refreshPile(actor); }, REFRESH_DELAY));
+}
 
 /* -------------------------------------------- */
 /*  Engine action                               */
@@ -634,6 +973,7 @@ const LOOT_ACTIONS = {
 
 function registerHandlers() {
   Creatures.HANDLERS.lootUnlock = payload => unlockLocal(payload);
+  Creatures.HANDLERS.lootDoorUnlock = payload => unlockDoorLocal(payload);
   Creatures.HANDLERS.lootDisarm = async ({ actorUuid, itemId }) => disarm(fromUuidSync(actorUuid), { item: itemId });
   Creatures.HANDLERS.lootDrop = async ({ actorUuid, entries, position, pileUuid, verb }) => {
     const actor = actorOf(actorUuid);
@@ -688,6 +1028,16 @@ function registerHooks() {
     if ( !Creatures.isLeadGM() || (typeof diff?.locked !== "boolean") ) return;
     const token = tokenOf(target);
     if ( token && (token.actor?.getFlag(MODULE_ID, "obstacle")?.locked !== diff.locked) ) writeObstacle(token, { locked: diff.locked });
+  });
+
+  // Doors: GM config on WallConfig, player right-click on a locked door control.
+  Hooks.on("renderWallConfig", injectWallConfig);
+  wrapDoorControl();
+
+  // Pile appearance follows its contents.
+  for ( const hook of ["createItem", "deleteItem"] ) Hooks.on(hook, item => scheduleRefresh(item.parent));
+  Hooks.on("updateItem", (item, changes) => {
+    if ( foundry.utils.hasProperty(changes, "system.quantity") || ("img" in changes) || ("name" in changes) ) scheduleRefresh(item.parent);
   });
 
   // Token HUD: GM → lock settings; a player at a locked pile → the pick/force/key choices for their controlled character.

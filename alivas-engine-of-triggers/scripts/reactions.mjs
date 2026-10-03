@@ -79,7 +79,7 @@
 
 import {
   tokenFor, distanceFt, canSee, relation, controllerOf, lowestSlot, selectCreatures, giveEffect, describeSelector, isLeadGM,
-  runAs, HANDLERS
+  runAs, HANDLERS, displaceToken
 } from "./creatures.mjs";
 
 export { tokenFor, distanceFt, canSee };
@@ -890,8 +890,32 @@ export async function leavesReach(tokenDoc, movement) {
       options.push({ id: `${unarmed.id}.${activity.id}`, label: `Opportunity Attack — ${activity.name} (Unarmed Strike)`,
         itemId: unarmed.id, activityId: activity.id, targetUuid: tokenDoc.uuid, rollAttack: false });
     }
-    await ask(reactor, `<strong>${mover.name}</strong> leaves <strong>${reactor.name}</strong>'s reach.`, options);
+    const answer = await ask(reactor, `<strong>${mover.name}</strong> leaves <strong>${reactor.name}</strong>'s reach.`, options);
+    if ( answer?.choice && (answer.choice !== "skip") ) await stopIfHeld(tokenDoc, reactorToken, reach, movement);
   }
+}
+
+/** Statuses that leave a creature with no speed (it can't finish a move it was making). */
+const NO_SPEED = ["grappled", "restrained", "incapacitated", "paralyzed", "petrified", "stunned", "unconscious", "dead"];
+
+/**
+ * The Opportunity Attack happens as the mover leaves reach, but Foundry reports the move after it ended. If the
+ * attack left the mover unable to move (an Unarmed Strike Grapple, or it dropped), put it back at the last point of its
+ * path still within the reactor's reach — where it was when the attack interrupted it.
+ */
+async function stopIfHeld(tokenDoc, reactorToken, reach, movement) {
+  // The attack's effects (a save's outcome) land a little after the reaction resolves.
+  for ( let i = 0; i < 10; i++ ) {
+    const actor = tokenDoc.actor;
+    if ( NO_SPEED.some(s => actor?.statuses?.has(s)) || ((actor?.system.attributes?.hp?.value ?? 1) <= 0) ) break;
+    if ( i === 9 ) return;
+    await new Promise(r => setTimeout(r, 300));
+  }
+  const path = [movement.origin, ...(movement.passed?.waypoints ?? [])].filter(p => Number.isFinite(p?.x));
+  const inReach = path.filter(p => distanceFt(tokenDoc, reactorToken, p) <= reach);
+  const spot = inReach.at(-1) ?? movement.origin;
+  if ( !spot || ((spot.x === tokenDoc._source.x) && (spot.y === tokenDoc._source.y)) ) return;
+  await displaceToken(tokenDoc, { x: spot.x, y: spot.y }, "place");
 }
 
 /** Quick check: could anyone on the subject's scene react in this window? */

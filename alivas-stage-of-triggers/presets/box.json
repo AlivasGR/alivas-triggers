@@ -5552,5 +5552,599 @@
         ]
       }
     }
+  },
+  {
+    "name": "Combat Maneuvers",
+    "type": "feat",
+    "activities": {
+      "Shove Aside": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "targets",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.cantrips.gust.v1",
+                "volume": 0.35
+              }
+            }
+          ]
+        }
+      },
+      "Disarm": {
+        "use": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.slash.01.orange",
+              "from": "source",
+              "to": "targets",
+              "wait": "finish",
+              "scale": 0.8,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.3
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.003.yellow",
+              "at": "targets",
+              "scale": 0.5
+            }
+          ]
+        }
+      },
+      "Pin": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.chain.standard.complete.02.grey",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      },
+      "Hurl Creature": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "targets",
+              "scale": 1.5,
+              "sound": {
+                "file": "psfx.cantrips.gust.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Tumble": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.particles.swirl.white.01.01",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.25
+              }
+            }
+          ]
+        }
+      },
+      "Overrun": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.3
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "delay": 150,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Escape Grapple": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.011.yellow",
+              "at": "source",
+              "scale": 1.1,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      },
+      "Climb onto a Bigger Creature": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.side.grey",
+              "at": "source",
+              "scale": 0.8,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.25
+              }
+            }
+          ]
+        }
+      },
+      "Dislodge Rider": {
+        "use": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.4
+              }
+            }
+          ]
+        }
+      },
+      "Help (Ability Check)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.healing_generic.burst.tealyellow",
+              "at": "targets",
+              "scale": 1,
+              "sound": {
+                "file": "psfx.conditions.boon.001",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      },
+      "Help (Attack)": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.ui.indicator.red.01.01",
+              "at": "targets",
+              "scale": 1,
+              "sound": {
+                "file": "psfx.conditions.boon.005",
+                "volume": 0.25
+              }
+            }
+          ]
+        }
+      },
+      "Hide": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.centered.grey",
+              "at": "source",
+              "scale": 1.2,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.25
+              }
+            }
+          ]
+        }
+      },
+      "Search": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.eyes.01.dark_yellow.single",
+              "at": "source",
+              "scale": 0.9
+            }
+          ]
+        }
+      },
+      "Study": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.eyes.01.bluegreen.single",
+              "at": "source",
+              "scale": 0.9
+            }
+          ]
+        }
+      },
+      "Influence": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.heart.pink.01",
+              "at": "source",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.incantations.whispers.masc",
+                "volume": 0.2
+              }
+            }
+          ]
+        }
+      },
+      "Dash": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "source",
+              "scale": 1.4,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      },
+      "Disengage": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.02.white",
+              "at": "source",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.creature.movement.footsteps",
+                "volume": 0.2
+              }
+            }
+          ]
+        }
+      },
+      "Dodge": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.glint.blue.few",
+              "at": "source",
+              "scale": 1.1,
+              "sound": {
+                "file": "psfx.1st-level-spells.shield-spell.intro",
+                "volume": 0.3
+              }
+            }
+          ]
+        }
+      },
+      "Release Grapple": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.impact.011.yellow",
+              "at": "source",
+              "scale": 0.5
+            }
+          ]
+        }
+      },
+      "Drop Prone": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.ring.01.white",
+              "at": "source",
+              "scale": 0.8,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.2
+              }
+            }
+          ]
+        }
+      },
+      "Stand Up": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.side.grey",
+              "at": "source",
+              "scale": 0.7
+            }
+          ]
+        }
+      },
+      "Lift Ally": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.ring.01.white",
+              "at": "targets",
+              "scale": 0.7
+            }
+          ]
+        }
+      },
+      "Drop Ally": {
+        "use": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.smoke.puff.ring.01.white",
+              "at": "targets",
+              "scale": 0.7,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.2
+              }
+            }
+          ]
+        }
+      }
+    },
+    "effects": {
+      "Dashing": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.02.white",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.4,
+              "scale": 1.2,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Disengaged": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.3,
+              "scale": 1.1,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Helped (Ability Check)": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.light_orb.loop.yellow",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Distracted (Help)": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.ui.indicator.red.01.01",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.6,
+              "scale": 0.9,
+              "below": false
+            }
+          ]
+        }
+      },
+      "Climbing": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.simple.001.loop.001.yellow",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.5,
+              "scale": 1,
+              "below": true
+            }
+          ]
+        }
+      },
+      "Lifted": {
+        "active": {
+          "steps": [
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.chain.standard.loop.01.grey",
+              "at": "bearer",
+              "persist": true,
+              "opacity": 0.55,
+              "scale": 1,
+              "below": true
+            }
+          ]
+        }
+      }
+    },
+    "actions": {
+      "place": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.009.white",
+            "at": "targets",
+            "scale": 1,
+            "sound": {
+              "file": "psfx.impacts.bludgeoning.v1",
+              "volume": 0.4
+            }
+          },
+          {
+            "kind": "impact",
+            "file": "jb2a.smoke.puff.ring.01.white",
+            "at": "targets",
+            "scale": 0.9
+          }
+        ]
+      },
+      "dropHeld": {
+        "steps": [
+          {
+            "kind": "impact",
+            "file": "jb2a.impact.003.yellow",
+            "at": "targets",
+            "scale": 0.6,
+            "sound": {
+              "file": "psfx.weapon-attacks.sword.v1",
+              "volume": 0.4
+            }
+          }
+        ]
+      },
+      "passThrough": {
+        "steps": [
+          {
+            "kind": "onToken",
+            "file": "jb2a.misty_step.01.grey",
+            "at": "source",
+            "scale": 0.8
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Unarmed Strike",
+    "type": "weapon",
+    "activities": {
+      "Attack": {
+        "attack": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.melee_generic.creature_attack.fist.001.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.3
+              }
+            }
+          ]
+        },
+        "hit": {
+          "steps": [
+            {
+              "kind": "impact",
+              "file": "jb2a.impact.009.white",
+              "at": "targets",
+              "scale": 0.9,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.5
+              }
+            }
+          ]
+        }
+      },
+      "Grapple": {
+        "use": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.unarmed_strike.no_hit.01.yellow",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.weapon-swooshes.light.v1",
+                "volume": 0.3
+              }
+            },
+            {
+              "kind": "onToken",
+              "file": "jb2a.markers.chain.standard.complete.02.grey",
+              "at": "targets",
+              "scale": 0.8
+            }
+          ]
+        }
+      },
+      "Shove": {
+        "use": {
+          "steps": [
+            {
+              "kind": "melee",
+              "file": "jb2a.unarmed_strike.no_hit.01.blue",
+              "from": "source",
+              "to": "targets",
+              "wait": 0,
+              "sound": {
+                "file": "psfx.impacts.bludgeoning.v1",
+                "volume": 0.4
+              }
+            },
+            {
+              "kind": "impact",
+              "file": "jb2a.wind_lines.01.01.white",
+              "at": "targets",
+              "scale": 1.2
+            }
+          ]
+        }
+      }
+    }
   }
 ]
