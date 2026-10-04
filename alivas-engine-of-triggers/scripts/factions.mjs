@@ -326,7 +326,13 @@ export function registerFactions() {
     if ( controlled && token.document?.isOwner ) lastClicked = token.document.id;
     refreshBorders();
   });
-  Hooks.on("canvasReady", () => { if ( enabled() ) refreshBorders(); });
+  Hooks.on("canvasReady", () => {
+    if ( !enabled() ) return;
+    // A token already controlled when the canvas loads (no controlToken event for it) counts as clicked.
+    const owned = !game.user.isGM && canvas.tokens?.controlled?.find(t => t.document?.isOwner);
+    if ( owned ) lastClicked = owned.document.id;
+    refreshBorders();
+  });
 
   // Border colours: from the table, seen from this viewer's perspective (Secret and non-creatures as Foundry draws them).
   // (registerFactions runs during "ready", so this is installed right away, not in a later hook.)

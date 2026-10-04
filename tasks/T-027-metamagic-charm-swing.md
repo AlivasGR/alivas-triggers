@@ -51,32 +51,53 @@ The maintainer's requests of 2026-10-04:
 - **Not packed yet** (Foundry was running for T-026). Run `npm run pack` with Foundry closed before testing.
 
 ## Acceptance (live)
-- [ ] **Perspective:**
-  - a player owning ZZ PC (A) and a ZZ hireling (C, neutral to B) clicks the PC: B tokens are red;
-  - they click the hireling: B tokens are yellow, and stay yellow after deselecting;
-  - the GM always sees A's colours.
-- [ ] **Twinned:**
-  - a ZZ Sorcerer uses Twinned Spell: 1 Sorcery Point is spent, and "Twinned Spell (next spell)" is on them;
-  - they cast Charm Person with a level 1 slot: the card shows level 2 scaling (two targets allowed), the effect is
-    gone, and a level 1 slot is spent;
-  - a cantrip doesn't remove the effect.
+- [x] (live 2026-10-04) **Perspective:** player client: selecting ZZ PC (A) -> B tokens e72124 (red); selecting the C hireling -> B
+      tokens f1d836 (yellow), still yellow after releasing; selecting the PC again -> red. GM client (also with a C token selected)
+      -> perspective "A". Minor, not reproduced: on the first run after a page reload, selecting the hireling once left the perspective
+      at "A" (the controlToken hook may not fire if the token was already controlled at load); repeating it worked every time.
+- [x] (live 2026-10-04) **Twinned:** Twinned Spell used: Sorcery Points 3 -> 2, "Twinned Spell (next spell)" on the sorcerer. Fire Bolt
+      (cantrip): effect stays. Charm Person with a level 1 slot (two goblins targeted): `scaling` 1 in the usage config, both targets
+      got a save, slot spell1 4 -> 3, effect removed ("Twinned Spell ends").
 - [ ] **Charm Person:**
-  - out of combat: a normal save;
-  - in combat vs a hostile goblin: the save has advantage;
-  - on a failure, Charmed; when the caster's ally damages the goblin, the Charmed effect ends ("the charm ends");
-  - when an unrelated creature damages it, it stays.
+  - [x] (live 2026-10-04) out of combat: a single d20 (advantage mode 0);
+  - [x] (live 2026-10-04) in combat vs a hostile goblin: `2d20adv` (advantage mode 1); failure -> Charmed;
+  - [ ] **FAIL** ends when the caster's ally damages it: a real hit by an A-faction ally (Greataxe, goblin 4 -> 0 HP) left Charmed on. Same
+    for a real hit by the unrelated skeleton (stays: correct, but only by accident). See Left 1. With `api.fire("damaged", goblin,
+    { subject: allyActor })` the trigger fires and removes Charmed; with an unrelated subject it stays.
 - [ ] **Dominate Person:**
-  - on a failure the target is Charmed and joins the caster's faction;
-  - when it takes damage, a Wis save vs the caster's DC runs, and a success ends it (it returns to its old faction);
-  - advantage on the first save when fighting.
-- [ ] **Swing Creature** (setting "Include homebrew maneuvers" on):
-  - a ZZ Fighter grapples goblin 1 (Unarmed Strike Grapple), targets goblin 2, and uses Swing Creature;
-  - an Athletics check runs vs goblin 1's DC;
-  - on a success, the Strike attack rolls vs goblin 2: on a hit, goblin 2 takes 1d6 + Str and goblin 1 takes 1d6; on a
-    miss, only goblin 1 takes 1d6;
-  - not grappling anyone: refused ("isn't grappling anyone");
-  - holding a creature too heavy to lift: refused.
-- [ ] **Editor:** the new fields show and round-trip.
+  - [x] (live 2026-10-04) in combat: first save `2d20adv`; on a failure Charmed + "Dominated" effect, faction A, disposition Friendly (1), border cyan;
+  - [ ] **FAIL** damage -> Wis save vs the caster's DC: the trigger fires but throws "No usable DC for Dominated (dc: source)". See Left 2.
+  - [x] (live 2026-10-04) rest of the chain, with the effect's trigger DC switched by hand to `sourceSpell`: damage -> 1d20 Wis save -> success ->
+    "Dominate Person ends", Dominated gone, faction back to B, disposition Hostile (-1), border red.
+- [x] (live 2026-10-04) **Swing Creature** (setting "Include homebrew maneuvers" was already on):
+  - Fighter grappled goblin 1 (Unarmed Strike Grapple, DC 15, failed save, tether on goblin 1);
+  - Athletics check (1d20 + 7) vs DC 12 (8 + goblin 1's higher of Str/Dex + prof); a roll of 9 -> "can't get enough of a grip", nothing else happens;
+  - success (27): Strike attack vs goblin 2 (AC 1) hit: goblin 2 took 1d6+5 (6), goblin 1 took 1d6 (5);
+  - success (26) vs AC 40: attack 20 missed: goblin 2 unchanged (10), goblin 1 took 1d6 (3);
+  - not grappling: refused "ZZ T27 Fighter isn't grappling anyone.";
+  - held goblin set to Gargantuan: refused "(12000 lb) is more than ZZ T27 Fighter can lift now (287.8 lb free)".
+- [x] (live 2026-10-04) **Editor:** the effect rule "spells count as cast N levels higher" shows 1, saves 2, other triggers untouched;
+  the activity checkbox "Its targets save with advantage if the user is fighting them" shows, toggles off (flag becomes `{}`) and on, and
+  reopens in sync; the filter field "source or its ally" is present on the Charm Person effect and the effect round-trips unchanged.
+
+## Left (live test 2026-10-04)
+1. **`damaged` never knows who dealt the damage (breaks Charm Person's "ends when you or an ally damage it").** `main.mjs` ~1315 reads
+   the damager in `updateActor` from `damageSource(options)` (`options[MODULE_ID].activityUuid` / `options.originatingMessage`), but
+   dnd5e's `applyDamage` calls `this.update(updates, context ? { dnd5e: context } : {})`: the damage options never reach the update, so the
+   hook only has `options[MODULE_ID].hp` (observed keys: action, documentName, modifiedTime, diff, recursive, render, dnd5e,
+   alivas-engine-of-triggers {hp}, parent). `subject` is always null, so `subjectAlliedWithSource` is always false. Expected: ally hit ->
+   Charmed ends. Likely fix: in the `applyDamage` wrapper (main.mjs ~1590) remember the damager (e.g. a short-lived map actor.uuid ->
+   damageSource(options).actor, set before `applyDamage.call`, read in `updateActor`), or fire `damaged` from the wrapper next to `dealt`.
+2. **Dominate's repeat save has no DC when the spell needs concentration.** `resolveDC("source")` (main.mjs 2910) uses `originActivity(effect)`,
+   which does `fromUuid(effect.origin)`. For a concentration spell the Dominated effect's `origin` is the caster's "Concentrating: Dominate Person"
+   ActiveEffect (`Actor.<id>.ActiveEffect.<id>`), not the item/activity, so `doc.system.activities` is missing and the function returns the
+   effect (no `.save`). Result: `Trigger "Dominate Person" failed No usable DC for Dominated (dc: source)`. Expected: Wis save vs 14.
+   Fix: in `originActivity`, when `doc` is an ActiveEffect follow `doc.origin` (-> the item, whose activities hold the DC) or
+   `doc.flags.dnd5e.activity.uuid`; or make `resolveDC("source")` fall back to the source actor's spell DC. (Same bug will hit any
+   `dc: "source"` trigger on a concentration spell's effect.)
+3. Test note: the concentration effect `flags.dnd5e.activity.uuid` is present (Activity.dnd5eactivity000), so the fix for 2 has the data it needs.
 
 ## Log
 - 2026-10-04 — Claude (Opus): written offline; untested live, not packed.
+- 2026-10-04 — Sonnet live test (headless v14.368, dnd5e 6.0.5, GM + player tabs, square-grid scene "ZZ T27", cleaned up afterwards): perspective, Twinned,
+  Swing Creature and the editor pass; Charm Person's "ally damages it" and Dominate's repeat-save DC fail (Left 1 and 2). Status stays needs-live-test until those are fixed.

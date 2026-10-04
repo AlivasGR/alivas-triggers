@@ -1,6 +1,6 @@
 # T-026 — Factions: relations table, perspective colours, disposition sync, flanking (spec)
 
-- **Status:** needs-live-test (live test 2026-10-04: all pass except perspective colours, see Left)
+- **Status:** done (live 2026-10-04: first test + retest of the fixes; Charm/Dominate follow-ups live in T-027)
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine (factions; replaces the T-025 baseline's rules), Box (flanking setting only)
@@ -229,10 +229,9 @@ Live test 2026-10-04 (headless Foundry v14, dnd5e 6.0.5, scene "ZZ Factions", GM
 - [x] (live 2026-10-04) Disposition sync: A<->B ally/neutral/hostile -> B token Friendly/Neutral/Hostile; Secret token kept
       (-2) through every change; two attacks (one rolled) changed no dispositions. Tracker letter field and Token HUD field+button
       edit the flag and re-sync.
-- [ ] Perspective colours: **FAIL** as built: `Token#getDispositionColor` is never wrapped (see Left, 2). With the wrapper
-      emulated by hand (same code) the logic passed: player selecting PC (A) -> B red; selecting a C token -> A red, B yellow;
-      GM with nothing selected -> A's view. Mixed-selection fallbacks and GM selection: SKIPPED (the perspective rule changed
-      on 2026-10-04; retest after the rewrite). The perspective badge is not built (known deviation).
+- [x] (live 2026-10-04, retest) Perspective colours: `Token5e.prototype.getDispositionColor` is now wrapped. Player client: selecting the PC (A)
+      -> B tokens e72124 (red), A ally 43dfdf, own party 33bc4e; selecting a C token -> B f1d836 (yellow), A f1d836; stays after releasing;
+      GM client -> always A's view (also with a C token selected). The perspective badge is not built (known deviation).
 - [x] (live 2026-10-04) Pickers: an ally-only picker starts with only the green chip on (3 allies shown, hostile/neutral rows
       hidden); switching red on lists the hostiles; a hostile and an ally were picked and returned. Chips relative to the
       chooser. Side note in Left, 3 (loot pile listed as a neutral pick).
@@ -256,22 +255,14 @@ Live test 2026-10-04 (headless Foundry v14, dnd5e 6.0.5, scene "ZZ Factions", GM
 - [x] (live 2026-10-04) GM-only: the player client has no tracker fields, HUD fields or relations button; openWindow warns.
 
 ## Left (live test 2026-10-04)
-1. **Relations window: first open throws.** `openRelationsWindow` (factions-window.mjs) calls `app.bringToFront?.()` right after
-   `app.render({ force: true })` without awaiting; `ApplicationV2#bringToFront` reads `this.element.style`, which doesn't exist yet
-   on the first open -> `TypeError: Cannot read properties of undefined (reading 'style')`. The window still renders (the throw is
-   after render started) but the click handler throws. Fix: `await app.render({force:true})` before `bringToFront`, or call it only if
-   `app.rendered`.
-2. **Border colours never applied.** `registerFactions()` runs inside main.mjs's `Hooks.once("ready")` (line ~3197), but the
-   `Token#getDispositionColor` wrapper is installed in `Hooks.once("setup", ...)` inside it, which never fires. Observed: on both clients
-   `Token5e.prototype.getDispositionColor` is Foundry's original (a B token is Hostile red whatever the perspective). Fix: install the
-   wrapper directly (or register it at module load / `init`) instead of inside `setup` from a ready callback. The wrapper's logic was
-   verified by installing the same code by hand: perspective C -> B yellow, A red.
-3. **Loot pile listed in pickers.** `findCreatures` (creatures.mjs) has no creature check, so an Item Piles actor (no faction) is listed
-   as a "neutral" pick with side any. Observed in the Bless picker (neutral chip). Expected: never counted for or against anyone.
-   Fix: skip actors where `!system.isCreature` / item-pile flag.
-4. Test caveat: with the pane hidden `TokenDocument#x/y` lag after a teleport (animation never ends), so flanking/OA geometry reads
-   stale positions unless `token.object.stopAnimation()` is called. Not an engine bug, but it could bite headless tests.
-5. Perspective rule changed 2026-10-04 (sticky last-clicked token; GM always A): mixed-selection / GM fallbacks to be retested by the main thread.
+All four items from the first test are fixed and retested (live 2026-10-04):
+1. Relations window: `api.factions.openWindow(scene)` on a fresh page opens "Faction relations — <scene>" with no error (no console error, no throw).
+2. Border colours follow the table and the perspective (see the perspective item above).
+3. Loot piles: an Item Piles actor token on the scene is absent from `findCreatures` for side any / ally / enemy / notAlly.
+4. After a world reload (tokens' dispositions deliberately set wrong: Goblin Friendly, Hireling Hostile, PC Hostile), the ready-time sync restored
+   Hostile / Neutral / Friendly within ~8 s.
+5. Perspective rule (sticky last-clicked token; GM always A): player PC <-> hireling <-> PC <-> hireling switches correctly each time. Not reproduced:
+   once, right after a reload, selecting the hireling left the perspective on A (the hook may not fire for a token already controlled at load).
 
 ## Sources
 - 2014 DMG p. 251, Flanking (5etools `variantrules.json`, source DMG). There's no flanking rule in the 2024 DMG
@@ -282,6 +273,7 @@ Live test 2026-10-04 (headless Foundry v14, dnd5e 6.0.5, scene "ZZ Factions", GM
   side while Charm doesn't.
 
 ## Log
+- 2026-10-04 — Sonnet retest of the fixes (headless v14.368, GM + player tabs): window, border colours, loot piles, ready-time sync and the new perspective rule all pass.
 - 2026-10-04 — Sonnet live test (headless v14, GM + player tabs): everything passes except perspective border colours (wrapper never installed), plus a first-open TypeError in the relations window and loot piles in pickers; see Left.
 - 2026-10-04 — Claude (Opus) + 2 Sonnet agents (window, flanking): built offline as above; awaiting a live test.
 - 2026-10-03 — Claude (Opus) with the maintainer: design converged through brainstorming. This spec records every

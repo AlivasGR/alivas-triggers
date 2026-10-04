@@ -163,6 +163,9 @@ import { registerFlanking } from "./flanking.mjs";
 const MODULE_ID = "alivas-engine-of-triggers";
 const SOCKET = `module.${MODULE_ID}`;
 
+/** actorUuid → { actor, at }: who last dealt damage to a creature (read by the "damaged" event). */
+const recentDamager = new Map();
+
 /** Attacks whose reactions are still being decided: "actorUuid|activityUuid" → Promise. Damage waits for them. */
 const awaitingReaction = new Map();
 
@@ -1320,6 +1323,9 @@ Hooks.on("updateActor", (actor, changed, options, userId) => {
   // The creature that dealt it, when known (an engine or dnd5e damage application from an activity's card).
   let damager = null;
   try { damager = damageSource(options)?.actor ?? null; } catch(err) { damager = null; }
+  const recent = recentDamager.get(actor.uuid);
+  if ( !damager && recent && ((Date.now() - recent.at) < 3000) ) damager = recent.actor;
+  recentDamager.delete(actor.uuid);
   if ( lost > 0 ) fire("damaged", actor, { amount: lost, subject: damager, data: { amount: lost } });
 });
 
@@ -1589,6 +1595,8 @@ Hooks.once("setup", () => {
   const applyDamage = actorProto.applyDamage;
   actorProto.applyDamage = async function(damages, options={}) {
     const before = hpTotal(this);
+    // dnd5e updates the actor with its own options only, so remember who dealt this for the "damaged" event.
+    try { recentDamager.set(this.uuid, { actor: damageSource(options)?.actor ?? null, at: Date.now() }); } catch(err) {}
     let result;
     if ( options[MODULE_ID]?.reacted ) result = await applyDamage.call(this, damages, options);
     else {
@@ -2178,7 +2186,13 @@ function announce(trigger, effect, bearer, event, detail="") {
  */
 async function originActivity(effect) {
   if ( !effect.origin ) return null;
-  const doc = await fromUuid(effect.origin);
+  let doc = await fromUuid(effect.origin).catch(() => null);
+  // A concentration spell's effects point at the caster's "Concentrating" effect: follow it back to the spell's
+  // activity (dnd5e's flags.dnd5e.activity), else to its own origin (the spell).
+  if ( doc?.documentName === "ActiveEffect" ) {
+    const act = doc.flags?.dnd5e?.activity?.uuid ? await fromUuid(doc.flags.dnd5e.activity.uuid).catch(() => null) : null;
+    doc = act?.save ? act : (doc.origin ? await fromUuid(doc.origin).catch(() => null) : null);
+  }
   if ( doc?.system?.activities ) return doc.system.activities.find(a => a.save?.dc?.value) ?? null;
   return doc ?? null;
 }
