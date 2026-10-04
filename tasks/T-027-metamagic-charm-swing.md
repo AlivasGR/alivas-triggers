@@ -58,17 +58,19 @@ The maintainer's requests of 2026-10-04:
 - [x] (live 2026-10-04) **Twinned:** Twinned Spell used: Sorcery Points 3 -> 2, "Twinned Spell (next spell)" on the sorcerer. Fire Bolt
       (cantrip): effect stays. Charm Person with a level 1 slot (two goblins targeted): `scaling` 1 in the usage config, both targets
       got a save, slot spell1 4 -> 3, effect removed ("Twinned Spell ends").
-- [ ] **Charm Person:**
+- [x] (live 2026-10-04) **Charm Person:**
   - [x] (live 2026-10-04) out of combat: a single d20 (advantage mode 0);
   - [x] (live 2026-10-04) in combat vs a hostile goblin: `2d20adv` (advantage mode 1); failure -> Charmed;
-  - [ ] **FAIL** ends when the caster's ally damages it: a real hit by an A-faction ally (Greataxe, goblin 4 -> 0 HP) left Charmed on. Same
-    for a real hit by the unrelated skeleton (stays: correct, but only by accident). See Left 1. With `api.fire("damaged", goblin,
-    { subject: allyActor })` the trigger fires and removes Charmed; with an unrelated subject it stays.
-- [ ] **Dominate Person:**
+  - [x] (live 2026-10-04, retest) ends when the caster's ally damages it: a real Greataxe hit by an A-faction ally (workflow, wfAttackPC "full")
+    -> trigger "Charmed|damaged|note", Charmed removed, note "Charm Person triggers ... damaged by the cas...";
+  - [x] (live 2026-10-04, retest) an unrelated C-faction goblin's real Scimitar hit (HP 10 -> 5): Charmed stays, no trigger action;
+  - [x] (live 2026-10-04, retest) the caster's own Fire Bolt hit: Charmed removed.
+- [x] (live 2026-10-04) **Dominate Person:**
   - [x] (live 2026-10-04) in combat: first save `2d20adv`; on a failure Charmed + "Dominated" effect, faction A, disposition Friendly (1), border cyan;
-  - [ ] **FAIL** damage -> Wis save vs the caster's DC: the trigger fires but throws "No usable DC for Dominated (dc: source)". See Left 2.
-  - [x] (live 2026-10-04) rest of the chain, with the effect's trigger DC switched by hand to `sourceSpell`: damage -> 1d20 Wis save -> success ->
-    "Dominate Person ends", Dominated gone, faction back to B, disposition Hostile (-1), border red.
+  - [x] (live 2026-10-04, retest) damage (Fire Bolt hit) with the caster concentrating: trigger "Dominated|damaged|save" rolls a Wis save, no "No usable DC"
+    error; forced failure -> Dominated stays, faction A; forced success -> "succeeds - Dominate Person ends", Dominated gone, faction B,
+    caster's Concentrating effect kept.
+- [ ] **Perspective after a page reload:** FAIL, see Left 1.
 - [x] (live 2026-10-04) **Swing Creature** (setting "Include homebrew maneuvers" was already on):
   - Fighter grappled goblin 1 (Unarmed Strike Grapple, DC 15, failed save, tether on goblin 1);
   - Athletics check (1d20 + 7) vs DC 12 (8 + goblin 1's higher of Str/Dex + prof); a roll of 9 -> "can't get enough of a grip", nothing else happens;
@@ -80,24 +82,19 @@ The maintainer's requests of 2026-10-04:
   the activity checkbox "Its targets save with advantage if the user is fighting them" shows, toggles off (flag becomes `{}`) and on, and
   reopens in sync; the filter field "source or its ally" is present on the Charm Person effect and the effect round-trips unchanged.
 
-## Left (live test 2026-10-04)
-1. **`damaged` never knows who dealt the damage (breaks Charm Person's "ends when you or an ally damage it").** `main.mjs` ~1315 reads
-   the damager in `updateActor` from `damageSource(options)` (`options[MODULE_ID].activityUuid` / `options.originatingMessage`), but
-   dnd5e's `applyDamage` calls `this.update(updates, context ? { dnd5e: context } : {})`: the damage options never reach the update, so the
-   hook only has `options[MODULE_ID].hp` (observed keys: action, documentName, modifiedTime, diff, recursive, render, dnd5e,
-   alivas-engine-of-triggers {hp}, parent). `subject` is always null, so `subjectAlliedWithSource` is always false. Expected: ally hit ->
-   Charmed ends. Likely fix: in the `applyDamage` wrapper (main.mjs ~1590) remember the damager (e.g. a short-lived map actor.uuid ->
-   damageSource(options).actor, set before `applyDamage.call`, read in `updateActor`), or fire `damaged` from the wrapper next to `dealt`.
-2. **Dominate's repeat save has no DC when the spell needs concentration.** `resolveDC("source")` (main.mjs 2910) uses `originActivity(effect)`,
-   which does `fromUuid(effect.origin)`. For a concentration spell the Dominated effect's `origin` is the caster's "Concentrating: Dominate Person"
-   ActiveEffect (`Actor.<id>.ActiveEffect.<id>`), not the item/activity, so `doc.system.activities` is missing and the function returns the
-   effect (no `.save`). Result: `Trigger "Dominate Person" failed No usable DC for Dominated (dc: source)`. Expected: Wis save vs 14.
-   Fix: in `originActivity`, when `doc` is an ActiveEffect follow `doc.origin` (-> the item, whose activities hold the DC) or
-   `doc.flags.dnd5e.activity.uuid`; or make `resolveDC("source")` fall back to the source actor's spell DC. (Same bug will hit any
-   `dc: "source"` trigger on a concentration spell's effect.)
-3. Test note: the concentration effect `flags.dnd5e.activity.uuid` is present (Activity.dnd5eactivity000), so the fix for 2 has the data it needs.
+## Left (live retest 2026-10-04)
+1. **Perspective ignores a token that is already controlled when the page loads.** Player tab with ZZ Player owning only a C-faction token ("ZZ T Other"):
+   after a full page reload Foundry controls it automatically (`canvas.tokens.controlled` = [Other]) but `api.factions.perspective()` is "A" and a B token's
+   `getDispositionColor()` is e72124 (red, A's view); expected "C" / f1d836. Cause: the `canvasReady` handler in `factions.mjs` (~330) is fine (calling
+   `Hooks.callAll("canvasReady", canvas)` by hand gives "C" and f1d836), but `registerFactions` runs in the `ready` hook, after Foundry's first canvas
+   draw, so the first `canvasReady` (and the load-time `controlToken`) is never seen. Fix: at the end of `registerFactions`, run the same check at once when
+   `canvas.ready` (set `lastClicked` from the controlled owned token, refreshBorders). Also: with two owned tokens controlled at load (A and C) the first one
+   wins (A); only clicks decide after that. Selecting a token that is already controlled fires no hook, so it doesn't change the perspective.
+   After a normal click (release all, then control Other) the perspective was C and the colour f1d836 every time.
 
 ## Log
 - 2026-10-04 — Claude (Opus): written offline; untested live, not packed.
 - 2026-10-04 — Sonnet live test (headless v14.368, dnd5e 6.0.5, GM + player tabs, square-grid scene "ZZ T27", cleaned up afterwards): perspective, Twinned,
   Swing Creature and the editor pass; Charm Person's "ally damages it" and Dominate's repeat-save DC fail (Left 1 and 2). Status stays needs-live-test until those are fixed.
+- 2026-10-04 — Sonnet live retest (scene "ZZ T27b", GM + player tabs, cleaned up; wfAttackPC set "full" and its stored value deleted afterwards): Charm Person (ally ends, unrelated
+  stays, caster ends) and Dominate Person (repeat save with DC, success ends, failure stays) pass. Perspective after reload fails (Left 1). Status stays needs-live-test until that is fixed.
