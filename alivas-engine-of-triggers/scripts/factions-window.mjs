@@ -252,7 +252,6 @@ export function openRelationsWindow(scene) {
     app = new RelationsWindow(scene);
     windows.set(scene.id, app);
   }
-  app.render({ force: true });
-  app.bringToFront?.();
+  app.render({ force: true }).then(() => { if ( app.rendered ) app.bringToFront?.(); });
   return app;
 }

@@ -124,7 +124,12 @@
         },
         "name": "",
         "img": "",
-        "appliedEffects": []
+        "appliedEffects": [],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "saveAdvantageWhenFighting": true
+          }
+        }
       }
     },
     "identifier": "dominate-monster"
@@ -159,7 +164,19 @@
       "sort": 0,
       "flags": {
         "alivas-engine-of-triggers": {
-          "faction": "source"
+          "faction": "source",
+          "triggers": [
+            {
+              "label": "Dominate Monster",
+              "event": "damaged",
+              "action": {
+                "type": "save",
+                "ability": "wis",
+                "dc": "source"
+              },
+              "then": "removeOnSuccess"
+            }
+          ]
         }
       },
       "_stats": {
@@ -185,7 +202,7 @@
   },
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "type": "spell",

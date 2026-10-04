@@ -1,14 +1,14 @@
 {
-  "name": "Dominate Beast",
+  "name": "Charm Person",
   "system": {
     "description": {
-      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Dominate Beast (PHB 2024 p. 265). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Charm Person (PHB 2024 p. 249). Patched items keep their own description; this entry carries no rules text.</em></p>",
       "chat": ""
     },
     "source": {
       "custom": "",
       "book": "PHB 2024",
-      "page": "265",
+      "page": "249",
       "license": "",
       "rules": "2024",
       "revision": 1
@@ -20,34 +20,36 @@
     },
     "duration": {
       "value": "1",
-      "units": "minute"
+      "units": "hour"
     },
     "target": {
       "affects": {
         "type": "creature",
-        "count": "1",
-        "choice": false
+        "count": "@item.level",
+        "choice": false,
+        "special": ""
       },
       "template": {
         "units": "",
-        "contiguous": false
+        "contiguous": false,
+        "type": ""
       }
     },
     "range": {
-      "value": "60",
-      "units": "ft"
+      "value": "30",
+      "units": "ft",
+      "special": ""
     },
     "uses": {
       "max": "",
       "recovery": [],
       "spent": 0
     },
-    "level": 4,
+    "level": 1,
     "school": "enc",
     "properties": [
       "vocal",
-      "somatic",
-      "concentration"
+      "somatic"
     ],
     "materials": {
       "value": "",
@@ -84,7 +86,7 @@
         },
         "effects": [
           {
-            "_id": "PuOL8FylatY9CFzr",
+            "_id": "78JcD7wFiSCOfmns",
             "onSave": false
           }
         ],
@@ -125,17 +127,17 @@
         }
       }
     },
-    "identifier": "dominate-beast"
+    "identifier": "charm-person"
   },
-  "_id": "z59ajGnXweK3BV13",
+  "_id": "5pY04yu3fZh10zm7",
   "type": "spell",
-  "img": "icons/creatures/mammals/bull-horns-eyes-glowin-orange.webp",
+  "img": "icons/magic/control/hypnosis-mesmerism-eye.webp",
   "effects": [
     {
-      "name": "Dominated",
-      "origin": "Compendium.dnd5e.spells24.Item.phbsplDominateBe",
+      "name": "Charmed",
+      "origin": "Compendium.dnd5e.spells24.Item.phbsplCharmPerso",
       "duration": {
-        "value": 60,
+        "value": 3600,
         "units": "seconds",
         "expiry": "turnStart",
         "expired": false
@@ -143,23 +145,27 @@
       "disabled": false,
       "flags": {
         "alivas-engine-of-triggers": {
-          "faction": "source",
           "triggers": [
             {
-              "label": "Dominate Beast",
+              "label": "Charm Person",
               "event": "damaged",
+              "filter": [
+                {
+                  "k": "subjectAlliedWithSource",
+                  "v": true
+                }
+              ],
               "action": {
-                "type": "save",
-                "ability": "wis",
-                "dc": "source"
+                "type": "note",
+                "text": "damaged by the caster or an ally — the charm ends."
               },
-              "then": "removeOnSuccess"
+              "then": "remove"
             }
           ]
         }
       },
-      "img": "icons/creatures/mammals/bull-horns-eyes-glowin-orange.webp",
-      "_id": "PuOL8FylatY9CFzr",
+      "img": "systems/dnd5e/icons/svg/statuses/charmed.svg",
+      "_id": "78JcD7wFiSCOfmns",
       "type": "base",
       "system": {
         "changes": [],
@@ -176,8 +182,8 @@
         "coreVersion": "14.368",
         "systemId": "dnd5e",
         "systemVersion": "6.0.5",
-        "createdTime": 1791093303298,
-        "modifiedTime": 1791093303298,
+        "createdTime": 1791094089914,
+        "modifiedTime": 1791094089914,
         "lastModifiedBy": null,
         "compendiumSource": null,
         "duplicateSource": null,
@@ -186,7 +192,7 @@
       "showIcon": 2,
       "start": null,
       "folder": null,
-      "_key": "!items.effects!z59ajGnXweK3BV13.PuOL8FylatY9CFzr"
+      "_key": "!items.effects!5pY04yu3fZh10zm7.78JcD7wFiSCOfmns"
     }
   ],
   "sort": 0,
@@ -195,17 +201,17 @@
   },
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 2,
+      "version": 1,
       "match": [
         {
           "type": "spell",
-          "identifier": "dominate-beast",
+          "identifier": "charm-person",
           "book": "PHB 2024"
         },
         {
           "type": "spell",
-          "identifier": "dominate-beast",
-          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplDominateBe"
+          "identifier": "charm-person",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplCharmPerso"
         }
       ]
     }
@@ -214,12 +220,12 @@
     "coreVersion": "14.368",
     "systemId": "dnd5e",
     "systemVersion": "6.0.5",
-    "createdTime": 1791093303298,
-    "modifiedTime": 1791093303298,
+    "createdTime": 1791094089914,
+    "modifiedTime": 1791094089914,
     "lastModifiedBy": null,
     "compendiumSource": null,
     "duplicateSource": null,
     "exportSource": null
   },
-  "_key": "!items!z59ajGnXweK3BV13"
+  "_key": "!items!5pY04yu3fZh10zm7"
 }

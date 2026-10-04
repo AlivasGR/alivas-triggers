@@ -184,6 +184,8 @@ export function findCreatures(from, spec={}, ctx={}) {
   for ( const t of tokens ) {
     const actor = t.actor;
     if ( !actor || seen.has(actor.uuid) || t.hidden || actor.statuses?.has("dead") ) continue;
+    // Only creatures: not loot piles (Item Piles), vehicles or groups.
+    if ( (actor.system?.isCreature === false) || actor.flags?.["item-piles"]?.data?.enabled ) continue;
     if ( spec.able && actor.statuses?.has("incapacitated") ) continue;
     if ( spec.actorType && (actor.type !== spec.actorType) ) continue;
     if ( spec.grappledBy && !actor.effects.some(e => origin && (e.getFlag(MODULE_ID, "tether")?.source === origin.uuid)) ) continue;

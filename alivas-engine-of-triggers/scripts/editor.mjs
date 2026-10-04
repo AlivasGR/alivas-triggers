@@ -419,6 +419,8 @@ const TRIGGER_FIELDS = [
   { id: "bearerHpValue", label: "The bearer's HP", kind: "number", key: "bearer.attributes.hp.value" },
   { id: "subjectIsSource", label: "The creature is the effect's source", kind: "bool", key: "subjectIsSource",
     on: ["areaEnter", "areaLeave", "areaTurnStart", "areaTurnEnd", "collided", "hit", "damaged"] },
+  { id: "subjectAlliedWithSource", label: "The creature is the effect's source or its ally", kind: "bool", key: "subjectAlliedWithSource",
+    on: ["areaEnter", "areaLeave", "areaTurnStart", "areaTurnEnd", "collided", "hit", "damaged"] },
   { id: "subjectIsSummoner", label: "The creature is the bearer's summoner", kind: "bool", key: "subjectIsSummoner",
     on: ["areaEnter", "areaLeave", "areaTurnStart", "areaTurnEnd", "collided", "hit", "damaged"] },
   { id: "sourceHasDamage", label: "It deals damage", kind: "bool", key: "hasDamage", on: ["missed"] },
@@ -1110,7 +1112,9 @@ const REQUIREMENTS = [
   ["grappling", "The user is grappling the target"],
   ["grappled", "The user is grappled"],
   ["speed", "The user's Speed isn't 0"],
-  ["canLift", "The user can lift the target"]
+  ["canLift", "The user can lift the target"],
+  ["holding", "The user is grappling someone"],
+  ["canLiftHeld", "The user can lift the creature it holds"]
 ];
 
 /** An activity's `requires` as short phrases. */
@@ -1174,7 +1178,7 @@ function readRules(effect) {
     attackedTypes: [...(f.attackedWith?.attacker?.find?.(x => x.k === "details.type.value")?.v ?? [])],
     attacksUnlessSource: f.attacksWith?.unlessTarget === "source",
     lightBright: f.light?.bright ?? "", lightDim: f.light?.dim ?? "", lightColor: f.light?.color ?? "#ffe9a8",
-    noSpells: !!f.noSpells, actionOrBonus: !!f.actionOrBonus,
+    noSpells: !!f.noSpells, actionOrBonus: !!f.actionOrBonus, upcastLevels: f.upcast?.levels ?? "",
     factionMode: f.faction === "source" ? "source" : (f.faction ? "letter" : ""), factionLetter: f.faction && (f.faction !== "source") ? f.faction : "",
     whileStatus: f.whileStatus ?? "",
     coverLevel: f.ignoreCover?.level ?? "", coverClass: f.ignoreCover?.classification ?? "", coverType: f.ignoreCover?.type ?? "",
@@ -1286,6 +1290,7 @@ function rulesUpdate(r) {
     ...(r.lightAnimation ? { animation: r.lightAnimation } : {}) }), (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0));
   set("noSpells", true, r.noSpells);
   set("actionOrBonus", true, r.actionOrBonus);
+  set("upcast", keepRest("upcast", ["levels"], { levels: Number(r.upcastLevels) }), Number(r.upcastLevels) > 0);
   const factionLetter = String(r.factionLetter ?? "").trim().toUpperCase().replace(/[^A-Z]/g, "").slice(0, 1);
   const faction = r.factionMode === "source" ? "source" : (r.factionMode === "letter" ? factionLetter : "");
   set("faction", faction, faction);
@@ -1419,7 +1424,7 @@ export class TriggerEditor extends ApplicationV2 {
         requires: f.requires ? clone(f.requires) : {}, offerWhenBlocked: !!f.offerWhenBlocked, applyToTargets: !!f.applyToTargets,
         saveAdvantage: !!f.saveAdvantage, castFrom: f.castingAbility?.class ? "class" : f.castingAbility?.spell ? "spell" : "",
         castId: f.castingAbility?.class ?? f.castingAbility?.spell ?? "",
-        autoSaveText: f.autoSave ? JSON.stringify(f.autoSave) : "" };
+        autoSaveText: f.autoSave ? JSON.stringify(f.autoSave) : "", saveAdvantageWhenFighting: !!f.saveAdvantageWhenFighting };
     } else if ( this.mode === "area" ) {
       const list = this.activity.flags?.[MODULE_ID]?.area?.triggers;
       this.models = (Array.isArray(list) ? list : []).map(x => triggerToModel(x));
@@ -1650,7 +1655,7 @@ export class TriggerEditor extends ApplicationV2 {
     const abilityBoxes = (list, key) => abilityEntries().map(([id, label]) => `<label class="aet-check aet-small-check">
       <input type="checkbox" data-rule-list="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
     const groups = {
-      spells: [r.noReactions, r.noComponents, r.askFirst, r.minLevel, r.saveDamageOnSave, r.ownRollsOnly, r.noSpells, r.actionOrBonus, r.sustainEvents?.length, String(r.whileStatus ?? "").trim()],
+      spells: [r.noReactions, r.noComponents, r.askFirst, r.minLevel, r.saveDamageOnSave, r.ownRollsOnly, r.noSpells, r.actionOrBonus, Number(r.upcastLevels) > 0, r.sustainEvents?.length, String(r.whileStatus ?? "").trim()],
       damage: [r.ignoreDamageFrom, r.evasion?.length, r.noHealing, r.dropSave, r.onlyIfStatus, r.saveAdvStatuses?.length, r.healingExtraDie,
         String(r.reduceFormula ?? "").trim(), Number(r.diceMin) > 1, (r.baseRows ?? []).some(row => String(row.formula ?? "").trim())],
       area: [Number(r.areaRadius) > 0, r.stopOnCollision, r.disengaged, (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0)],
@@ -1678,6 +1683,7 @@ export class TriggerEditor extends ApplicationV2 {
         <label class="aet-check"><input type="checkbox" data-rule="ownRollsOnly"${r.ownRollsOnly ? " checked" : ""}><span>Its roll bonuses are the bearer's own — summons matching the bearer's spell attack don't get them</span></label>
         <label class="aet-check"><input type="checkbox" data-rule="noSpells"${r.noSpells ? " checked" : ""}><span>The bearer can't cast spells (concentration ends when it's applied)</span></label>
         <label class="aet-check"><input type="checkbox" data-rule="actionOrBonus"${r.actionOrBonus ? " checked" : ""}><span>On its turn the bearer can take an Action or a Bonus Action, not both (Slow, Wardaway)</span></label>
+        <label class="aet-inline"><span>The bearer's spells count as cast</span><input type="number" class="aet-num" min="0" max="8" data-rule="upcastLevels" value="${esc(r.upcastLevels ?? "")}" placeholder="0"><span class="aet-muted">levels higher (Twinned Spell; add a “casts a spell → end the effect” trigger for the next spell only)</span></label>
         <label class="aet-inline"><span>Lasts only while the bearer has</span><input type="text" class="aet-formula" data-rule="whileStatus" value="${esc(r.whileStatus)}" placeholder="a status id, e.g. rage"><span class="aet-muted">ends the moment it's gone (also for an enchantment on its weapon)</span></label>
         <div class="aet-subtitle">Ends at the end of the bearer's turn unless during it the bearer…</div>
         <div class="aet-pills">${typePills(r.sustainEvents, "sustainEvents", sustainEventEntries)}</div>
@@ -1826,6 +1832,7 @@ export class TriggerEditor extends ApplicationV2 {
       <label class="aet-check"><input type="checkbox" data-setting="offerWhenBlocked" data-rerender${s.offerWhenBlocked ? " checked" : ""}><span>Offer this when a hostile creature blocks the user's move (Tumble, Overrun)</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="applyToTargets"${s.applyToTargets ? " checked" : ""}><span>Its effects go on the targets even if they're enemies (no save — Help: distract an enemy)</span></label>
       ${this.activity.type === "save" ? `<label class="aet-check"><input type="checkbox" data-setting="saveAdvantage"${s.saveAdvantage ? " checked" : ""}><span>Its targets save with advantage (Shove Aside)</span></label>
+      <label class="aet-check"><input type="checkbox" data-setting="saveAdvantageWhenFighting"${s.saveAdvantageWhenFighting ? " checked" : ""}><span>Its targets save with advantage if the user is fighting them: in combat together and hostile (Charm Person, Dominate)</span></label>
       <label class="aet-inline"><span>Succeed automatically</span><select data-setting="autoSaveMode" data-rerender>${options([["", "nobody"], ["constructUndead", "Constructs and Undead"],
         ...(autoSaveMode(s) === "custom" ? [["custom", "a custom filter (below)"]] : [])], autoSaveMode(s))}</select></label>
       ${autoSaveMode(s) === "custom" ? `<label class="aet-inline"><span>Filter</span><input type="text" class="aet-wide" data-setting="autoSaveText" value="${esc(s.autoSaveText)}"></label>` : ""}` : ""}
@@ -2547,6 +2554,7 @@ export class TriggerEditor extends ApplicationV2 {
     if ( key === "offerWhenBlocked" ) { this.settings.offerWhenBlocked = el.checked; return true; }
     if ( key === "applyToTargets" ) { this.settings.applyToTargets = el.checked; return false; }
     if ( key === "saveAdvantage" ) { this.settings.saveAdvantage = el.checked; return false; }
+    if ( key === "saveAdvantageWhenFighting" ) { this.settings.saveAdvantageWhenFighting = el.checked; return false; }
     if ( key === "castFrom" ) { this.settings.castFrom = el.value; return true; }
     if ( key === "autoSaveMode" ) {
       if ( el.value in AUTO_SAVES ) this.settings.autoSaveText = AUTO_SAVES[el.value] ? JSON.stringify(AUTO_SAVES[el.value]) : "";
@@ -2870,7 +2878,8 @@ export class TriggerEditor extends ApplicationV2 {
         requires: Object.keys(s.requires ?? {}).length ? s.requires : null, offerWhenBlocked: s.offerWhenBlocked ? true : null,
         applyToTargets: s.applyToTargets ? true : null, saveAdvantage: s.saveAdvantage ? true : null,
         castingAbility: s.castFrom && String(s.castId ?? "").trim() ? { [s.castFrom]: String(s.castId).trim() } : null,
-        autoSave: (activityType => activityType === "save" ? parseFilterText(s.autoSaveText) : null)(this.activity.type)
+        autoSave: (activityType => activityType === "save" ? parseFilterText(s.autoSaveText) : null)(this.activity.type),
+        saveAdvantageWhenFighting: (this.activity.type === "save") && s.saveAdvantageWhenFighting ? true : null
       }));
     } else if ( this.mode === "area" ) {
       await this.activity.update(cleanFlagUpdate({
@@ -2973,6 +2982,7 @@ function describeRules(effect) {
   if ( (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0) ) list.push(`Sheds light (${r.lightBright || 0}/${r.lightDim || 0} ft${r.lightAnimation ? `, ${r.lightAnimation}` : ""}) while it lasts.`);
   if ( r.noSpells ) list.push("The bearer can't cast spells or concentrate.");
   if ( r.actionOrBonus ) list.push("On its turn the bearer can take an Action or a Bonus Action, not both.");
+  if ( Number(r.upcastLevels) > 0 ) list.push(`The bearer's spells count as cast ${r.upcastLevels} level${Number(r.upcastLevels) > 1 ? "s" : ""} higher.`);
   if ( r.factionMode === "source" ) list.push("While it lasts, the bearer is on the side of whoever applied it.");
   else if ( (r.factionMode === "letter") && String(r.factionLetter ?? "").trim() ) list.push(`While it lasts, the bearer belongs to faction ${String(r.factionLetter).toUpperCase()}.`);
   if ( r.coverLevel ) list.push(`The bearer's ${r.coverType ? `${r.coverType} ` : ""}${r.coverClass ? `${r.coverClass} ` : ""}attacks ignore ${r.coverLevel === "half" ? "Half Cover" : "Half and Three-Quarters Cover"}.`);

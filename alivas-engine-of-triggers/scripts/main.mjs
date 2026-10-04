@@ -29,7 +29,7 @@
  *               filter data: moved, movedThisTurn (history since turn start + this move), ownTurn
  *   statusGained  bearer gained statuses                       (create/enable ActiveEffect, acting client)
  *               filter data: gainedStatuses (array) — e.g. { k: "gainedStatuses", o: "has", v: "dodging" }
- *   damaged filter data: amount · save filter data: ability, total · hit filter data: distance (ft), attackType
+ *   damaged filter data: amount (subject: who dealt it, when known) · save filter data: ability, total · hit filter data: distance (ft), attackType
  *   Formulas in actions can use @spellLevel (the level the effect's spell was cast at).
  *   spell / activity filter data also has activityType ("save", "attack"…) and the activity's targets for selectors
  *   Every event's filter data also has `bearer` (the bearer's roll data), e.g. { k: "bearer.statuses.prone", o: "gte", v: 1 }
@@ -94,6 +94,7 @@
  *   attacksWith { mode, once, unlessTarget }       unlessTarget "source": not against the effect's source (Compelled Duel)
  *   light { bright, dim, color }                   the bearer's token sheds this light while the effect lasts
  *   noSpells                                       the bearer can't cast spells; concentration ends when it's applied
+ *   upcast { levels }                              the bearer's leveled spells count as cast `levels` higher (Twinned)
  *   faction "source" | letter                      while active, the bearer belongs to that faction ("source": the
  *                                                  effect's source's — Dominate); factions.mjs
  *   actionOrBonus                                  on its turn the bearer takes an Action or a Bonus Action, not both
@@ -113,6 +114,8 @@
  *                        "paralyzed", "poisoned"], to: { who: "targets" }, choose: true }
  *   chooseEffects: { count }   the user picks which of the activity's effects to apply (count: formula, e.g.
  *                        "min(2, 1 + floor(@item.level / 4))"); an effect flagged minLevel needs that slot level
+ *   saveAdvantageWhenFighting: true   its targets save with advantage when the user (or its side) is fighting them:
+ *                        in a started combat together and hostile to the user (Charm Person, Dominate)
  *   castingAbility: { class } | { spell }   its "spellcasting" ability comes from that class (identifier) or the actor's
  *                        spell with that identifier (its own chosen ability) — see castingAbilityFor
  *   pay: { cost, from: [identifier, …] }   pay `cost` uses from these items in order (e.g. Metamagic Adept's points
@@ -964,6 +967,36 @@ Hooks.on("createActiveEffect", effect => {
 });
 
 /**
+ * Effect rule `upcast: { levels }` (Twinned Spell): the bearer's leveled spells are cast as if from a slot `levels`
+ * higher (their scaling goes up; the slot actually spent doesn't change), up to level 9. Pair it with a "spell" trigger
+ * that removes the effect to make it apply to the next spell only.
+ */
+Hooks.once("setup", () => {
+  for ( const config of Object.values(CONFIG.DND5E.activityTypes ?? {}) ) {
+    const cls = config.documentClass;
+    let proto = cls?.prototype, base;
+    while ( proto && !(base = Object.getOwnPropertyDescriptor(proto, "_prepareUsageScaling")) ) proto = Object.getPrototypeOf(proto);
+    if ( typeof base?.value !== "function" || base.value.alivasUpcast ) continue;
+    const original = base.value;
+    const wrapped = async function(usageConfig, messageConfig, item) {
+      await original.call(this, usageConfig, messageConfig, item);
+      const levels = (this.actor?.appliedEffects ?? []).reduce((n, e) => n + (Number(e.getFlag(MODULE_ID, "upcast")?.levels) || 0), 0);
+      if ( !levels || !this.isSpell || !(item?.system?.level > 0) ) return;
+      const scaling = Math.min(9 - item.system.level, (Number(usageConfig.scaling) || 0) + levels);
+      if ( scaling <= (Number(usageConfig.scaling) || 0) ) return;
+      usageConfig.scaling = scaling;
+      foundry.utils.setProperty(messageConfig, "data.system.scaling", scaling);
+      item.actor._embeddedPreparation = true;
+      item.updateSource({ "flags.dnd5e.scaling": scaling });
+      delete item.actor._embeddedPreparation;
+      item.prepareFinalAttributes();
+    };
+    wrapped.alivasUpcast = true;
+    Object.defineProperty(proto, "_prepareUsageScaling", { ...base, value: wrapped });
+  }
+});
+
+/**
  * Effect rule `healingExtraDie` (Triage Expert's Bedside Manner): the bearer's healing rolls roll one extra die and drop
  * the lowest.
  */
@@ -1284,7 +1317,10 @@ Hooks.on("updateActor", (actor, changed, options, userId) => {
   if ( !before || (userId !== game.userId) || !isLocal(actor.uuid) ) return;
   const { value, temp } = actor.system.attributes.hp;
   const lost = (before.value + before.temp) - (value + (temp ?? 0));
-  if ( lost > 0 ) fire("damaged", actor, { amount: lost, data: { amount: lost } });
+  // The creature that dealt it, when known (an engine or dnd5e damage application from an activity's card).
+  let damager = null;
+  try { damager = damageSource(options)?.actor ?? null; } catch(err) { damager = null; }
+  if ( lost > 0 ) fire("damaged", actor, { amount: lost, subject: damager, data: { amount: lost } });
 });
 
 /**
@@ -1886,6 +1922,8 @@ function passesFilter(trigger, event, context, bearer, effect) {
     sourceTurn: !combat || (!!source && (combat.combatant?.actor?.uuid === source.uuid)),
     bearerTurn: !bearerCombat || (bearerCombat.combatant?.actor?.uuid === bearer?.uuid),
     subjectIsSource: !!subject && !!source && (subject.uuid === source.uuid),
+    // The other creature is the effect's source or on its side (Charm Person: "you or your allies").
+    subjectAlliedWithSource: !!subject && !!source && ["self", "ally"].includes(Creatures.relation(source, subject)),
     subjectIsSummoner: !!subject && (summonerOf(bearer)?.uuid === subject.uuid),
     subjectIsAlly: ["self", "ally"].includes(rel), subjectIsEnemy: rel === "enemy"
   };

@@ -65,7 +65,11 @@
           "concentration": false,
           "override": false
         },
-        "effects": [],
+        "effects": [
+          {
+            "_id": "twinnedPending01"
+          }
+        ],
         "flags": {
           "alivas-engine-of-triggers": {
             "pay": {
@@ -116,7 +120,7 @@
       "hash": "twinned%20spell_xphb"
     },
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "name": "Metamagic: Twinned Spell",
@@ -133,7 +137,55 @@
       ]
     }
   },
-  "effects": [],
+  "effects": [
+    {
+      "_id": "twinnedPending01",
+      "name": "Twinned Spell (next spell)",
+      "img": "https://assets.forge-vtt.com/bazaar/core/icons/magic/lightning/bolt-strike-blue.webp",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "tint": "#ffffff",
+      "sort": 0,
+      "origin": null,
+      "description": "<p>Your next spell is cast without Verbal, Somatic or Material components — it can't be Counterspelled.</p>",
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": null
+      },
+      "system": {
+        "changes": []
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "upcast": {
+            "levels": 1
+          },
+          "triggers": [
+            {
+              "label": "Twinned Spell",
+              "event": "spell",
+              "filter": [
+                {
+                  "k": "item.level",
+                  "o": "gte",
+                  "v": 1
+                }
+              ],
+              "action": {
+                "type": "note",
+                "text": "cast one level higher (Twinned Spell)."
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "_key": "!items.effects!6cl9XeWZloRwM0jE.twinnedPending01"
+    }
+  ],
   "_stats": {
     "systemVersion": "5.3.3",
     "coreVersion": "14.365",

@@ -22,6 +22,8 @@
  *   { grappled: true }   the user is grappled (Escape)
  *   { speed: true }      the user's Speed isn't 0 (Drop Prone)
  *   { canLift: true }    each target's weight fits the user's remaining carrying capacity (Hurl)
+ *   { holding: true }    the user is grappling at least one creature (Swing Creature: the targets are someone else)
+ *   { canLiftHeld: true } a creature the user holds fits its remaining carrying capacity
  *
  * Actions (run as triggers or activity steps; `onSuccess` / `onFailure` are lists of further actions):
  *   check       { skills: ["ath","acr"], ability?, roll?: "attack", dc, vs?, advantage?: "larger"|true, onSuccess,
@@ -221,6 +223,12 @@ export function unmetRequirement(activity, targets=[]) {
   if ( req.speed && !(Number(user.system.attributes?.movement?.walk) > 0) ) return `${user.name}'s Speed is 0`;
   if ( req.freeHand && !hasFreeHand(user) ) return `${user.name} needs a free hand`;
   if ( req.grappled && !tethersOn(user).length ) return `${user.name} isn't grappled`;
+  // holding / canLiftHeld: about the creature the user holds (not the activity's targets) — Swing Creature.
+  const held = (req.holding || req.canLiftHeld) ? tethersBy(user).map(e => e.parent).filter(Boolean) : [];
+  if ( req.holding && !held.length ) return `${user.name} isn't grappling anyone`;
+  if ( req.canLiftHeld && held.length && !held.some(h => weightOf(h) <= remainingCapacity(user)) ) {
+    return `${held[0].name} (${weightOf(held[0])} lb) is more than ${user.name} can lift now (${remainingCapacity(user)} lb free)`;
+  }
   for ( const t of targets ) {
     if ( Number.isFinite(req.maxSizeAbove) && (sizeDiff(user, t) > req.maxSizeAbove) ) return `${t.name} is too large`;
     if ( Number.isFinite(req.minSizeAbove) && (sizeDiff(user, t) < req.minSizeAbove) ) return `${t.name} isn't large enough`;

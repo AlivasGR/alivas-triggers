@@ -19,9 +19,9 @@
  * faction (ally → Friendly, neutral → Neutral, hostile → Hostile), by the lead GM, whenever a letter or the table
  * changes. Secret tokens are never rewritten. Nothing else ever changes a disposition.
  *
- * Border colours are drawn per viewer from the table, seen from the viewer's PERSPECTIVE faction (perspective()): the
- * faction of the tokens they control; with none / mixed, their assigned character's; else the faction most of their
- * owned tokens share; else the party letter.
+ * Border colours are drawn per viewer from the table, seen from the viewer's PERSPECTIVE faction (perspective()): for a
+ * player, the faction of the last of their tokens they clicked (it stays until they click another), else their assigned
+ * character's, else the party letter; the GM always sees the party's view.
  *
  * Creatures.relation(a, b) reads the table when the setting is on (setAllianceResolver), so selector sides, reaction
  * filters, Opportunity Attacks, Sneak Attack's ally check, movement and flanking follow it.
@@ -218,23 +218,18 @@ export const openWindow = scene => openRelationsWindow(scene ?? canvas?.scene);
 /* -------------------------------------------- */
 
 export function perspective(user=game.user) {
+  if ( user?.isGM ) return partyLetter();
   const scene = canvas?.scene;
-  const controlled = new Set((canvas?.tokens?.controlled ?? []).map(t => factionOf(t, scene)).filter(Boolean));
-  if ( controlled.size === 1 ) return [...controlled][0];
+  // The last of this player's tokens they clicked (kept after they release it), while it's still on the scene.
+  const last = lastClicked && scene?.tokens.get(lastClicked);
+  const l = last ? factionOf(last, scene) : "";
+  if ( l ) return l;
   const character = user?.character ? factionOf(user.character, scene) : "";
-  if ( character ) return character;
-  if ( !user?.isGM ) {
-    const counts = new Map();
-    for ( const t of scene?.tokens ?? [] ) {
-      if ( !t.actor?.testUserPermission?.(user, "OWNER") ) continue;
-      const l = factionOf(t, scene);
-      if ( l ) counts.set(l, (counts.get(l) ?? 0) + 1);
-    }
-    const best = [...counts].sort((a, b) => b[1] - a[1])[0];
-    if ( best ) return best[0];
-  }
-  return partyLetter();
+  return character || partyLetter();
 }
+
+/** The id of the last token this (non-GM) user took control of, on this client. */
+let lastClicked = null;
 
 /* -------------------------------------------- */
 /*  Disposition sync                            */
@@ -325,12 +320,17 @@ export function registerFactions() {
   Hooks.on("deleteActiveEffect", onEffect);
   Hooks.on("updateActiveEffect", (effect, changed) => { if ( "disabled" in changed ) onEffect(effect); });
 
-  // Perspective changes with control.
-  Hooks.on("controlToken", () => { if ( enabled() ) refreshBorders(); });
+  // Perspective changes when a player clicks one of their tokens.
+  Hooks.on("controlToken", (token, controlled) => {
+    if ( !enabled() || game.user.isGM ) return;
+    if ( controlled && token.document?.isOwner ) lastClicked = token.document.id;
+    refreshBorders();
+  });
   Hooks.on("canvasReady", () => { if ( enabled() ) refreshBorders(); });
 
   // Border colours: from the table, seen from this viewer's perspective (Secret and non-creatures as Foundry draws them).
-  Hooks.once("setup", () => {
+  // (registerFactions runs during "ready", so this is installed right away, not in a later hook.)
+  {
     const cls = CONFIG.Token.objectClass;
     const original = cls.prototype.getDispositionColor;
     cls.prototype.getDispositionColor = function() {
@@ -342,13 +342,14 @@ export function registerFactions() {
       if ( r === "ally" ) return this.actor?.hasPlayerOwner ? COLORS().PARTY : COLORS().FRIENDLY;
       return relationColor(r);
     };
-  });
+    refreshBorders();
+  }
 
-  // Once (lead GM): bring every scene's dispositions in line with its table.
-  Hooks.once("ready", () => {
+  // Once (lead GM): bring every scene's dispositions in line with its table (the lead-GM election settles first).
+  setTimeout(() => {
     if ( !enabled() || !isLeadGM() ) return;
     for ( const scene of game.scenes ) syncDispositions(scene);
-  });
+  }, 3000);
 
   // Charmed: no attacks against the charmer.
   Hooks.on("dnd5e.preRollAttackV2", config => {

@@ -1,6 +1,6 @@
 # T-026 — Factions: relations table, perspective colours, disposition sync, flanking (spec)
 
-- **Status:** needs-live-test (spec agreed 2026-10-03; built 2026-10-04 on branch `alliances`)
+- **Status:** needs-live-test (live test 2026-10-04: all pass except perspective colours, see Left)
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine (factions; replaces the T-025 baseline's rules), Box (flanking setting only)
@@ -218,38 +218,60 @@ letters, a picker override). T-025's rules are replaced by the ones below.
 - T-025's combatant and actor flags aren't migrated, because T-025 was never released (it existed only on this branch).
 
 ## Acceptance (live)
-- [ ] A new scene: place a PC, an NPC and a familiar summoned by the PC. They get A, B and A. A loot pile gets no
-      letter. The default table shows A ↔ B red and A↔A / B↔B green.
-- [ ] A sheet seed of "C" on an NPC: the placed token is C, and C is yellow to everyone.
-- [ ] Table:
-  - cycling a cell changes both directions while linked, and only one when unlinked;
-  - the diagonal is locked;
-  - the table grows when a letter is added;
-  - hovering a letter highlights its tokens, and clicking pins the highlight.
-- [ ] Disposition sync:
-  - setting A ↔ B to neutral turns B tokens Neutral;
-  - a Secret token isn't touched;
-  - nothing changes when a creature attacks.
-- [ ] Perspective colours:
-  - the player selects their PC (A) and B tokens show red;
-  - the same player selects a dominated creature in C and colours change to C's view;
-  - with mixed selection, the fallback is the assigned character;
-  - the GM with nothing selected sees A's view.
-- [ ] Pickers:
-  - Bless (an ally-only picker) starts with green on;
-  - switching on red lists hostiles, and a hostile can be picked.
-- [ ] Opportunity Attacks: offered against hostile and neutral creatures leaving reach, not against allies. The
-      "against allies" setting adds the ally case.
-- [ ] Movement: an ally-faction creature with a Hostile disposition doesn't block. A hostile-faction creature with a
-      Friendly disposition does.
-- [ ] Dominate: the target joins the caster's faction, and returns to its old letter when the effect ends. Charm: the
-      charmer is missing from the charmed creature's hostile pickers.
-- [ ] Flanking:
-  - opposite sides → advantage, and opposite corners → advantage, on melee attacks only;
-  - not when the flanker can't see the enemy or is Incapacitated;
-  - a Large ally flanks via any of its squares;
-  - the +2 option adds +2, a custom formula applies, and Off does nothing.
-- [ ] Setting factions off: everything falls back to dispositions, with no fields or windows.
+Live test 2026-10-04 (headless Foundry v14, dnd5e 6.0.5, scene "ZZ Factions", GM + player tabs).
+- [x] (live 2026-10-04) A new scene: PC -> A, NPC -> B, familiar (actor with `flags.dnd5e.summon.origin` = PC's spell item; not a
+      real Find Familiar cast) -> A, Item Pile token -> no letter (and no flag). Default table: A<->B hostile, A<->A / B<->B ally.
+- [x] (live 2026-10-04) Sheet seed "C" (api.setSeed): the placed token is C, disposition Neutral, C neutral to A and B.
+- [x] (live 2026-10-04) Table: cycling a cell changes both directions while linked, one while unlinked; diagonal cells are
+      disabled (locked); "+" adds a row and column (D); hovering a letter draws a ring on the map (PIXI Graphics added on
+      canvas.controls, removed on leave), clicking pins it, clicking again unpins. Copy from scene (window + confirm) copies the
+      table and the link state. First open of the window throws (see Left, 1).
+- [x] (live 2026-10-04) Disposition sync: A<->B ally/neutral/hostile -> B token Friendly/Neutral/Hostile; Secret token kept
+      (-2) through every change; two attacks (one rolled) changed no dispositions. Tracker letter field and Token HUD field+button
+      edit the flag and re-sync.
+- [ ] Perspective colours: **FAIL** as built: `Token#getDispositionColor` is never wrapped (see Left, 2). With the wrapper
+      emulated by hand (same code) the logic passed: player selecting PC (A) -> B red; selecting a C token -> A red, B yellow;
+      GM with nothing selected -> A's view. Mixed-selection fallbacks and GM selection: SKIPPED (the perspective rule changed
+      on 2026-10-04; retest after the rewrite). The perspective badge is not built (known deviation).
+- [x] (live 2026-10-04) Pickers: an ally-only picker starts with only the green chip on (3 allies shown, hostile/neutral rows
+      hidden); switching red on lists the hostiles; a hostile and an ally were picked and returned. Chips relative to the
+      chooser. Side note in Left, 3 (loot pile listed as a neutral pick).
+- [x] (live 2026-10-04) Opportunity Attacks: popup offered for a hostile (A leaving B's reach) and a neutral (C leaving B) mover;
+      none for an ally (B leaving B); with `factionOaAllies` on the ally popup appears ("(an ally)").
+- [x] (live 2026-10-04) Movement (player client, real `token.move`): an A-faction token with Hostile disposition did not block
+      an A mover (reached the destination); a B-faction token with Friendly disposition blocked (stopped on the adjacent
+      square). Control with factions off: the Hostile-disposition A token blocked (stopped adjacent).
+- [x] (live 2026-10-04) Dominate: Box "Dominate Person" cast, forced failed save: target B -> E (the caster's letter) while
+      "Dominated" lasts, back to B when the effect is deleted. Charm: a Charmed target's attack on its charmer is refused with
+      "is Charmed by ... and can't attack it."; the charmer is missing from the charmed creature's hostile picker (present
+      without the effect). Disposition sync on the dominated token was not checked (the target was Secret).
+- [x] (live 2026-10-04) Flanking (Advantage): opposite sides and opposite corners -> advantage with "(flanking)" in the flavor;
+      adjacent sides / non-opposite corners -> none; ranged weapon -> none; ally Incapacitated -> none; Large ally flanks via
+      a side square and via a corner-only square, not when not adjacent; ally behind a wall (token vision on) cannot flank;
+      +2 -> formula `1d20 + 2 + 2 + 2`; custom `1d4` -> `1d20 + 1d4 + 2 + 2`; Off -> nothing. Not verified: attacker Incapacitated
+      (the attack was allowed and still got no flanking; dnd5e doesn't stop the attack, so that is the engine's check working).
+      Not verified: attacker unable to see the target (only the ally side).
+- [x] (live 2026-10-04) Setting factions off: sides fall back to dispositions, no tracker field/button, no Token HUD field. (The API
+      `openWindow` still opens a window when off; harmless.)
+- [x] (live 2026-10-04) GM-only: the player client has no tracker fields, HUD fields or relations button; openWindow warns.
+
+## Left (live test 2026-10-04)
+1. **Relations window: first open throws.** `openRelationsWindow` (factions-window.mjs) calls `app.bringToFront?.()` right after
+   `app.render({ force: true })` without awaiting; `ApplicationV2#bringToFront` reads `this.element.style`, which doesn't exist yet
+   on the first open -> `TypeError: Cannot read properties of undefined (reading 'style')`. The window still renders (the throw is
+   after render started) but the click handler throws. Fix: `await app.render({force:true})` before `bringToFront`, or call it only if
+   `app.rendered`.
+2. **Border colours never applied.** `registerFactions()` runs inside main.mjs's `Hooks.once("ready")` (line ~3197), but the
+   `Token#getDispositionColor` wrapper is installed in `Hooks.once("setup", ...)` inside it, which never fires. Observed: on both clients
+   `Token5e.prototype.getDispositionColor` is Foundry's original (a B token is Hostile red whatever the perspective). Fix: install the
+   wrapper directly (or register it at module load / `init`) instead of inside `setup` from a ready callback. The wrapper's logic was
+   verified by installing the same code by hand: perspective C -> B yellow, A red.
+3. **Loot pile listed in pickers.** `findCreatures` (creatures.mjs) has no creature check, so an Item Piles actor (no faction) is listed
+   as a "neutral" pick with side any. Observed in the Bless picker (neutral chip). Expected: never counted for or against anyone.
+   Fix: skip actors where `!system.isCreature` / item-pile flag.
+4. Test caveat: with the pane hidden `TokenDocument#x/y` lag after a teleport (animation never ends), so flanking/OA geometry reads
+   stale positions unless `token.object.stopAnimation()` is called. Not an engine bug, but it could bite headless tests.
+5. Perspective rule changed 2026-10-04 (sticky last-clicked token; GM always A): mixed-selection / GM fallbacks to be retested by the main thread.
 
 ## Sources
 - 2014 DMG p. 251, Flanking (5etools `variantrules.json`, source DMG). There's no flanking rule in the 2024 DMG
@@ -260,6 +282,7 @@ letters, a picker override). T-025's rules are replaced by the ones below.
   side while Charm doesn't.
 
 ## Log
+- 2026-10-04 — Sonnet live test (headless v14, GM + player tabs): everything passes except perspective border colours (wrapper never installed), plus a first-open TypeError in the relations window and loot piles in pickers; see Left.
 - 2026-10-04 — Claude (Opus) + 2 Sonnet agents (window, flanking): built offline as above; awaiting a live test.
 - 2026-10-03 — Claude (Opus) with the maintainer: design converged through brainstorming. This spec records every
   decision. Nothing is implemented beyond T-025's baseline on this branch.

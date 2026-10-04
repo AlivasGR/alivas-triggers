@@ -77,7 +77,8 @@ export async function resolveSave(activity, targets, { usage=null, label, origin
   const results = await Promise.all(targets.map(async actor => autoSaves(activity, actor) ? { actor, total: 0, success: true, auto: true } : ({ actor,
     ...(await rollSaveOutcome(actor, { ability, dc,
       // Activity flag saveAdvantage: the targets save with advantage (Shove Aside).
-      advantage: hasSaveAdvantage(actor, statuses) || !!activity.flags?.[MODULE_ID]?.saveAdvantage }, label)) })));
+      advantage: hasSaveAdvantage(actor, statuses) || !!activity.flags?.[MODULE_ID]?.saveAdvantage
+        || (!!activity.flags?.[MODULE_ID]?.saveAdvantageWhenFighting && fighting(activity.actor, actor)) }, label)) })));
   const rolled = results.filter(r => r.total !== null);
 
   // Damage: one roll for everyone it can hurt.
@@ -162,6 +163,14 @@ async function applySaveOutcome(activity, actor, success, { damages, message, us
   }
   // Activity flag onFail: steps the user runs against each creature that failed (Shove Aside: move it; Hurl: throw it).
   if ( !success && activity.flags?.[MODULE_ID]?.onFail?.length ) await deps.runActivitySteps?.(activity, actor, "onFail");
+}
+
+/** Is the user fighting the target: both in a started combat together, and the target hostile to the user's side? */
+export function fighting(user, target) {
+  if ( !user || !target ) return false;
+  const combat = game.combats.find(c => c.started && c.combatants.some(cb => cb.actor?.uuid === user.uuid)
+    && c.combatants.some(cb => cb.actor?.uuid === target.uuid));
+  return !!combat && (Creatures.relation(user, target) === "enemy");
 }
 
 /**
