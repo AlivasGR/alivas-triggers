@@ -258,9 +258,10 @@ export async function syncDispositions(scene, tokens) {
  * One-time migration (world setting `factionsMigrated`): creature tokens that existed before factions get their letter
  * from their CURRENT disposition — Friendly → the party letter, Hostile → B, Neutral / Secret → N (neutral to everyone
  * by default) — so nothing changes side when factions first run. New tokens follow the normal defaults.
+ * force: run even after the first time (factions switched back on: tokens placed while they were off have no letter).
  */
-export async function migrateExisting() {
-  if ( game.settings.get(MODULE_ID, "factionsMigrated") ) return;
+export async function migrateExisting({ force=false }={}) {
+  if ( !force && game.settings.get(MODULE_ID, "factionsMigrated") ) return;
   const D = CONST.TOKEN_DISPOSITIONS;
   const party = partyLetter();
   for ( const scene of game.scenes ) {
@@ -384,10 +385,11 @@ export function registerFactions() {
     for ( const scene of game.scenes ) syncDispositions(scene);
   }, 3000);
 
-  // Factions switched on mid-session: migrate existing tokens and sync, as at load.
+  // Factions switched on mid-session: migrate tokens without a letter (also ones placed while factions were off) and
+  // sync, as at load.
   Hooks.on("updateSetting", async setting => {
     if ( (setting.key !== `${MODULE_ID}.factions`) || !enabled() || !isLeadGM() ) return;
-    await migrateExisting();
+    await migrateExisting({ force: true });
     for ( const scene of game.scenes ) syncDispositions(scene);
     refreshBorders();
   });

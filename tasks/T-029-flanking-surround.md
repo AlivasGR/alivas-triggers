@@ -1,6 +1,6 @@
 # T-029 — Flanking variant "surround" (+1 per flanker, up to PB)
 
-- **Status:** needs-live-test
+- **Status:** done
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine
@@ -41,21 +41,22 @@ size. The maintainer's rules:
 
 ## Acceptance (live)
 In zz-stage-test, with setting `flanking` = `surround` and a Medium Hostile target T:
-- [ ] Two PCs on W and E of T, each with a melee weapon equipped:
+- [x] Two PCs on W and E of T, each with a melee weapon equipped:
   - each one's melee attack gets +2;
   - the flavor reads "(flanked: +2)".
-- [ ] They stand N and SE: no bonus.
-- [ ] Two PCs on W and E, plus a third on N, with PB ≥ 3: +3. With PB 2: +2.
-- [ ] The W PC holds only an Unarmed Strike (weapon unequipped): no flanking, since only one flanker is left.
-- [ ] The W PC is Incapacitated, or can't see T: no flanking.
-- [ ] A reach weapon two squares W of T, plus a PC adjacent E: flanked.
-- [ ] Elevation:
+- [x] They stand N and SE: no bonus.
+- [x] Two PCs on W and E, plus a third on N, with PB ≥ 3: +3. With PB 2: +2.
+- [x] The W PC holds only an Unarmed Strike (weapon unequipped): no flanking, since only one flanker is left.
+- [x] The W PC is Incapacitated, or can't see T: no flanking.
+- [x] A reach weapon two squares W of T, plus a PC adjacent E: flanked.
+- [x] Elevation:
   - W PC at elevation 15 (out of reach): no flanking;
   - both PCs at elevation 5, W and E: flanked.
-- [ ] A Large target (2×2) with PCs straight across (N of its left column, S of its left column): flanked.
-- [ ] A ranged attack: no bonus.
-- [ ] Advantage from another source still applies with the bonus.
-- [ ] The setting set back to advantage / plus2 behaves as before.
+- [x] A Large target (2×2) with PCs straight across (N of its left column, S of its left column): flanked.
+- [x] A ranged attack: no bonus.
+- [x] Advantage from another source still applies with the bonus.
+- [x] The setting set back to advantage / plus2 behaves as before.
 
 ## Log
 - 2026-10-04 — Claude (Opus): built; geometry unit-checked in Node; untested live.
+- 2026-10-04 — Claude (Sonnet): live test in zz-stage-test, all checklist items pass. Pure flankersOf/surroundBonus for every layout (W+E +2, N+SE none, three flankers PB3 +3 / PB2 +2, unequipped and Incapacitated none, Glaive two squares away flanks, elevation 15 none and 5+5 flanked, Large target flanked, wall-blocked sight none); real attack rolls through the harness show formula "1d20 + 2 + 0 + 3" with flavor "(flanked: +2)" / "(flanked: +3)", ranged Longbow gets nothing, an Advantage from another hook gives 2d20adv plus the bonus, and advantage / plus2 modes behave as before.

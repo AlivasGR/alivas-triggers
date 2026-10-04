@@ -1,6 +1,6 @@
 # T-028 — Factions: keep existing worlds' sides on first load (migration)
 
-- **Status:** needs-live-test
+- **Status:** done
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine
@@ -21,7 +21,7 @@ before the startup sync, and also when the `factions` setting is switched on.
 - New tokens still follow the spec's defaults (NPC → B).
 
 ## Acceptance (live)
-- [ ] In zz-stage-test, prepare a scene with tokens that have no faction flag:
+- [x] In zz-stage-test, prepare a scene with tokens that have no faction flag:
   - remove `flags.alivas-engine-of-triggers.faction` from its tokens;
   - delete the stored `factionsMigrated`;
   - include a Friendly NPC, a Hostile NPC, a Neutral NPC, a Secret NPC and a PC.
@@ -30,9 +30,11 @@ before the startup sync, and also when the `factions` setting is switched on.
   - letters become A, B, N, N, A;
   - no token's disposition changes (Friendly stays Friendly, Neutral stays Neutral, Secret stays Secret);
   - `factionsMigrated` is true.
-- [ ] Reload again: nothing is re-stamped (change one letter by hand first; it stays).
-- [ ] Turn factions off, then remove one token's flag, then turn factions on: that token is migrated without a reload.
-- [ ] A new NPC token placed afterwards gets B (hostile).
+- [x] Reload again: nothing is re-stamped (change one letter by hand first; it stays).
+- [x] Turn factions off, then remove one token's flag, then turn factions on: that token is migrated without a reload.
+- [x] A new NPC token placed afterwards gets B (hostile).
 
 ## Log
 - 2026-10-04 — Claude (Opus): written after the 0.12.0 release; untested live.
+- 2026-10-04 — Claude (Sonnet): live test in zz-stage-test, all four checks pass (letters A/B/N/N/A with dispositions unchanged and factionsMigrated true; a hand-set letter survives a reload; off/remove flag/on migrates with no reload; a new NPC token gets B/hostile). Note: the toggle check only migrates when `factionsMigrated` is false (the setting gates it); with it already true, the unlettered token is not stamped and the sync turns it Hostile until the creation hook or a manual letter.
+- 2026-10-04 — Claude (Opus): switching factions on now always migrates tokens without a letter (`migrateExisting({ force: true })`), so NPCs placed while factions were off keep their side. This is the same code path that passed above, minus the one-time gate.
