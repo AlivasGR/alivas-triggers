@@ -1,6 +1,6 @@
 # T-027 — Twinned Spell upcast, complete Charm/Dominate patches, Swing Creature, the new perspective rule
 
-- **Status:** needs-live-test
+- **Status:** done
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine, editor, box (branch `alliances`)
@@ -70,7 +70,7 @@ The maintainer's requests of 2026-10-04:
   - [x] (live 2026-10-04, retest) damage (Fire Bolt hit) with the caster concentrating: trigger "Dominated|damaged|save" rolls a Wis save, no "No usable DC"
     error; forced failure -> Dominated stays, faction A; forced success -> "succeeds - Dominate Person ends", Dominated gone, faction B,
     caster's Concentrating effect kept.
-- [ ] **Perspective after a page reload:** FAIL, see Left 1.
+- [x] (live 2026-10-04, retest 2) **Perspective after a page reload:** only a C token owned and auto-controlled at load -> perspective "C", B token colour f1d836; nothing controlled at load -> assigned character's faction "A", colour e72124 (after the fix in `registerFactions`).
 - [x] (live 2026-10-04) **Swing Creature** (setting "Include homebrew maneuvers" was already on):
   - Fighter grappled goblin 1 (Unarmed Strike Grapple, DC 15, failed save, tether on goblin 1);
   - Athletics check (1d20 + 7) vs DC 12 (8 + goblin 1's higher of Str/Dex + prof); a roll of 9 -> "can't get enough of a grip", nothing else happens;
@@ -82,15 +82,8 @@ The maintainer's requests of 2026-10-04:
   the activity checkbox "Its targets save with advantage if the user is fighting them" shows, toggles off (flag becomes `{}`) and on, and
   reopens in sync; the filter field "source or its ally" is present on the Charm Person effect and the effect round-trips unchanged.
 
-## Left (live retest 2026-10-04)
-1. **Perspective ignores a token that is already controlled when the page loads.** Player tab with ZZ Player owning only a C-faction token ("ZZ T Other"):
-   after a full page reload Foundry controls it automatically (`canvas.tokens.controlled` = [Other]) but `api.factions.perspective()` is "A" and a B token's
-   `getDispositionColor()` is e72124 (red, A's view); expected "C" / f1d836. Cause: the `canvasReady` handler in `factions.mjs` (~330) is fine (calling
-   `Hooks.callAll("canvasReady", canvas)` by hand gives "C" and f1d836), but `registerFactions` runs in the `ready` hook, after Foundry's first canvas
-   draw, so the first `canvasReady` (and the load-time `controlToken`) is never seen. Fix: at the end of `registerFactions`, run the same check at once when
-   `canvas.ready` (set `lastClicked` from the controlled owned token, refreshBorders). Also: with two owned tokens controlled at load (A and C) the first one
-   wins (A); only clicks decide after that. Selecting a token that is already controlled fires no hook, so it doesn't change the perspective.
-   After a normal click (release all, then control Other) the perspective was C and the colour f1d836 every time.
+## Left
+Nothing.
 
 ## Log
 - 2026-10-04 — Claude (Opus): written offline; untested live, not packed.
@@ -98,3 +91,4 @@ The maintainer's requests of 2026-10-04:
   Swing Creature and the editor pass; Charm Person's "ally damages it" and Dominate's repeat-save DC fail (Left 1 and 2). Status stays needs-live-test until those are fixed.
 - 2026-10-04 — Sonnet live retest (scene "ZZ T27b", GM + player tabs, cleaned up; wfAttackPC set "full" and its stored value deleted afterwards): Charm Person (ally ends, unrelated
   stays, caster ends) and Dominate Person (repeat save with DC, success ends, failure stays) pass. Perspective after reload fails (Left 1). Status stays needs-live-test until that is fixed.
+- 2026-10-04 — Sonnet retest 2: the `registerFactions` fix for the load-time perspective passes (C token controlled at load -> C / f1d836; nothing controlled -> A). Everything in T-027 passes; status done.
