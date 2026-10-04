@@ -12,7 +12,7 @@
  *
  * Variant "surround" (after Aardvark's Flanking; any grid, also gridless): a creature is flanked while two or more of
  * its opponents (creatures their faction regards as hostile to it) threaten it — each can see it, isn't Incapacitated,
- * wields a melee weapon (an equipped melee weapon, natural weapons included, an Unarmed Strike not) and has it within
+ * wields a melee weapon (an equipped melee weapon; natural weapons and Unarmed Strikes always count) and has it within
  * that weapon's reach — and at least two of them are on opposite sides of it: the straight line between their centres
  * (in 3D: token size and elevation count) passes through the target's space. Melee attacks against a flanked creature
  * by one of its opponents get +1 for each opponent threatening it, up to the attacker's Proficiency Bonus. Stacks with
@@ -182,15 +182,16 @@ function distance3d(a, b) {
 
 /**
  * The longest reach among the melee weapons a creature wields (equipped weapons with a melee attack; natural weapons
- * count, an Unarmed Strike doesn't). 0 when it wields none.
+ * count even unequipped, and so does an Unarmed Strike). 0 when it wields none.
  * @param {Actor} actor
  * @returns {number}
  */
 function meleeReach(actor) {
   let reach = 0;
   for ( const item of actor?.items ?? [] ) {
-    if ( (item.type !== "weapon") || (item.system.identifier === "unarmed-strike") ) continue;
-    if ( !item.system.equipped && (item.system.type?.value !== "natural") ) continue;
+    if ( item.type !== "weapon" ) continue;
+    const always = (item.system.type?.value === "natural") || (item.system.identifier === "unarmed-strike");
+    if ( !item.system.equipped && !always ) continue;
     const melee = (item.system.activities ?? []).some(a => (a.type === "attack") && (a.attack?.type?.value === "melee"));
     if ( !melee ) continue;
     reach = Math.max(reach, item.system.range?.reach || (item.system.properties?.has("rch") ? 10 : 5));

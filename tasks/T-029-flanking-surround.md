@@ -22,7 +22,7 @@ size. The maintainer's rules:
 - **Wielding a melee weapon:**
   - an equipped weapon item with a melee attack activity counts;
   - natural weapons count even when unequipped;
-  - an Unarmed Strike does not.
+  - an Unarmed Strike counts too (maintainer, 2026-10-04: it is a melee weapon).
 - **Reach:** the weapon's reach (or 10 ft with the Reach property). The 3D distance is the larger of:
   - the horizontal distance (as Opportunity Attacks measure it);
   - the vertical gap between the token boxes plus one square.
@@ -46,7 +46,8 @@ In zz-stage-test, with setting `flanking` = `surround` and a Medium Hostile targ
   - the flavor reads "(flanked: +2)".
 - [x] They stand N and SE: no bonus.
 - [x] Two PCs on W and E, plus a third on N, with PB ≥ 3: +3. With PB 2: +2.
-- [x] The W PC holds only an Unarmed Strike (weapon unequipped): no flanking, since only one flanker is left.
+- [x] The W PC has no melee weapon item at all (weapon unequipped, no Unarmed Strike item): no flanking.
+- [ ] The W PC with only an Unarmed Strike item: flanks (changed after the live run; not yet run live).
 - [x] The W PC is Incapacitated, or can't see T: no flanking.
 - [x] A reach weapon two squares W of T, plus a PC adjacent E: flanked.
 - [x] Elevation:
@@ -60,3 +61,4 @@ In zz-stage-test, with setting `flanking` = `surround` and a Medium Hostile targ
 ## Log
 - 2026-10-04 — Claude (Opus): built; geometry unit-checked in Node; untested live.
 - 2026-10-04 — Claude (Sonnet): live test in zz-stage-test, all checklist items pass. Pure flankersOf/surroundBonus for every layout (W+E +2, N+SE none, three flankers PB3 +3 / PB2 +2, unequipped and Incapacitated none, Glaive two squares away flanks, elevation 15 none and 5+5 flanked, Large target flanked, wall-blocked sight none); real attack rolls through the harness show formula "1d20 + 2 + 0 + 3" with flavor "(flanked: +2)" / "(flanked: +3)", ranged Longbow gets nothing, an Advantage from another hook gives 2d20adv plus the bonus, and advantage / plus2 modes behave as before.
+- 2026-10-04 — Claude (Opus): Unarmed Strikes now count as melee weapons for surround flanking, per the maintainer. Checked only with `node --check`.
