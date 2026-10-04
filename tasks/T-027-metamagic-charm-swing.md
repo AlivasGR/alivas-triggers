@@ -1,6 +1,6 @@
 # T-027 — Twinned Spell upcast, complete Charm/Dominate patches, Swing Creature, the new perspective rule
 
-- **Status:** needs-live-test (reopened 2026-10-04: Swing / Hurl / Grapple / Shove as attacks of the Attack action)
+- **Status:** done
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine, editor, box (branch `alliances`)
@@ -97,27 +97,27 @@ Nothing.
     activation is now Action) in Combat Maneuvers **v4**.
 
 ## Acceptance — second pass (live)
-- [ ] A ZZ Fighter 5 (Extra Attack) in combat on its turn:
-  - Grapple a goblin (Unarmed Strike → Grapple): an "Extra Attack — attack 2 of 2" prompt appears, listing weapon
-    attacks plus Grapple, Shove, Swing Creature and Hurl Creature;
-  - picking Swing Creature (target goblin 2) runs the Athletics check, then the Strike;
-  - on a hit goblin 2 takes 1d6 + Str, and goblin 1 (held) takes 1d6 + Str on a hit or a miss.
-- [ ] Starting the turn with Swing Creature (already grappling) or Hurl Creature: it uses the Action, and the Extra
-      Attack prompt follows.
-- [ ] Without Extra Attack: Grapple or Swing uses the Action and offers no follow-up.
-- [ ] Thirsting Blade (pact weapon only) doesn't offer the maneuvers.
-- [ ] Editor: the "One attack of the Attack action" checkbox shows on those activities and round-trips.
-- [ ] **Variant `grappleFollowThrough`** (setting, off by default; Unarmed Strike **v4** gives Grapple
-      `freeFollowUp { item: "combat-maneuvers", activities: ["Swing Creature", "Hurl Creature"] }`):
-  - with it on, a Fighter 5 grapples (attack 1): once the hold exists, the prompt shows "Swing Creature (free — part of
-    the grapple)" and "Hurl Creature (free …)" plus the normal attack-2 options;
-  - picking the free Swing doesn't use up attack 2 (the prompt comes back as "attack 2 of 2");
-  - Swing again as attack 2 works normally.
-  - Without Extra Attack: after a Grapple, a "follow through on the grapple?" prompt offers the free options.
-  - A Grapple made as attack 2 offers the free follow-through next.
-  - A failed Grapple (the target saves): no free options.
-  - Setting off: no free options anywhere.
-  - Editor: the "Free follow-ups" fields show on Grapple and round-trip.
+- [x] (live 2026-10-04) A ZZ Fighter 5 (Extra Attack) in combat on its turn:
+  - [x] Grapple a goblin (Unarmed Strike → Grapple): an "Extra Attack" prompt appears (it reads "attack 1 of 1", i.e. the one extra attack), listing Unarmed Strike,
+    Longsword, Hurl Creature, Swing Creature, Grapple, Shove;
+  - [x] Swing Creature (target goblin 2) runs the Athletics check (24 vs DC 12, success), then the Strike;
+  - [x] hit (roll 8 vs AC 1): goblin 2 took 6 (1d6 + 5), goblin 1 (held) took 10 (1d6 + 5); miss (roll 7 vs AC 40): goblin 2 unchanged, goblin 1 took 10 (1d6 + 5).
+- [x] (live 2026-10-04) Starting the turn with Swing Creature (already grappling) or Hurl Creature: Swing used first, then the Extra Attack prompt followed; Hurl used first
+      (target = the grappled goblin; failed save, placement click), the Extra Attack prompt followed.
+- [x] (live 2026-10-04) Without Extra Attack (effect disabled): Grapple and Swing use the Action and show no follow-up.
+- [x] (live 2026-10-04) Thirsting Blade (rule `extraAttack { count 1, item: bonds has pact-of-the-blade }`): Swing Creature with no pact weapon offers no follow-up; an attack with a
+      Longsword carrying a pact-of-the-blade bond goes straight to the target picker (no weapon/maneuver list: the maneuvers are excluded).
+- [x] (live 2026-10-04) Editor: the "One attack of the Attack action" checkbox shows on Grapple, Shove, Swing Creature and Hurl Creature; on Grapple, unticking and saving removes
+      the flag, ticking and saving restores `attackOption: true`, and the editor reopens in sync.
+- [x] (live 2026-10-04) **Variant `grappleFollowThrough`** (setting on; the test Unarmed Strike was v3, so `freeFollowUp` was set through the editor fields):
+  - [x] Fighter 5 grapples (attack 1): once the hold exists, the prompt lists "Swing Creature (free — part of the grapple)" and "Hurl Creature (free …)" plus the normal options;
+  - [x] the free Swing (goblin 2, hit) doesn't use up attack 2: the prompt returns as "attack 1 of 1" without free options; Swing again as the extra attack works normally
+    (then no further prompt);
+  - [x] without Extra Attack: after a Grapple the "Grapple: follow through on the grapple?" prompt offers the free Swing / Hurl;
+  - [x] a Grapple made as the extra attack (after a Longsword attack) offers "Extra Attack: follow through on the grapple?" next;
+  - [x] failed Grapple (save 43): no free options (only the normal prompt);
+  - [x] setting off: no free options (normal prompt only);
+  - [x] editor: the "Free follow-ups" fields on Grapple saved `freeFollowUp { item: "combat-maneuvers", activities: ["Swing Creature","Hurl Creature"] }` and showed it again on reopening.
 
 ## Log
 - 2026-10-04 — Claude (Opus): written offline; untested live, not packed.
@@ -128,3 +128,5 @@ Nothing.
 - 2026-10-04 — Sonnet retest 2: the `registerFactions` fix for the load-time perspective passes (C token controlled at load -> C / f1d836; nothing controlled -> A). Everything in T-027 passes; status done.
 - 2026-10-04 — Claude (Opus): Swing damage 1d6 + Str to both; `attackOption` added (Grapple, Shove, Swing, Hurl); untested live.
 - 2026-10-04 — Claude (Opus): variant grappleFollowThrough (setting, `freeFollowUp` flag, Unarmed Strike v4); untested live.
+- 2026-10-04 — Sonnet live test, second pass + variant (scene "ZZ T27c", GM tab, cleaned up; wfAttackPC set "full" and grappleFollowThrough on, both stored values deleted afterwards): everything in the
+  second-pass list and the grappleFollowThrough list passes. Notes: the follow-up prompt says "attack 1 of 1" for Extra Attack count 1; a Hurl needs a placement click after its failed save. Unarmed Strike v4 was not in the running pack (freeFollowUp set via the editor), so re-check the flag after the next `npm run pack`.
