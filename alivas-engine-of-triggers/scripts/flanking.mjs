@@ -9,6 +9,7 @@
  * Settings (settings.mjs, read with opt()):
  *   flanking         "off" | "advantage" | "plus2" | "custom" | "surround"
  *   flankingFormula  the modifier for "custom" (a number or a roll formula, e.g. "1d4")
+ *   flankingRanged   with "surround": ranged attacks get the bonus and ranged attackers add to it (see below)
  *
  * Variant "surround" (after Aardvark's Flanking; any grid, also gridless): a creature is flanked while two or more of
  * its opponents (creatures their faction regards as hostile to it) threaten it — each can see it, isn't Incapacitated,
@@ -254,9 +255,90 @@ export function surroundBonus(attackerToken, targetToken) {
   const scene = attackerToken?.parent;
   if ( !scene || (targetToken?.parent !== scene) || (attackerToken === targetToken) ) return 0;
   if ( Creatures.relation(attackerToken.actor, targetToken.actor, scene) !== "enemy" ) return 0;
-  const count = flankersOf(targetToken).length;
+  const flankers = flankersOf(targetToken);
+  if ( !flankers.length ) return 0;
+  const ranged = opt("flankingRanged") ? rangedContributors(targetToken).filter(t => !flankers.includes(t)) : [];
   const pb = Number(attackerToken.actor?.system.attributes?.prof ?? 0) || 2;
-  return Math.min(count, pb);
+  return Math.min(flankers.length + ranged.length, pb);
+}
+
+/* -------------------------------------------- */
+/*  Variant "surround": ranged attackers        */
+/* -------------------------------------------- */
+
+/*
+ * Setting flankingRanged (only with "surround"; on by default): ranged attacks (weapons, thrown weapons, spells) against
+ * a flanked creature get the bonus too, and ranged attackers add to it. A creature that made a ranged attack against a
+ * target during its turn adds +1 to that target's flank bonus from the end of that turn until the end of its next
+ * turn; if it attacks the target at range again on that next turn, it keeps adding. Ranged attackers only add to the
+ * bonus: the target must still be flanked by two melee opponents on opposite sides.
+ *
+ * Kept on the attacker's token, flag `rangedFlank`: { pending: [target token ids attacked at range this turn],
+ * active: [target token ids it is adding to] }. Its owner writes `pending` when it rolls; at the end of its turn the
+ * lead GM moves pending to active (combatTurnChange); the flag goes when the combat ends.
+ */
+const MODULE_ID = "alivas-engine-of-triggers";
+
+/**
+ * Opponents adding to a target's flank bonus with ranged attacks: they made one against it at their last turn's end,
+ * they're its opponents, they can see it and they aren't Incapacitated.
+ * @param {TokenDocument} targetToken
+ * @returns {TokenDocument[]}
+ */
+export function rangedContributors(targetToken) {
+  const scene = targetToken?.parent;
+  if ( !scene || !targetToken.actor ) return [];
+  return scene.tokens.filter(t => (t !== targetToken) && !t.hidden && t.actor
+    && (t.getFlag(MODULE_ID, "rangedFlank")?.active ?? []).includes(targetToken.id)
+    && (Creatures.relation(t.actor, targetToken.actor, scene) === "enemy")
+    && !incapacitated(t) && Creatures.canSee(t, targetToken));
+}
+
+/** Is this attack ranged: a ranged attack activity (weapon or spell), or a thrown weapon? */
+function isRangedAttack(activity, attackMode) {
+  return (activity?.attack?.type?.value === "ranged") || String(attackMode ?? "").startsWith("thrown");
+}
+
+/**
+ * `dnd5e.rollAttackV2` (the attacker's client): remember a ranged attack's target for the end of the attacker's turn.
+ * @param {Roll[]} rolls
+ * @param {{subject: Activity}} data
+ */
+async function onRollAttack(rolls, { subject: activity }={}) {
+  if ( (opt("flanking") !== "surround") || !opt("flankingRanged") ) return;
+  if ( !isRangedAttack(activity, rolls?.[0]?.options?.attackMode) ) return;
+  const attackerToken = Creatures.tokenFor(activity.actor, canvas.scene);
+  if ( !attackerToken?.inCombat || !attackerToken.isOwner ) return;
+  const ids = Array.from(game.user.targets ?? []).map(t => t.document).filter(d => d?.parent === attackerToken.parent).map(d => d.id);
+  if ( !ids.length ) return;
+  const flag = attackerToken.getFlag(MODULE_ID, "rangedFlank") ?? {};
+  const pending = Array.from(new Set([...(flag.pending ?? []), ...ids]));
+  await attackerToken.setFlag(MODULE_ID, "rangedFlank", { pending, active: flag.active ?? [] });
+}
+
+/**
+ * `combatTurnChange` (lead GM): the creature whose turn just ended now adds to the targets it attacked at range during
+ * it, and stops adding to any it didn't.
+ * @param {Combat} combat
+ * @param {{combatantId: string|null, round: number}} prior
+ * @param {{combatantId: string|null, round: number}} current
+ */
+async function onTurnChange(combat, prior, current) {
+  if ( !Creatures.isLeadGM() || !prior?.combatantId ) return;
+  if ( (prior.combatantId === current?.combatantId) && (prior.round === current?.round) ) return;
+  const token = combat.combatants.get(prior.combatantId)?.token;
+  const flag = token?.getFlag(MODULE_ID, "rangedFlank");
+  if ( !flag ) return;
+  if ( !flag.pending?.length ) await token.unsetFlag(MODULE_ID, "rangedFlank");
+  else await token.setFlag(MODULE_ID, "rangedFlank", { pending: [], active: flag.pending });
+}
+
+/** `deleteCombat` / combat ended (lead GM): nobody keeps adding. */
+async function clearRangedFlank(combat) {
+  if ( !Creatures.isLeadGM() ) return;
+  for ( const c of combat.combatants ) {
+    if ( c.token?.getFlag(MODULE_ID, "rangedFlank") ) await c.token.unsetFlag(MODULE_ID, "rangedFlank");
+  }
 }
 
 /**
@@ -269,8 +351,9 @@ function onPreRollAttack(config, dialog, message) {
   const mode = opt("flanking");
   if ( !mode || (mode === "off") ) return;
   const activity = config.subject;
-  if ( activity?.attack?.type?.value !== "melee" ) return;
-  if ( String(config.attackMode ?? "").startsWith("thrown") ) return;         // a thrown weapon is a ranged attack
+  // Melee only (a thrown weapon is a ranged attack), except with surround's ranged option.
+  const rangedOk = (mode === "surround") && opt("flankingRanged");
+  if ( isRangedAttack(activity, config.attackMode) ? !rangedOk : (activity?.attack?.type?.value !== "melee") ) return;
   const targets = Array.from(game.user.targets ?? []);
   if ( targets.length !== 1 ) return;                                         // multi-target melee: not handled
   const attackerToken = Creatures.tokenFor(activity.actor, canvas.scene);
@@ -301,4 +384,7 @@ function onPreRollAttack(config, dialog, message) {
 /** Register the flanking hook (called once from main.mjs during init). */
 export function registerFlanking() {
   Hooks.on("dnd5e.preRollAttackV2", onPreRollAttack);
+  Hooks.on("dnd5e.rollAttackV2", onRollAttack);
+  Hooks.on("combatTurnChange", onTurnChange);
+  Hooks.on("deleteCombat", clearRangedFlank);
 }
