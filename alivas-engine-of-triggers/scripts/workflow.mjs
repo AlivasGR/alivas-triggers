@@ -12,6 +12,8 @@
 
 import * as Creatures from "./creatures.mjs";
 import { wantsArea } from "./areas.mjs";
+import { tethersBy } from "./maneuvers.mjs";
+import { opt } from "./settings.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 let deps = {};
@@ -395,16 +397,27 @@ export function strikeCount(count, actor) {
   } catch(err) { return 0; }
 }
 
-export async function followUpAttacks(actor, { count, activities, label, swap=null }) {
+export async function followUpAttacks(actor, { count, activities, label, swap=null, free=[], freeAfter=null }) {
   let swapLeft = !!swap;
-  for ( let i = 0; i < count; i++ ) {
-    const choices = activities.map(a => ({ value: a.uuid, label: a.item.name + (a.name && (a.name !== a.item.name) && !/^attack$/i.test(a.name) ? ` — ${a.name}` : "") }));
-    if ( swapLeft ) choices.push({ value: swap.uuid, label: `${swap.item.name} instead` });
+  // Free options (variant: Swing / Hurl as part of a Grapple): offered once, only while the user holds a creature, and
+  // using one doesn't use up an attack. freeAfter: a promise to wait for first (the grapple's save resolving).
+  let freeLeft = free.length > 0;
+  if ( freeLeft && freeAfter ) await freeAfter;
+  const holding = () => tethersBy(actor).length > 0;
+  let i = 0;
+  while ( (i < count) || (freeLeft && holding()) ) {
+    const offerFree = freeLeft && holding();
+    const choices = (i < count) ? activities.map(a => ({ value: a.uuid, label: a.item.name + (a.name && (a.name !== a.item.name) && !/^attack$/i.test(a.name) ? ` — ${a.name}` : "") })) : [];
+    if ( offerFree ) for ( const a of free ) choices.push({ value: `free:${a.uuid}`, label: `${a.name} (free — part of the grapple)` });
+    if ( swapLeft && (i < count) ) choices.push({ value: swap.uuid, label: `${swap.item.name} instead` });
     choices.push({ value: "none", label: "Done" });
-    const pick = choices.length === 2 ? choices[0].value : await Creatures.HANDLERS.pickOption({ title: `${label} — ${actor.name}`,
-      prompt: `<p><strong>${label}</strong>: attack ${i + 1} of ${count} — with what?</p>`, options: choices });
+    const prompt = (i < count) ? `<p><strong>${label}</strong>: attack ${i + 1} of ${count} — with what?</p>`
+      : `<p><strong>${label}</strong>: follow through on the grapple?</p>`;
+    const pick = ((choices.length === 2) && !offerFree) ? choices[0].value
+      : await Creatures.HANDLERS.pickOption({ title: `${label} — ${actor.name}`, prompt, options: choices });
     if ( !pick || (pick === "none") ) return;
-    const activity = fromUuidSync(pick);
+    const isFree = pick.startsWith("free:");
+    const activity = fromUuidSync(isFree ? pick.slice(5) : pick);
     if ( !activity ) return;
     const healing = activity === swap;
     if ( healing ) swapLeft = false;
@@ -413,8 +426,42 @@ export async function followUpAttacks(actor, { count, activities, label, swap=nu
       range: healing ? (activity.range?.value || 5) : reach }, { title: `${label} — target` });
     if ( !target ) return;
     Creatures.tokenFor(target)?.object?.setTarget(true, { releaseOthers: true });
+    const since = Date.now();
     await activity.use({ consume: { resources: false, spellSlot: false }, [MODULE_ID]: { followUp: true } }, { configure: false }, {});
+    if ( isFree ) freeLeft = false;
+    else {
+      i++;
+      // A Grapple made as one of these attacks: its free follow-through is offered next (variant).
+      const more = followThroughOptions(activity);
+      if ( more.length && !freeLeft ) {
+        await waitFor(() => tethersBy(actor).some(e => (e._stats?.createdTime ?? 0) >= since - 2000),
+          ((Number(deps.setting?.("reactionTimeout")) || 30) + 10) * 1000);
+        free = more;
+        freeLeft = true;
+      }
+    }
   }
+}
+
+/**
+ * Activity flag `freeFollowUp: { item, activities }` (Grapple): with the variant setting grappleFollowThrough, after this
+ * activity lands a hold, the named activities of the user's item (identifier `item`) may follow at once for free —
+ * not using up an attack (Swing / Hurl Creature as part of the grapple). Later uses count as attacks normally.
+ */
+function followThroughOptions(activity) {
+  const spec = activity?.flags?.[MODULE_ID]?.freeFollowUp;
+  if ( !spec || !opt("grappleFollowThrough") ) return [];
+  const item = activity.actor?.items.find(i => i.system?.identifier === spec.item);
+  return (spec.activities ?? []).map(n => item?.system.activities?.getName?.(n) ?? item?.system.activities?.get?.(n)).filter(Boolean);
+}
+
+/** Resolve when test() is true (checked every 250 ms), or after timeout ms. */
+function waitFor(test, timeout) {
+  return new Promise(resolve => {
+    const start = Date.now();
+    const tick = () => { if ( test() || ((Date.now() - start) > timeout) ) resolve(); else setTimeout(tick, 250); };
+    tick();
+  });
 }
 
 /**
@@ -443,21 +490,27 @@ Hooks.on("dnd5e.postUseActivity", (activity, usageConfig) => {
   const passes = (rule, item) => !rule.item?.length || dnd5e.Filter.performCheck(Creatures.itemFilterData(item), rule.item);
   const rules = (actor.appliedEffects ?? []).map(e => e.getFlag(MODULE_ID, "extraAttack")).filter(r => (r?.count > 0) && passes(r, activity.item));
   const rule = rules.sort((a, b) => b.count - a.count)[0];
-  const extra = rule?.count ?? 0;
-  if ( !extra || (activity.activation?.type !== "action") ) return;
+  // Variant (setting grappleFollowThrough): after a Grapple, Swing / Hurl may follow for free (activity flag freeFollowUp).
+  const free = followThroughOptions(activity);
+  const extra = (activity.activation?.type === "action") ? (rule?.count ?? 0) : 0;
+  if ( !extra && !free.length ) return;
   const combat = game.combats.find(c => c.started && c.combatants.some(cb => cb.actor?.uuid === actor.uuid || cb.actorId === actor.id));
   const turn = combat ? `${combat.id}:${combat.round}:${combat.turn}` : null;
   if ( turn && (followUps.get(actor.uuid) === turn) ) return;
   if ( turn ) followUps.set(actor.uuid, turn);
-  const activities = actor.items.filter(i => ["weapon"].includes(i.type) && (i.system.equipped !== false || i.system.identifier === "unarmed-strike")
+  const activities = !extra ? [] : actor.items.filter(i => ["weapon"].includes(i.type) && (i.system.equipped !== false || i.system.identifier === "unarmed-strike")
     && passes(rule, i))
     .flatMap(i => i.system.activities.filter(a => (a.type === "attack") && (a.activation?.type === "action")));
   // Activities that can replace an attack of the Attack action (activity flag attackOption), unless the rule limits the
   // weapon (Thirsting Blade).
-  if ( !rule.item?.length ) for ( const i of actor.items ) {
+  if ( extra && !rule.item?.length ) for ( const i of actor.items ) {
     for ( const a of i.system.activities ?? [] ) if ( isAttackOption(a) && !activities.includes(a) ) activities.push(a);
   }
-  setTimeout(() => followUpAttacks(actor, { count: extra, activities, label: "Extra Attack" }), 1500);
+  // Free options wait (up to the reaction timeout + 10 s) for the grapple to land: a hold of the user's created now.
+  const since = Date.now();
+  const freeAfter = free.length ? waitFor(() => tethersBy(actor).some(e => (e._stats?.createdTime ?? 0) >= since - 2000),
+    ((Number(deps.setting?.("reactionTimeout")) || 30) + 10) * 1000) : null;
+  setTimeout(() => followUpAttacks(actor, { count: extra, activities, label: extra ? "Extra Attack" : activity.name, free, freeAfter }), 1500);
 });
 
 // Runs synchronously first: where the workflow takes over, dnd5e's own follow-up roll (attack dialog, save damage) is

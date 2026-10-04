@@ -1425,7 +1425,7 @@ export class TriggerEditor extends ApplicationV2 {
         saveAdvantage: !!f.saveAdvantage, castFrom: f.castingAbility?.class ? "class" : f.castingAbility?.spell ? "spell" : "",
         castId: f.castingAbility?.class ?? f.castingAbility?.spell ?? "",
         autoSaveText: f.autoSave ? JSON.stringify(f.autoSave) : "", saveAdvantageWhenFighting: !!f.saveAdvantageWhenFighting,
-        attackOption: !!f.attackOption };
+        attackOption: !!f.attackOption, freeItem: f.freeFollowUp?.item ?? "", freeActs: (f.freeFollowUp?.activities ?? []).join(", ") };
     } else if ( this.mode === "area" ) {
       const list = this.activity.flags?.[MODULE_ID]?.area?.triggers;
       this.models = (Array.isArray(list) ? list : []).map(x => triggerToModel(x));
@@ -1832,6 +1832,9 @@ export class TriggerEditor extends ApplicationV2 {
         <span class="aet-muted">· at least</span><input type="number" class="aet-num" min="0" data-setting="req.minSizeAbove" data-rerender value="${esc(s.requires?.minSizeAbove ?? "")}" placeholder="any"><span class="aet-muted">sizes larger</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="offerWhenBlocked" data-rerender${s.offerWhenBlocked ? " checked" : ""}><span>Offer this when a hostile creature blocks the user's move (Tumble, Overrun)</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="attackOption"${s.attackOption ? " checked" : ""}><span>One attack of the Attack action (needs an Action activation): Extra Attack follows it, and it's offered among the extra attacks (Grapple, Shove, Swing Creature)</span></label>
+      <label class="aet-inline"><span>Free follow-ups</span><input type="text" class="aet-formula" data-setting="freeItem" value="${esc(s.freeItem ?? "")}" placeholder="item identifier">
+        <input type="text" class="aet-wide" data-setting="freeActs" value="${esc(s.freeActs ?? "")}" placeholder="activity names, comma-separated"></label>
+      <p class="aet-muted">With the variant setting “Swing and Hurl as part of a Grapple”: after this lands a hold, these may follow at once without using up an attack (Grapple → combat-maneuvers: Swing Creature, Hurl Creature).</p>
       <label class="aet-check"><input type="checkbox" data-setting="applyToTargets"${s.applyToTargets ? " checked" : ""}><span>Its effects go on the targets even if they're enemies (no save — Help: distract an enemy)</span></label>
       ${this.activity.type === "save" ? `<label class="aet-check"><input type="checkbox" data-setting="saveAdvantage"${s.saveAdvantage ? " checked" : ""}><span>Its targets save with advantage (Shove Aside)</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="saveAdvantageWhenFighting"${s.saveAdvantageWhenFighting ? " checked" : ""}><span>Its targets save with advantage if the user is fighting them: in combat together and hostile (Charm Person, Dominate)</span></label>
@@ -2883,7 +2886,9 @@ export class TriggerEditor extends ApplicationV2 {
         castingAbility: s.castFrom && String(s.castId ?? "").trim() ? { [s.castFrom]: String(s.castId).trim() } : null,
         autoSave: (activityType => activityType === "save" ? parseFilterText(s.autoSaveText) : null)(this.activity.type),
         saveAdvantageWhenFighting: (this.activity.type === "save") && s.saveAdvantageWhenFighting ? true : null,
-        attackOption: s.attackOption ? true : null
+        attackOption: s.attackOption ? true : null,
+        freeFollowUp: String(s.freeItem ?? "").trim() && String(s.freeActs ?? "").trim()
+          ? { item: String(s.freeItem).trim(), activities: String(s.freeActs).split(",").map(x => x.trim()).filter(Boolean) } : null
       }));
     } else if ( this.mode === "area" ) {
       await this.activity.update(cleanFlagUpdate({

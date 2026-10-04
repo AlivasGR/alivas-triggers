@@ -190,7 +190,14 @@
               "maxSizeAbove": 1,
               "freeHand": true
             },
-            "attackOption": true
+            "attackOption": true,
+            "freeFollowUp": {
+              "item": "combat-maneuvers",
+              "activities": [
+                "Swing Creature",
+                "Hurl Creature"
+              ]
+            }
           }
         },
         "visibility": {
@@ -364,7 +371,7 @@
   },
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 3,
+      "version": 4,
       "match": [
         {
           "name": "Unarmed Strike",

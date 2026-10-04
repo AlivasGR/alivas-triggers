@@ -63,6 +63,7 @@ const DEFS = {
 
   /* Action economy and maneuvers */
   economyTracking: bool("Action economy tracking", "Track each creature's Action, Bonus Action and free object interaction per combat turn, and ask before a creature spends one it doesn't have (trading, looting, pickpocketing, retrieving)."),
+  grappleFollowThrough: bool("Variant: Swing and Hurl as part of a Grapple", "After a successful Grapple, the grappler may Swing or Hurl the creature at once for free, as part of that same attack (it doesn't use up an attack). Later Swings and Hurls count as attacks normally. Off: Swing and Hurl are always attacks of the Attack action.", false),
   blockedOffers: bool("Offer Tumble / Overrun when blocked", "When a hostile creature blocks a move, offer the mover its activities flagged as blocked-move options."),
   skillAbilityMenu: bool("Skills with another ability", "Right-click a skill on a character or NPC sheet: \"Roll using a different ability…\"."),
 
@@ -88,7 +89,7 @@ export const GROUPS = {
   trading: ["tradeRules", "tradeAnyDistanceOutOfCombat", "tradeThrowRange", "tradeThrowCheck", "tradeThrowCheckDc", "tradeCatchDc", "tradeCatchHeavyDc",
     "tradeHeavyLb", "tradeRetrieveUtilize", "fragileHeuristic", "fragilePattern", "tradeAskTimeout"],
   cover: ["coverDialog", "coverButtons", "unseenAttacks", "damageTypeChoice", "flanking", "flankingFormula"],
-  economy: ["economyTracking", "freeHandChecks", "blockedOffers", "skillAbilityMenu"],
+  economy: ["economyTracking", "freeHandChecks", "blockedOffers", "grappleFollowThrough", "skillAbilityMenu"],
   factions: ["factions", "factionPC", "factionOaAllies"],
   locks: ["doorLocks", "defaultLockDc", "dropTiming", "pileComposite", "pileNames", "pileSingleScale"]
 };

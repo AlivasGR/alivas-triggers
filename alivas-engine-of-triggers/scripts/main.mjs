@@ -116,6 +116,8 @@
  *                        "min(2, 1 + floor(@item.level / 4))"); an effect flagged minLevel needs that slot level
  *   saveAdvantageWhenFighting: true   its targets save with advantage when the user (or its side) is fighting them:
  *                        in a started combat together and hostile to the user (Charm Person, Dominate)
+ *   freeFollowUp: { item, activities }   with setting grappleFollowThrough, after this lands a hold the named
+ *                        activities of the item (identifier) may follow for free (Grapple → Swing / Hurl)
  *   attackOption: true   (Action activities) one attack of the Attack action: starts Extra Attack's follow-ups and is
  *                        offered among them (Grapple, Shove, Swing Creature)
  *   castingAbility: { class } | { spell }   its "spellcasting" ability comes from that class (identifier) or the actor's

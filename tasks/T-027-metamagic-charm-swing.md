@@ -107,6 +107,17 @@ Nothing.
 - [ ] Without Extra Attack: Grapple or Swing uses the Action and offers no follow-up.
 - [ ] Thirsting Blade (pact weapon only) doesn't offer the maneuvers.
 - [ ] Editor: the "One attack of the Attack action" checkbox shows on those activities and round-trips.
+- [ ] **Variant `grappleFollowThrough`** (setting, off by default; Unarmed Strike **v4** gives Grapple
+      `freeFollowUp { item: "combat-maneuvers", activities: ["Swing Creature", "Hurl Creature"] }`):
+  - with it on, a Fighter 5 grapples (attack 1): once the hold exists, the prompt shows "Swing Creature (free — part of
+    the grapple)" and "Hurl Creature (free …)" plus the normal attack-2 options;
+  - picking the free Swing doesn't use up attack 2 (the prompt comes back as "attack 2 of 2");
+  - Swing again as attack 2 works normally.
+  - Without Extra Attack: after a Grapple, a "follow through on the grapple?" prompt offers the free options.
+  - A Grapple made as attack 2 offers the free follow-through next.
+  - A failed Grapple (the target saves): no free options.
+  - Setting off: no free options anywhere.
+  - Editor: the "Free follow-ups" fields show on Grapple and round-trip.
 
 ## Log
 - 2026-10-04 — Claude (Opus): written offline; untested live, not packed.
@@ -116,3 +127,4 @@ Nothing.
   stays, caster ends) and Dominate Person (repeat save with DC, success ends, failure stays) pass. Perspective after reload fails (Left 1). Status stays needs-live-test until that is fixed.
 - 2026-10-04 — Sonnet retest 2: the `registerFactions` fix for the load-time perspective passes (C token controlled at load -> C / f1d836; nothing controlled -> A). Everything in T-027 passes; status done.
 - 2026-10-04 — Claude (Opus): Swing damage 1d6 + Str to both; `attackOption` added (Grapple, Shove, Swing, Hurl); untested live.
+- 2026-10-04 — Claude (Opus): variant grappleFollowThrough (setting, `freeFollowUp` flag, Unarmed Strike v4); untested live.
