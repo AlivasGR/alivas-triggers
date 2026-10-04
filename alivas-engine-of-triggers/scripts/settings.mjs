@@ -56,6 +56,9 @@ const DEFS = {
   coverDialog: bool("Cover choice in the attack dialog", "A \"Target's cover\" selector in the attack roll dialog (Half +2 AC, Three-Quarters +5 AC)."),
   coverButtons: bool("Cover buttons on attack cards", "\"½ cover\" / \"¾ cover\" buttons on attack chat cards, to apply cover after the roll (undoing a lost hit)."),
   damageTypeChoice: bool("Choose the damage type", "When the engine rolls damage that can be of several types (Sacred Weapon's Radiant, a Pact Weapon, Chromatic Orb, weapon options), the roller picks the type each time. Off: dnd5e's last choice on that item, else its first type."),
+  flanking: pick("Flanking", "2014 DMG optional rule (squares): you and a creature your faction regards as an ally on opposite sides or corners of an enemy, both adjacent, give each of you this on melee attack rolls against it. Not against a creature you can't see, nor while Incapacitated.", "advantage",
+    { off: "Off", advantage: "Advantage (DMG)", plus2: "+2 to hit", custom: "Custom modifier (below)" }),
+  flankingFormula: text("Flanking: custom modifier", "Added to melee attack rolls when Flanking is set to Custom (a number or formula, e.g. 1d4).", "2"),
   unseenAttacks: bool("Unseen attackers and targets", "Attack rolls against a target the attacker can't see have Disadvantage; attacks by an attacker the target can't see have Advantage. Uses token vision (darkness, Invisible, Blinded; Blindsight, Truesight and See Invisibility count). Scenes without token vision are unaffected."),
 
   /* Action economy and maneuvers */
@@ -63,10 +66,10 @@ const DEFS = {
   blockedOffers: bool("Offer Tumble / Overrun when blocked", "When a hostile creature blocks a move, offer the mover its activities flagged as blocked-move options."),
   skillAbilityMenu: bool("Skills with another ability", "Right-click a skill on a character or NPC sheet: \"Roll using a different ability…\"."),
 
-  /* Alliances (alliances.mjs) */
-  alliances: bool("Alliances", "Each creature has an alliance letter (A, B…): the same letter are allies, different letters enemies, none = nobody's ally. Sides for picking allies or enemies, auras, Help, reactions and Opportunity Attacks follow it. Players' creatures start as the letter below, NPCs by token disposition (Friendly A, Hostile B); the GM changes it per encounter on the combat tracker or as a default on the sheet (Alliance button). Off: token dispositions decide sides."),
-  alliancePC: text("Alliance of players' creatures", "The letter player-owned creatures start with (unless their sheet sets another).", "A"),
-  allianceOaAllies: bool("Opportunity Attacks against allies", "Also offer an Opportunity Attack when a creature of your own alliance leaves your reach.", false),
+  /* Factions (factions.mjs) */
+  factions: bool("Factions", "Every creature token has a faction letter (A, B…); the scene's relations table (flag button on the combat tracker or Token HUD) says how factions regard each other: ally, neutral or hostile. Everything that asks ally or enemy follows it — pickers, auras, reactions, Opportunity Attacks, movement, flanking — and token dispositions are kept in line with it (the party's view). Players' creatures start as the letter below, summons as their summoner, other NPCs as B; the party and B are hostile, other pairs neutral, until you change them. Off: token dispositions decide sides."),
+  factionPC: text("Faction of players' creatures", "The letter player-owned creatures start with (unless their sheet sets another).", "A"),
+  factionOaAllies: bool("Opportunity Attacks against allies", "Also offer an Opportunity Attack when a creature your faction regards as an ally leaves your reach.", false),
 
   /* Locks and loot piles */
   doorLocks: bool("Door lock interaction", "Lock DC / force DC / key fields on doors, and players' Pick Lock / Force open / Use key on a locked door."),
@@ -84,9 +87,9 @@ export const GROUPS = {
   interactions: ["interactMenu", "interactHud", "interactionRange"],
   trading: ["tradeRules", "tradeAnyDistanceOutOfCombat", "tradeThrowRange", "tradeThrowCheck", "tradeThrowCheckDc", "tradeCatchDc", "tradeCatchHeavyDc",
     "tradeHeavyLb", "tradeRetrieveUtilize", "fragileHeuristic", "fragilePattern", "tradeAskTimeout"],
-  cover: ["coverDialog", "coverButtons", "unseenAttacks", "damageTypeChoice"],
+  cover: ["coverDialog", "coverButtons", "unseenAttacks", "damageTypeChoice", "flanking", "flankingFormula"],
   economy: ["economyTracking", "freeHandChecks", "blockedOffers", "skillAbilityMenu"],
-  alliances: ["alliances", "alliancePC", "allianceOaAllies"],
+  factions: ["factions", "factionPC", "factionOaAllies"],
   locks: ["doorLocks", "defaultLockDc", "dropTiming", "pileComposite", "pileNames", "pileSingleScale"]
 };
 

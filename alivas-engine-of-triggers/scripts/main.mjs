@@ -94,6 +94,8 @@
  *   attacksWith { mode, once, unlessTarget }       unlessTarget "source": not against the effect's source (Compelled Duel)
  *   light { bright, dim, color }                   the bearer's token sheds this light while the effect lasts
  *   noSpells                                       the bearer can't cast spells; concentration ends when it's applied
+ *   faction "source" | letter                      while active, the bearer belongs to that faction ("source": the
+ *                                                  effect's source's — Dominate); factions.mjs
  *   actionOrBonus                                  on its turn the bearer takes an Action or a Bonus Action, not both
  *                                                  (economy.mjs; Wardaway, Slow)
  *   armorClass { formula, label, armored }         one more AC calculation (dnd5e keeps the best) — Natural Armor
@@ -152,7 +154,8 @@ import * as Bodies from "./bodies.mjs";
 import * as Trade from "./trade.mjs";
 import * as Skills from "./skills.mjs";
 import * as Cover from "./cover.mjs";
-import * as Alliances from "./alliances.mjs";
+import * as Factions from "./factions.mjs";
+import { registerFlanking } from "./flanking.mjs";
 
 const MODULE_ID = "alivas-engine-of-triggers";
 const SOCKET = `module.${MODULE_ID}`;
@@ -3200,7 +3203,8 @@ Hooks.once("ready", () => {
   Maneuvers.registerManeuverHooks();
   Loot.initLoot({ ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting });
   Economy.registerEconomyHooks();
-  Alliances.registerAlliances();
+  Factions.registerFactions();
+  registerFlanking();
   Interact.registerInteractHooks();
   Cover.registerCoverHooks();
   const shared = { ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting };
@@ -3213,8 +3217,12 @@ Hooks.once("ready", () => {
     creatures: Creatures, workflow: Workflow, areas: Areas,
     registerAction, registerEditorSection, maneuvers: Maneuvers, loot: Loot, economy: Economy, interact: Interact,
     bodies: Bodies, trade: Trade, skills: Skills, cover: Cover,
-    alliances: { of: Alliances.allianceOf, relation: Alliances.relation, set: Alliances.set, setDefault: Alliances.setDefault,
-      enabled: Alliances.enabled }
+    factions: { enabled: Factions.enabled, factionOf: Factions.factionOf, relationOf: Factions.relationOf,
+      relation: Factions.relation, perspective: Factions.perspective, lettersInUse: Factions.lettersInUse,
+      tokensOf: Factions.tokensOf, getTable: Factions.getTable, setRelation: Factions.setRelation,
+      setFaction: Factions.setFaction, setSeed: Factions.setSeed, addFaction: Factions.addFaction,
+      copyTable: Factions.copyTable, partyLetter: Factions.partyLetter, isLinked: Factions.isLinked,
+      setLinked: Factions.setLinked, openWindow: Factions.openWindow }
   };
   Hooks.callAll("alivasTriggers.ready", game.modules.get(MODULE_ID).api);
   console.log(`${MODULE_ID} | Ready`);

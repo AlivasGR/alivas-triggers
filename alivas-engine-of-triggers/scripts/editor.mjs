@@ -1174,7 +1174,9 @@ function readRules(effect) {
     attackedTypes: [...(f.attackedWith?.attacker?.find?.(x => x.k === "details.type.value")?.v ?? [])],
     attacksUnlessSource: f.attacksWith?.unlessTarget === "source",
     lightBright: f.light?.bright ?? "", lightDim: f.light?.dim ?? "", lightColor: f.light?.color ?? "#ffe9a8",
-    noSpells: !!f.noSpells, actionOrBonus: !!f.actionOrBonus, whileStatus: f.whileStatus ?? "",
+    noSpells: !!f.noSpells, actionOrBonus: !!f.actionOrBonus,
+    factionMode: f.faction === "source" ? "source" : (f.faction ? "letter" : ""), factionLetter: f.faction && (f.faction !== "source") ? f.faction : "",
+    whileStatus: f.whileStatus ?? "",
     coverLevel: f.ignoreCover?.level ?? "", coverClass: f.ignoreCover?.classification ?? "", coverType: f.ignoreCover?.type ?? "",
     acFormula: f.armorClass?.formula ?? "", acLabel: f.armorClass?.label ?? "", acUnarmored: f.armorClass?.armored === false,
     sustainEvents: [...(f.sustain?.events ?? [])], sustainFilter: JSON.stringify(f.sustain?.filter ?? []),
@@ -1284,6 +1286,9 @@ function rulesUpdate(r) {
     ...(r.lightAnimation ? { animation: r.lightAnimation } : {}) }), (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0));
   set("noSpells", true, r.noSpells);
   set("actionOrBonus", true, r.actionOrBonus);
+  const factionLetter = String(r.factionLetter ?? "").trim().toUpperCase().replace(/[^A-Z]/g, "").slice(0, 1);
+  const faction = r.factionMode === "source" ? "source" : (r.factionMode === "letter" ? factionLetter : "");
+  set("faction", faction, faction);
   set("ignoreCover", keepRest("ignoreCover", ["level", "classification", "type"], { level: r.coverLevel, ...(r.coverClass ? { classification: r.coverClass } : {}),
     ...(r.coverType ? { type: r.coverType } : {}) }), ["half", "threeQuarters"].includes(r.coverLevel));
   const whileStatus = String(r.whileStatus ?? "").trim();
@@ -1651,7 +1656,7 @@ export class TriggerEditor extends ApplicationV2 {
       area: [Number(r.areaRadius) > 0, r.stopOnCollision, r.disengaged, (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0)],
       weapons: [r.attackAdd?.length, r.attackOnly?.length, r.attackedMode, r.attacksMode, Number(r.extraAttack) > 0, String(r.acFormula ?? "").trim(), r.noUnseenAdvantage,
         r.coverLevel],
-      holds: [r.tetherOn, r.checksMode, r.bondOn]
+      holds: [r.tetherOn, r.checksMode, r.bondOn, r.factionMode]
     };
     const typePills = (list, key, entries) => entries.map(([id, label]) => `<label class="aet-check aet-small-check">
       <input type="checkbox" data-rule-list="${key}" value="${id}"${(list ?? []).includes(id) ? " checked" : ""}><span>${esc(label)}</span></label>`).join("");
@@ -1748,6 +1753,8 @@ export class TriggerEditor extends ApplicationV2 {
         <div class="aet-subtitle">Must use one of</div><div class="aet-pills">${abilityBoxes(r.attackOnly, "attackOnly")}</div>
         <p class="aet-muted">The best allowed ability is used and shown on the sheet; the roll dialog offers the others.</p>`)}
       ${group("holds", "Holds and ability checks", `
+        <label class="aet-inline"><span>While it lasts, the bearer belongs to</span><select data-rule="factionMode" data-rerender>${options([["", "its own faction"], ["source", "the faction of whoever applied it (Dominate)"], ["letter", "faction…"]], r.factionMode ?? "")}</select>
+          ${r.factionMode === "letter" ? `<input type="text" maxlength="1" class="aet-num" data-rule="factionLetter" value="${esc(r.factionLetter ?? "")}" placeholder="A" style="text-transform:uppercase">` : ""}</label>
         <label class="aet-check"><input type="checkbox" data-rule="bondOn" data-rerender${r.bondOn ? " checked" : ""}><span>Bond (on an enchantment): the enchanted item is bonded to whoever enchanted it</span></label>
         ${r.bondOn ? `<div class="aet-sub">
           <label class="aet-inline"><span>Bond name</span><input type="text" class="aet-formula" data-rule="bondId" value="${esc(r.bondId)}" placeholder="e.g. pact-of-the-blade"><span class="aet-muted">filters see it as item.bonds</span></label>
@@ -2966,6 +2973,8 @@ function describeRules(effect) {
   if ( (Number(r.lightBright) > 0) || (Number(r.lightDim) > 0) ) list.push(`Sheds light (${r.lightBright || 0}/${r.lightDim || 0} ft${r.lightAnimation ? `, ${r.lightAnimation}` : ""}) while it lasts.`);
   if ( r.noSpells ) list.push("The bearer can't cast spells or concentrate.");
   if ( r.actionOrBonus ) list.push("On its turn the bearer can take an Action or a Bonus Action, not both.");
+  if ( r.factionMode === "source" ) list.push("While it lasts, the bearer is on the side of whoever applied it.");
+  else if ( (r.factionMode === "letter") && String(r.factionLetter ?? "").trim() ) list.push(`While it lasts, the bearer belongs to faction ${String(r.factionLetter).toUpperCase()}.`);
   if ( r.coverLevel ) list.push(`The bearer's ${r.coverType ? `${r.coverType} ` : ""}${r.coverClass ? `${r.coverClass} ` : ""}attacks ignore ${r.coverLevel === "half" ? "Half Cover" : "Half and Three-Quarters Cover"}.`);
   if ( String(r.whileStatus ?? "").trim() ) list.push(`Lasts only while the bearer has ${r.whileStatus}.`);
   if ( String(r.acFormula ?? "").trim() ) list.push(`Armor Class option: ${r.acFormula}${r.acUnarmored ? " (without armor)" : ""}${r.acShield ? (r.acShield === "true" ? " (with a shield)" : " (without a shield)") : ""}${r.acLabel ? ` — “${r.acLabel}”` : ""}.`);

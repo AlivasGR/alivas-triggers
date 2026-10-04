@@ -220,12 +220,13 @@ function eligible(actor, window, ctx) {
   return out;
 }
 
-/** Another creature hostile to the target, within 5 ft of it and not incapacitated (Sneak Attack's "ally"). */
+/** Another creature on the attacker's side, within 5 ft of the target and not incapacitated (Sneak Attack's "ally"). */
 function allyNear(target, attacker, scene) {
   const tt = tokenFor(target, scene);
   if ( !tt ) return false;
-  // Hostile to the target: by alliance when that's on, else by disposition (not neutral).
-  const hostileToTarget = t => alliancesOn() ? (relation(target, t.actor, scene) === "enemy")
+  // With factions: an ALLY of the attacker (2024 Sneak Attack: "one of your allies"). Without: a creature of another,
+  // non-neutral disposition than the target.
+  const hostileToTarget = t => alliancesOn() ? (relation(attacker, t.actor, scene) === "ally")
     : ((t.disposition !== tt.disposition) && (t.disposition !== CONST.TOKEN_DISPOSITIONS.NEUTRAL));
   return scene.tokens.some(t => t.actor && (t.id !== tt.id) && (t.actor.uuid !== attacker.uuid) && hostileToTarget(t)
     && !["incapacitated", "unconscious", "dead"].some(s => t.actor.statuses?.has(s)) && (distanceFt(t, tt) <= 5));
@@ -898,12 +899,12 @@ export async function leavesReach(tokenDoc, movement) {
     const reactorToken = cb.token;
     const reactor = cb.actor;
     if ( !reactor || !reactorToken || (reactorToken.id === tokenDoc.id) || (reactorToken.parent !== tokenDoc.parent) ) continue;
-    // Sides: alliances when on (an ally leaving reach is offered only with setting allianceOaAllies), else dispositions.
+    // Sides: the factions table when on (an ally leaving reach is offered only with setting factionOaAllies), else dispositions.
     let againstAlly = false;
     if ( alliancesOn() ) {
       const rel = relation(reactor, mover, tokenDoc.parent);
       if ( (rel === "ally") || (rel === "self") ) {
-        if ( !setting("allianceOaAllies") ) continue;
+        if ( !setting("factionOaAllies") ) continue;
         againstAlly = true;
       }
     } else if ( reactorToken.disposition === tokenDoc.disposition ) continue;

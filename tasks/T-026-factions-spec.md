@@ -1,6 +1,6 @@
 # T-026 — Factions: relations table, perspective colours, disposition sync, flanking (spec)
 
-- **Status:** open (spec agreed with the maintainer on 2026-10-03; **don't implement until told**)
+- **Status:** needs-live-test (spec agreed 2026-10-03; built 2026-10-04 on branch `alliances`)
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine (factions; replaces the T-025 baseline's rules), Box (flanking setting only)
@@ -174,7 +174,50 @@ letters, a picker override). T-025's rules are replaced by the ones below.
     (dnd5e `preRollAttackV2`, melee only). A short chat or roll note says "flanking".
 11. **Editor and docs:** AGENTS.md §4, README, and an editor field for the `faction` effect rule.
 
-## Acceptance (live, when built)
+## Done (2026-10-04, offline: `node --check`, strip check)
+- `factions.mjs` replaces T-025's `alliances.mjs`. It has:
+  - resolution (effect rule `faction` → token flag → default);
+  - stamping on `createToken` (lead GM, 400 ms later so summon flags are in place);
+  - the per-scene table API, with linked edits by default (`setRelation`);
+  - disposition sync (lead GM, batched; Secret skipped; on letter, table, faction-effect changes and once at ready);
+  - per-viewer border colours (wraps `Token#getDispositionColor`; Secret and non-creatures as Foundry draws them);
+  - `perspective()`;
+  - the GM fields: the tracker letter (coloured by the party's relation), the Token HUD letter and table button, and
+    the sheet "Faction" seed dialog;
+  - Charmed: attack rolls against the charmer are refused.
+- `factions-window.mjs` (Sonnet agent): the relations window. It has:
+  - colour cells that cycle;
+  - the locked diagonal;
+  - a "Linked" checkbox;
+  - "+" for an empty faction;
+  - copy from another scene;
+  - letter headers with token counts, where hover highlights and a click pins rings on the map.
+- `flanking.mjs` (Sonnet agent): the 2014 DMG rule on squares. Pure geometry is in `flankingCells` (Node-tested: 7
+  cases), with relation, sight and Incapacitated checks. The settings `flanking` (off / advantage / plus2 / custom)
+  and `flankingFormula` apply at `dnd5e.preRollAttackV2`; the flavor gets " (flanking)". It works with exactly one
+  target, and skips thrown attack modes.
+- `creatures.mjs`:
+  - pickers show colour chips (ally / neutral / hostile, relative to the chooser), preset from the selector side;
+  - a charmer is left out of the charmed creature's hostile picks;
+  - `charmersOf`.
+- `maneuvers.mjs`, with factions on:
+  - dnd5e's blocking and difficult-terrain lists are rebuilt from the table (hostile blocks; non-allies are difficult
+    terrain), keeping dnd5e's exceptions and pass-through permissions;
+  - blocked-move offers use the table.
+- `reactions.mjs`: Sneak Attack's ally check is "ally of the attacker"; Opportunity Attacks use the table.
+- The editor: the effect rule "While it lasts, the bearer belongs to: own / source's / faction…".
+- Settings: `factions`, `factionPC`, `factionOaAllies` (Combat), `flanking`, `flankingFormula` (Attacks).
+- Box: `dominate-beast` / `dominate-person` / `dominate-monster` (PHB 2024; SRD compendiumSource keys) v1. Their
+  "Dominated" effect (Charmed) has `faction: "source"`.
+- AGENTS.md §4 and the README updated.
+
+**Deviations from the spec:**
+- The perspective badge on the selected token isn't built. The relations window shows "Map colours are shown as seen
+  by: X" instead.
+- Unlinking is a "Linked" checkbox.
+- T-025's combatant and actor flags aren't migrated, because T-025 was never released (it existed only on this branch).
+
+## Acceptance (live)
 - [ ] A new scene: place a PC, an NPC and a familiar summoned by the PC. They get A, B and A. A loot pile gets no
       letter. The default table shows A ↔ B red and A↔A / B↔B green.
 - [ ] A sheet seed of "C" on an NPC: the placed token is C, and C is yellow to everyone.
@@ -217,5 +260,6 @@ letters, a picker override). T-025's rules are replaced by the ones below.
   side while Charm doesn't.
 
 ## Log
+- 2026-10-04 — Claude (Opus) + 2 Sonnet agents (window, flanking): built offline as above; awaiting a live test.
 - 2026-10-03 — Claude (Opus) with the maintainer: design converged through brainstorming. This spec records every
   decision. Nothing is implemented beyond T-025's baseline on this branch.

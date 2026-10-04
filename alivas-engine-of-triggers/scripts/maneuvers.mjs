@@ -63,10 +63,35 @@ export function initManeuvers(d) {
 /*  Helpers                                     */
 /* -------------------------------------------- */
 
-const sizeOf = actor => CONFIG.DND5E.actorSizes[actor?.system?.traits?.size]?.numerical ?? 2;
+/** A creature's size as a number (Tiny 0 … Gargantuan 5); with swarm, a swarm counts as its members' size. */
+const sizeOf = (actor, swarm=false) => CONFIG.DND5E.actorSizes[(swarm && actor?.system?.details?.type?.swarm) || actor?.system?.traits?.size]?.numerical ?? 2;
 export const sizeDiff = (user, target) => sizeOf(target) - sizeOf(user);
 const isIncapacitated = actor => INCAPACITATING.some(s => actor?.statuses?.has(s));
 const tokenDoc = actor => Creatures.tokenFor(actor);
+
+/** The tokens (placeables) other than the mover occupying a grid space {i, j}. */
+function occupants(gridSpace, token) {
+  const out = [];
+  for ( const t of canvas.tokens?.placeables ?? [] ) {
+    if ( (t === token) || (t.document.id === token.document?.id) || !t.actor ) continue;
+    let cells = [];
+    try { cells = t.document.getOccupiedGridSpaceOffsets?.() ?? []; } catch(err) { cells = []; }
+    if ( cells.some(c => (c.i === gridSpace.i) && (c.j === gridSpace.j)) ) out.push(t);
+  }
+  return out;
+}
+
+/** Would t block the mover by the relations table (with dnd5e's own exceptions)? */
+function blocksByFaction(token, t) {
+  if ( !t.actor?.system?.isCreature ) return false;
+  if ( Creatures.relation(token.actor, t.actor, token.document?.parent) !== "enemy" ) return false;
+  if ( t.actor.statuses?.intersects?.(CONFIG.DND5E.neverBlockStatuses) ) return false;
+  const moverSize = sizeOf(token.actor);
+  const size = sizeOf(t.actor, true);
+  if ( (dnd5e.settings.rulesVersion === "modern") && (size === 0) ) return false;
+  if ( token.actor.getFlag?.("dnd5e", "halflingNimbleness") && (size > moverSize) ) return false;
+  return Math.abs(moverSize - size) < 2;
+}
 
 /** Does the actor have a hand free (2024: no two-handed weapon; not two things in hand)? */
 export function hasFreeHand(actor) {
@@ -420,20 +445,36 @@ export function registerManeuverHooks() {
     if ( !allowed.size ) return;
     for ( const t of [...found] ) if ( allowed.has(t.document?.id ?? t.id) ) found.delete(t);
   });
-  // Alliances on: creatures of the mover's own alliance never block it (dnd5e decides blocking by disposition).
+  // Factions on: dnd5e decides which creatures block (and which are difficult terrain) by token disposition. Rebuild its
+  // lists from the relations table instead: a creature the mover regards as HOSTILE blocks; allies and neutral creatures
+  // don't (2024: only a hostile creature's space can't be entered); non-allies' spaces are difficult terrain. dnd5e's own
+  // exceptions are kept: only creatures, statuses that never block, Tiny creatures (2024), Halfling Nimbleness, and a
+  // size difference of two or more.
   Hooks.on("dnd5e.determineOccupiedGridSpaceBlocking", (gridSpace, token, options, found) => {
-    if ( !found.size || !token?.actor || !Creatures.alliancesOn() ) return;
-    const own = Creatures.allianceLetter(token.actor, token.document?.parent);
-    if ( !own ) return;
-    for ( const t of [...found] ) if ( t.actor && (Creatures.allianceLetter(t.actor, t.document?.parent) === own) ) found.delete(t);
+    if ( !token?.actor || !Creatures.alliancesOn() ) return;
+    // Pass-through permissions (the hook above) still apply: the rebuild must not add those creatures back.
+    const allowed = new Set((token.actor.effects?.contents ?? []).flatMap(e => e.getFlag(MODULE_ID, "passThrough") ?? []));
+    found.clear();
+    for ( const t of occupants(gridSpace, token) ) if ( blocksByFaction(token, t) && !allowed.has(t.document?.id ?? t.id) ) found.add(t);
+  });
+  Hooks.on("dnd5e.determineOccupiedGridSpaceDifficult", (gridSpace, token, options, found) => {
+    if ( !token?.actor || !Creatures.alliancesOn() ) return;
+    const modern = dnd5e.settings.rulesVersion === "modern";
+    found.clear();
+    for ( const t of occupants(gridSpace, token) ) {
+      if ( !t.actor?.system?.isCreature ) continue;
+      const rel = Creatures.relation(token.actor, t.actor, token.document?.parent);
+      if ( modern && ((rel === "ally") || (rel === "self")) ) continue;
+      if ( modern && (sizeOf(t.actor) === 0) ) continue;
+      found.add(t);
+    }
   });
   // Blocked by hostile creatures on a real move (not a ruler preview): offer Tumble / Overrun.
   Hooks.on("dnd5e.determineOccupiedGridSpaceBlocking", (gridSpace, token, options, found) => {
     if ( options?.preview || !found.size || !token?.actor ) return;
-    // Hostile: by alliance when on (a creature with a letter other than the mover's), else by disposition.
-    const mine = Creatures.alliancesOn() ? Creatures.allianceLetter(token.actor, token.document?.parent) : null;
-    const hostile = [...found].filter(t => (mine !== null)
-      ? (() => { const theirs = Creatures.allianceLetter(t.actor, t.document?.parent); return !!theirs && (theirs !== mine); })()
+    // Hostile: by the relations table when factions are on, else by disposition.
+    const hostile = [...found].filter(t => Creatures.alliancesOn()
+      ? (Creatures.relation(token.actor, t.actor, token.document?.parent) === "enemy")
       : ((t.document.disposition !== token.document.disposition)
         && (t.document.disposition !== CONST.TOKEN_DISPOSITIONS.NEUTRAL || token.document.disposition === CONST.TOKEN_DISPOSITIONS.NEUTRAL)));
     if ( hostile.length ) offerWhenBlocked(token, hostile);

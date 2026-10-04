@@ -127,7 +127,7 @@ noHealing, dropSave, onlyIf, saveDamage, ownRollsOnly, ignoreDamageFrom, noReact
 attackAbilities(Only), minLevel, reduceDamage, damageDice (minimum die), baseDamage (deal X instead of a weapon's own
 damage when higher; filter data adds held.weapons / held.shield), light, noSpells, sustain (Rage upkeep),
 tether, passThrough, checksWith, whileStatus, ignoreCover ({ level, classification?, type? }), extraAttack ({ count,
-item: weapon filter }), noUnseenAdvantage (setting unseenAttacks), actionOrBonus (an Action or a Bonus Action on its turn, not both), bond (on enchantments: { id, single, range, away,
+item: weapon filter }), noUnseenAdvantage (setting unseenAttacks), actionOrBonus (an Action or a Bonus Action on its turn, not both), faction ("source" | letter: Dominate), bond (on enchantments: { id, single, range, away,
 endOnDeath } — Pact of the Blade; filters see `item.bonds`).
 Prefer dnd5e 6's own conditional Rules changes (`attack` / `damage` / `check` / `save` with `dnd5e.bonus` /
 `dnd5e.advantage` and `conditions` on the roll data, e.g. `roll.attack.mode`, `roll.ability`, `roll.skill`) before adding
@@ -143,17 +143,22 @@ spellCast, d20Rolling, hitting, leavesReach. Outcomes: acBonus, reroll, modifyRo
 damageNext, none. `after` steps may `ask` first. The hitting window's filter data has `item` (identifier, bonds…).
 Headers of `reactions.mjs` / `main.mjs` document every field.
 
-**Alliances** (`alliances.mjs`, setting `alliances`, default on):
-- Every creature has an alliance letter A–Z, or none. The same letter are allies, different letters enemies; a
-  creature with no letter is nobody's ally.
-- The letter is resolved from: the combatant flag `alliance` (stamped when the creature joins a combat; the GM edits it
-  on the tracker), then the actor flag `alliance` (the sheet's Alliance button; "-" means none), then automatic:
-  player-owned creatures get `alliancePC` ("A"), summons their summoner's letter, others go by token disposition
-  (Friendly A, Hostile B, Neutral none).
-- `Creatures.relation` follows alliances, so selector sides, the `subjectIsAlly`/`subjectIsEnemy` filters, Opportunity
-  Attacks, blocked-move offers and Sneak Attack's ally-near check do too. Side-filtered pickers offer "Include creatures
-  outside this alliance".
-- API: `api.alliances`. Hook: `alivasTriggers.allianceChanged`.
+**Factions** (`factions.mjs`, setting `factions`, default on; spec `tasks/T-026-factions-spec.md`):
+- **Letters:** every creature token has a faction letter (token flag `faction`). It's seeded on placement: the actor's
+  seed (sheet "Faction" button), else player-owned creatures get `factionPC` ("A"), summons their summoner's faction,
+  other NPCs "B". Non-creatures (loot piles, vehicles) have none.
+- **Relations:** the scene's table (scene flag `relations[from][to]` = ally | neutral | hostile, directional;
+  defaults: self ally, party ↔ B hostile, the rest neutral). It's edited in the relations window
+  (`factions-window.mjs`), opened from the combat tracker header or the Token HUD.
+- **What follows the table:** `Creatures.relation`, and through it selector sides, the `subjectIsAlly` /
+  `subjectIsEnemy` filters, Opportunity Attacks, Sneak Attack's ally check, movement blocking and difficult terrain
+  (`maneuvers.mjs`) and flanking (`flanking.mjs`, 2014 DMG).
+- **Dispositions** are written from the party's relation (lead GM; Secret tokens are never rewritten).
+- **Border colours** are drawn per viewer from `perspective()`.
+- **Pickers** show colour chips.
+- **Effect rule `faction`** ("source" or a letter) moves the bearer while it's active: Dominate.
+- **Charmed:** no attacks against the charmer, and the charmer is never in the charmed creature's hostile picks.
+- **API:** `api.factions`. **Hook:** `alivasTriggers.factionsChanged`.
 
 **Delay turn** (`delay.mjs`, setting `delayTurn`): combat tracker button; combatant flag `delayed`, combat flag `resume`; wraps
 `ActiveEffect#isExpiryEvent` so a delay only ends turn-end effects that help the delayer; returning reorders with
