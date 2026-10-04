@@ -270,8 +270,9 @@ export function surroundBonus(attackerToken, targetToken) {
  * Setting flankingRanged (only with "surround"; on by default): ranged attacks (weapons, thrown weapons, spells) against
  * a flanked creature get the bonus too, and ranged attackers add to it. A creature that made a ranged attack against a
  * target during its turn adds +1 to that target's flank bonus from the end of that turn until the end of its next
- * turn; if it attacks the target at range again on that next turn, it keeps adding. Ranged attackers only add to the
- * bonus: the target must still be flanked by two melee opponents on opposite sides.
+ * turn; if it attacks the target at range again on that next turn, it keeps adding. Nothing that happens to it in
+ * between (Incapacitated, out of sight) ends that early. Ranged attackers only add to the bonus: the target must still
+ * be flanked by two melee opponents on opposite sides.
  *
  * Kept on the attacker's token, flag `rangedFlank`: { pending: [target token ids attacked at range this turn],
  * active: [target token ids it is adding to] }. Its owner writes `pending` when it rolls; at the end of its turn the
@@ -280,18 +281,17 @@ export function surroundBonus(attackerToken, targetToken) {
 const MODULE_ID = "alivas-engine-of-triggers";
 
 /**
- * Opponents adding to a target's flank bonus with ranged attacks: they made one against it at their last turn's end,
- * they're its opponents, they can see it and they aren't Incapacitated.
+ * Creatures adding to a target's flank bonus with ranged attacks: they made one against it during their last turn. The
+ * distraction an attack causes doesn't depend on what happens to the attacker afterwards, so nothing else is checked
+ * (not sight, Incapacitated or a changed side): it lasts until the end of its next turn regardless (maintainer).
  * @param {TokenDocument} targetToken
  * @returns {TokenDocument[]}
  */
 export function rangedContributors(targetToken) {
   const scene = targetToken?.parent;
   if ( !scene || !targetToken.actor ) return [];
-  return scene.tokens.filter(t => (t !== targetToken) && !t.hidden && t.actor
-    && (t.getFlag(MODULE_ID, "rangedFlank")?.active ?? []).includes(targetToken.id)
-    && (Creatures.relation(t.actor, targetToken.actor, scene) === "enemy")
-    && !incapacitated(t) && Creatures.canSee(t, targetToken));
+  return scene.tokens.filter(t => (t !== targetToken)
+    && (t.getFlag(MODULE_ID, "rangedFlank")?.active ?? []).includes(targetToken.id));
 }
 
 /** Is this attack ranged: a ranged attack activity (weapon or spell), or a thrown weapon? */

@@ -1,6 +1,6 @@
 # T-029 — Flanking variant "surround" (+1 per flanker, up to PB)
 
-- **Status:** done
+- **Status:** needs-live-test
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine
@@ -44,7 +44,8 @@ size. The maintainer's rules:
   - ranged attackers add +1 each: a creature that attacked a target at range during its turn adds to that target's
     bonus from the end of that turn until the end of its next turn, and keeps adding while it attacks at range again
     each turn;
-  - they add only while they can see the target, aren't Incapacitated and are its opponents;
+  - once added, nothing ends it early: becoming Incapacitated or losing sight of the target doesn't matter. The
+    distraction already happened (maintainer, 2026-10-04);
   - the target must still be flanked by two melee opponents on opposite sides; ranged attackers only add to the bonus.
 
   State lives on the attacker's token flag `rangedFlank` { pending, active }:
@@ -75,7 +76,7 @@ In zz-stage-test, with setting `flanking` = `surround` and a Medium Hostile targ
   - [x] after R's turn ends, R's token has `rangedFlank.active` = [T]; a melee attack on T now gets +3;
   - [x] on R's next turn R attacks someone else; after it ends, R no longer adds (+2 again);
   - [x] R attacks T on two turns running: it keeps adding;
-  - [x] R Incapacitated, or unable to see T: it doesn't add;
+  - [ ] R Incapacitated, or unable to see T, after its turn: it still adds until the end of its next turn;
   - [x] with only one melee flanker plus R: no bonus (not flanked);
   - [x] with `flankingRanged` off: ranged attacks get nothing, as before;
   - [x] deleting the combat clears `rangedFlank`.
@@ -86,3 +87,4 @@ In zz-stage-test, with setting `flanking` = `surround` and a Medium Hostile targ
 - 2026-10-04 — Claude (Opus): Unarmed Strikes now count as melee weapons for surround flanking, per the maintainer. Checked only with `node --check`.
 - 2026-10-04 — Claude (Opus): ranged option `flankingRanged` added; untested live.
 - 2026-10-04 — Claude (Sonnet): live test (scene ZZ T29b, real combat, nextTurn). Unarmed Strike item (unequipped, identifier unarmed-strike) lets W flank; no weapon: none. Ranged option: R longbow and Fire Bolt on flanked T get "(flanked: +2)"; after R's turn rangedFlank.active=[T] and a W melee attack gets +3 (PB 3); R attacking T on consecutive turns keeps adding; R attacking another target drops it to +2 and active=[other]; R Incapacitated or behind a wall: +2 only; E removed (one melee flanker + R): no bonus, ranged roll plain; flankingRanged off: ranged rolls get nothing, melee +2; deleting the combat clears rangedFlank. All pass. Cleaned up.
+- 2026-10-04 — Claude (Opus): ranged contributors are no longer dropped for Incapacitated, lost sight or a changed side; only the turn rule ends them (maintainer). Untested live.
