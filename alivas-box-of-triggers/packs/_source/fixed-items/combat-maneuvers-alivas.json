@@ -294,8 +294,10 @@
         "sort": 3,
         "img": null,
         "activation": {
-          "type": "special",
-          "override": false
+          "type": "action",
+          "override": false,
+          "value": null,
+          "condition": "Replaces one attack of the Attack action"
         },
         "consumption": {
           "scaling": {
@@ -335,7 +337,8 @@
                   "who": "targets"
                 }
               }
-            ]
+            ],
+            "attackOption": true
           },
           "alivas-box-of-triggers": {
             "homebrew": true
@@ -1863,7 +1866,7 @@
           "type": "action",
           "value": null,
           "override": false,
-          "condition": ""
+          "condition": "Replaces one attack of the Attack action"
         },
         "consumption": {
           "scaling": {
@@ -1949,7 +1952,8 @@
                   }
                 ]
               }
-            ]
+            ],
+            "attackOption": true
           }
         }
       },
@@ -2062,7 +2066,7 @@
             "onUse": [
               {
                 "type": "damage",
-                "formula": "1d6",
+                "formula": "1d6 + @abilities.str.mod",
                 "damageType": "bludgeoning",
                 "to": {
                   "who": "all",
@@ -2088,7 +2092,7 @@
   },
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 3,
+      "version": 4,
       "match": [
         {
           "name": "Combat Maneuvers",

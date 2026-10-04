@@ -1,6 +1,6 @@
 # T-027 — Twinned Spell upcast, complete Charm/Dominate patches, Swing Creature, the new perspective rule
 
-- **Status:** done
+- **Status:** needs-live-test (reopened 2026-10-04: Swing / Hurl / Grapple / Shove as attacks of the Attack action)
 - **Foundry:** test
 - **Owner:**
 - **Area:** engine, editor, box (branch `alliances`)
@@ -85,6 +85,29 @@ The maintainer's requests of 2026-10-04:
 ## Left
 Nothing.
 
+## Changes after the first pass (2026-10-04, maintainer)
+- **Swing Creature:**
+  - the held creature takes **1d6 + Str** too (the swinger's Str);
+  - it's no longer a separate action but **one attack of the Attack action**.
+- **New activity flag `attackOption`** (workflow.mjs `isAttackOption`; editor checkbox): an Action-activation activity
+  that is one attack of the Attack action.
+  - It starts Extra Attack's follow-ups like an attack roll does.
+  - It's offered among the follow-ups, unless the Extra Attack rule limits the weapon (Thirsting Blade).
+  - Set on Unarmed Strike's Grapple and Shove (Unarmed Strike **v3**), and on Swing Creature and Hurl Creature (Hurl's
+    activation is now Action) in Combat Maneuvers **v4**.
+
+## Acceptance — second pass (live)
+- [ ] A ZZ Fighter 5 (Extra Attack) in combat on its turn:
+  - Grapple a goblin (Unarmed Strike → Grapple): an "Extra Attack — attack 2 of 2" prompt appears, listing weapon
+    attacks plus Grapple, Shove, Swing Creature and Hurl Creature;
+  - picking Swing Creature (target goblin 2) runs the Athletics check, then the Strike;
+  - on a hit goblin 2 takes 1d6 + Str, and goblin 1 (held) takes 1d6 + Str on a hit or a miss.
+- [ ] Starting the turn with Swing Creature (already grappling) or Hurl Creature: it uses the Action, and the Extra
+      Attack prompt follows.
+- [ ] Without Extra Attack: Grapple or Swing uses the Action and offers no follow-up.
+- [ ] Thirsting Blade (pact weapon only) doesn't offer the maneuvers.
+- [ ] Editor: the "One attack of the Attack action" checkbox shows on those activities and round-trips.
+
 ## Log
 - 2026-10-04 — Claude (Opus): written offline; untested live, not packed.
 - 2026-10-04 — Sonnet live test (headless v14.368, dnd5e 6.0.5, GM + player tabs, square-grid scene "ZZ T27", cleaned up afterwards): perspective, Twinned,
@@ -92,3 +115,4 @@ Nothing.
 - 2026-10-04 — Sonnet live retest (scene "ZZ T27b", GM + player tabs, cleaned up; wfAttackPC set "full" and its stored value deleted afterwards): Charm Person (ally ends, unrelated
   stays, caster ends) and Dominate Person (repeat save with DC, success ends, failure stays) pass. Perspective after reload fails (Left 1). Status stays needs-live-test until that is fixed.
 - 2026-10-04 — Sonnet retest 2: the `registerFactions` fix for the load-time perspective passes (C token controlled at load -> C / f1d836; nothing controlled -> A). Everything in T-027 passes; status done.
+- 2026-10-04 — Claude (Opus): Swing damage 1d6 + Str to both; `attackOption` added (Grapple, Shove, Swing, Hurl); untested live.

@@ -189,7 +189,8 @@
             "requires": {
               "maxSizeAbove": 1,
               "freeHand": true
-            }
+            },
+            "attackOption": true
           }
         },
         "visibility": {
@@ -281,7 +282,8 @@
             },
             "chooseEffects": {
               "count": "1"
-            }
+            },
+            "attackOption": true
           }
         },
         "visibility": {
@@ -362,7 +364,7 @@
   },
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 2,
+      "version": 3,
       "match": [
         {
           "name": "Unarmed Strike",

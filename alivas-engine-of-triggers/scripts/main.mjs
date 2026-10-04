@@ -116,6 +116,8 @@
  *                        "min(2, 1 + floor(@item.level / 4))"); an effect flagged minLevel needs that slot level
  *   saveAdvantageWhenFighting: true   its targets save with advantage when the user (or its side) is fighting them:
  *                        in a started combat together and hostile to the user (Charm Person, Dominate)
+ *   attackOption: true   (Action activities) one attack of the Attack action: starts Extra Attack's follow-ups and is
+ *                        offered among them (Grapple, Shove, Swing Creature)
  *   castingAbility: { class } | { spell }   its "spellcasting" ability comes from that class (identifier) or the actor's
  *                        spell with that identifier (its own chosen ability) — see castingAbilityFor
  *   pay: { cost, from: [identifier, …] }   pay `cost` uses from these items in order (e.g. Metamagic Adept's points

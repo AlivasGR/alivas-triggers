@@ -33,7 +33,7 @@ needs Foundry · `yes` = needs a running Foundry throughout.
 | [T-024](T-024-player-workflow-defaults.md) | Player workflow defaults: manual attack and save rolls, automatic damage and effects | done | test |
 | [T-025](T-025-alliances.md) | Alliances (baseline) — superseded by T-026 factions | done | test |
 | [T-026](T-026-factions-spec.md) | Factions: per-scene relations table, perspective colours, disposition sync, pickers, movement, flanking, Dominate (built on branch alliances) | done | test |
-| [T-027](T-027-metamagic-charm-swing.md) | Twinned Spell upcast, complete Charm/Dominate patches, Swing Creature, new perspective rule (branch alliances) | done | test |
+| [T-027](T-027-metamagic-charm-swing.md) | Twinned Spell upcast, complete Charm/Dominate patches, Swing Creature, new perspective rule (branch alliances) | needs-live-test | test |
 
 Statuses: `open` · `in-progress` · `needs-live-test` · `blocked` · `done`. Keep this table in sync when you change a
 task's status. Done tasks stay listed until the next release, then the file is deleted (git keeps it).

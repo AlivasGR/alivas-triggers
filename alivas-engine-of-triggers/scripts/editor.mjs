@@ -1424,7 +1424,8 @@ export class TriggerEditor extends ApplicationV2 {
         requires: f.requires ? clone(f.requires) : {}, offerWhenBlocked: !!f.offerWhenBlocked, applyToTargets: !!f.applyToTargets,
         saveAdvantage: !!f.saveAdvantage, castFrom: f.castingAbility?.class ? "class" : f.castingAbility?.spell ? "spell" : "",
         castId: f.castingAbility?.class ?? f.castingAbility?.spell ?? "",
-        autoSaveText: f.autoSave ? JSON.stringify(f.autoSave) : "", saveAdvantageWhenFighting: !!f.saveAdvantageWhenFighting };
+        autoSaveText: f.autoSave ? JSON.stringify(f.autoSave) : "", saveAdvantageWhenFighting: !!f.saveAdvantageWhenFighting,
+        attackOption: !!f.attackOption };
     } else if ( this.mode === "area" ) {
       const list = this.activity.flags?.[MODULE_ID]?.area?.triggers;
       this.models = (Array.isArray(list) ? list : []).map(x => triggerToModel(x));
@@ -1830,6 +1831,7 @@ export class TriggerEditor extends ApplicationV2 {
       <label class="aet-inline"><span>Target size</span><span class="aet-muted">at most</span><input type="number" class="aet-num" min="0" data-setting="req.maxSizeAbove" data-rerender value="${esc(s.requires?.maxSizeAbove ?? "")}" placeholder="any"><span class="aet-muted">sizes larger than the user</span>
         <span class="aet-muted">· at least</span><input type="number" class="aet-num" min="0" data-setting="req.minSizeAbove" data-rerender value="${esc(s.requires?.minSizeAbove ?? "")}" placeholder="any"><span class="aet-muted">sizes larger</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="offerWhenBlocked" data-rerender${s.offerWhenBlocked ? " checked" : ""}><span>Offer this when a hostile creature blocks the user's move (Tumble, Overrun)</span></label>
+      <label class="aet-check"><input type="checkbox" data-setting="attackOption"${s.attackOption ? " checked" : ""}><span>One attack of the Attack action (needs an Action activation): Extra Attack follows it, and it's offered among the extra attacks (Grapple, Shove, Swing Creature)</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="applyToTargets"${s.applyToTargets ? " checked" : ""}><span>Its effects go on the targets even if they're enemies (no save — Help: distract an enemy)</span></label>
       ${this.activity.type === "save" ? `<label class="aet-check"><input type="checkbox" data-setting="saveAdvantage"${s.saveAdvantage ? " checked" : ""}><span>Its targets save with advantage (Shove Aside)</span></label>
       <label class="aet-check"><input type="checkbox" data-setting="saveAdvantageWhenFighting"${s.saveAdvantageWhenFighting ? " checked" : ""}><span>Its targets save with advantage if the user is fighting them: in combat together and hostile (Charm Person, Dominate)</span></label>
@@ -2555,6 +2557,7 @@ export class TriggerEditor extends ApplicationV2 {
     if ( key === "applyToTargets" ) { this.settings.applyToTargets = el.checked; return false; }
     if ( key === "saveAdvantage" ) { this.settings.saveAdvantage = el.checked; return false; }
     if ( key === "saveAdvantageWhenFighting" ) { this.settings.saveAdvantageWhenFighting = el.checked; return false; }
+    if ( key === "attackOption" ) { this.settings.attackOption = el.checked; return false; }
     if ( key === "castFrom" ) { this.settings.castFrom = el.value; return true; }
     if ( key === "autoSaveMode" ) {
       if ( el.value in AUTO_SAVES ) this.settings.autoSaveText = AUTO_SAVES[el.value] ? JSON.stringify(AUTO_SAVES[el.value]) : "";
@@ -2879,7 +2882,8 @@ export class TriggerEditor extends ApplicationV2 {
         applyToTargets: s.applyToTargets ? true : null, saveAdvantage: s.saveAdvantage ? true : null,
         castingAbility: s.castFrom && String(s.castId ?? "").trim() ? { [s.castFrom]: String(s.castId).trim() } : null,
         autoSave: (activityType => activityType === "save" ? parseFilterText(s.autoSaveText) : null)(this.activity.type),
-        saveAdvantageWhenFighting: (this.activity.type === "save") && s.saveAdvantageWhenFighting ? true : null
+        saveAdvantageWhenFighting: (this.activity.type === "save") && s.saveAdvantageWhenFighting ? true : null,
+        attackOption: s.attackOption ? true : null
       }));
     } else if ( this.mode === "area" ) {
       await this.activity.update(cleanFlagUpdate({

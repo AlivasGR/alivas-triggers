@@ -417,9 +417,16 @@ export async function followUpAttacks(actor, { count, activities, label, swap=nu
   }
 }
 
+/**
+ * Activity flag `attackOption: true`: the activity is one attack of the Attack action (Grapple and Shove with an Unarmed
+ * Strike, Swing Creature). It starts Extra Attack's follow-ups like an attack roll does, and is offered among them.
+ */
+export const isAttackOption = activity => !!activity?.flags?.[MODULE_ID]?.attackOption && (activity.activation?.type === "action");
+
 Hooks.on("dnd5e.postUseActivity", (activity, usageConfig) => {
   const actor = activity?.actor;
-  if ( !actor?.isOwner || usageConfig?.[MODULE_ID]?.followUp || (activity.type !== "attack") ) return;
+  // An attack roll, or an activity flagged as one attack of the Attack action (Grapple, Shove, Swing Creature).
+  if ( !actor?.isOwner || usageConfig?.[MODULE_ID]?.followUp || ((activity.type !== "attack") && !isAttackOption(activity)) ) return;
   // Activity flag repeat: { count, swap: identifier } (Flurry of Blows: two strikes, one may be Hand of Healing). count
   // may be a formula on the user's roll data (Heightened Focus: "2 + floor(min(@classes.monk.levels, 10) / 10)").
   const repeat = activity.flags?.[MODULE_ID]?.repeat;
@@ -445,6 +452,11 @@ Hooks.on("dnd5e.postUseActivity", (activity, usageConfig) => {
   const activities = actor.items.filter(i => ["weapon"].includes(i.type) && (i.system.equipped !== false || i.system.identifier === "unarmed-strike")
     && passes(rule, i))
     .flatMap(i => i.system.activities.filter(a => (a.type === "attack") && (a.activation?.type === "action")));
+  // Activities that can replace an attack of the Attack action (activity flag attackOption), unless the rule limits the
+  // weapon (Thirsting Blade).
+  if ( !rule.item?.length ) for ( const i of actor.items ) {
+    for ( const a of i.system.activities ?? [] ) if ( isAttackOption(a) && !activities.includes(a) ) activities.push(a);
+  }
   setTimeout(() => followUpAttacks(actor, { count: extra, activities, label: "Extra Attack" }), 1500);
 });
 
