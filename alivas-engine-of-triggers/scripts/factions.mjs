@@ -254,6 +254,28 @@ export async function syncDispositions(scene, tokens) {
   if ( updates.length ) await scene.updateEmbeddedDocuments("Token", updates, { [MODULE_ID]: { factionSync: true } });
 }
 
+/**
+ * One-time migration (world setting `factionsMigrated`): creature tokens that existed before factions get their letter
+ * from their CURRENT disposition — Friendly → the party letter, Hostile → B, Neutral / Secret → N (neutral to everyone
+ * by default) — so nothing changes side when factions first run. New tokens follow the normal defaults.
+ */
+export async function migrateExisting() {
+  if ( game.settings.get(MODULE_ID, "factionsMigrated") ) return;
+  const D = CONST.TOKEN_DISPOSITIONS;
+  const party = partyLetter();
+  for ( const scene of game.scenes ) {
+    const updates = [];
+    for ( const t of scene.tokens ) {
+      if ( (typeof t.getFlag(MODULE_ID, "faction") === "string") || !isCreature(t.actor) ) continue;
+      const letter = t.actor?.hasPlayerOwner ? party
+        : (t.disposition === D.FRIENDLY) ? party : (t.disposition === D.HOSTILE) ? NPC_DEFAULT : "N";
+      updates.push({ _id: t.id, [`flags.${MODULE_ID}.faction`]: letter });
+    }
+    if ( updates.length ) await scene.updateEmbeddedDocuments("Token", updates, { [MODULE_ID]: { factionSync: true } });
+  }
+  await game.settings.set(MODULE_ID, "factionsMigrated", true);
+}
+
 /** Redraw every token's border here (colours depend on the table and the perspective). */
 const refreshBorders = foundry.utils.debounce(() => {
   if ( canvas?.ready ) canvas.tokens?.setAllRenderFlags?.({ refreshState: true });
@@ -355,10 +377,20 @@ export function registerFactions() {
   }
 
   // Once (lead GM): bring every scene's dispositions in line with its table (the lead-GM election settles first).
-  setTimeout(() => {
+  // First, a world that had tokens before factions existed keeps everyone on their side (migrateExisting).
+  setTimeout(async () => {
     if ( !enabled() || !isLeadGM() ) return;
+    await migrateExisting();
     for ( const scene of game.scenes ) syncDispositions(scene);
   }, 3000);
+
+  // Factions switched on mid-session: migrate existing tokens and sync, as at load.
+  Hooks.on("updateSetting", async setting => {
+    if ( (setting.key !== `${MODULE_ID}.factions`) || !enabled() || !isLeadGM() ) return;
+    await migrateExisting();
+    for ( const scene of game.scenes ) syncDispositions(scene);
+    refreshBorders();
+  });
 
   // Charmed: no attacks against the charmer.
   Hooks.on("dnd5e.preRollAttackV2", config => {

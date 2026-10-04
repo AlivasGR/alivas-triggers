@@ -3161,6 +3161,7 @@ Hooks.once("init", () => {
     choices: { off: "Off (dnd5e default)", auto: "Automatic (players roll their own)", all: "Roll for everyone" }
   });
   game.settings.register(MODULE_ID, "defaultsApplied", { scope: "world", config: false, type: Number, default: 0 });
+  game.settings.register(MODULE_ID, "factionsMigrated", { scope: "world", config: false, type: Boolean, default: false });
   game.settings.register(MODULE_ID, "reactions", {
     name: "Reaction popups",
     hint: "When something happens that a creature could react to (an attack hits, a save succeeds, damage is about to "

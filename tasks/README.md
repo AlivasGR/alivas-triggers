@@ -1,6 +1,6 @@
 # Tasks
 
-Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-028**.
+Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-029**.
 
 **Foundry?** column: `no` = can be done fully without Foundry · `test` = the work is offline, only the final check
 needs Foundry · `yes` = needs a running Foundry throughout.
@@ -34,6 +34,7 @@ needs Foundry · `yes` = needs a running Foundry throughout.
 | [T-025](T-025-alliances.md) | Alliances (baseline) — superseded by T-026 factions | done | test |
 | [T-026](T-026-factions-spec.md) | Factions: per-scene relations table, perspective colours, disposition sync, pickers, movement, flanking, Dominate (built on branch alliances) | done | test |
 | [T-027](T-027-metamagic-charm-swing.md) | Twinned Spell upcast, complete Charm/Dominate patches, Swing Creature, new perspective rule (branch alliances) | done | test |
+| [T-028](T-028-factions-migration.md) | Factions: existing tokens keep their side on first load (migration) | needs-live-test | test |
 
 Statuses: `open` · `in-progress` · `needs-live-test` · `blocked` · `done`. Keep this table in sync when you change a
 task's status. Done tasks stay listed until the next release, then the file is deleted (git keeps it).
