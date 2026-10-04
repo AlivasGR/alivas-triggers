@@ -2,7 +2,7 @@
   "id": "alivas-stage-of-triggers",
   "title": "Alivas's Stage of Triggers",
   "description": "Animations and sounds for Alivas's Engine of Triggers and dnd5e: items, activities, effects, conditions, areas, teleports and every engine action, with a searchable animation/sound browser that recommends what fits. Plays JB2A animations and PSFX sounds through Sequencer; works alongside Automated Animations (and keeps its name matching honest).",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "authors": [
     {
       "name": "Alivas",
@@ -30,7 +30,7 @@
         "type": "module",
         "manifest": "https://github.com/AlivasGR/alivas-triggers/releases/latest/download/alivas-engine-of-triggers.json",
         "compatibility": {
-          "minimum": "0.12.2"
+          "minimum": "0.12.3"
         }
       },
       {
@@ -70,5 +70,5 @@
   "bugs": "https://github.com/AlivasGR/alivas-triggers/issues",
   "changelog": "https://github.com/AlivasGR/alivas-triggers/releases",
   "manifest": "https://github.com/AlivasGR/alivas-triggers/releases/latest/download/alivas-stage-of-triggers.json",
-  "download": "https://github.com/AlivasGR/alivas-triggers/releases/download/v0.12.2/alivas-stage-of-triggers.zip"
+  "download": "https://github.com/AlivasGR/alivas-triggers/releases/download/v0.12.3/alivas-stage-of-triggers.zip"
 }
