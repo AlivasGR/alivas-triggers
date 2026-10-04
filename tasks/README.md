@@ -1,6 +1,6 @@
 # Tasks
 
-Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-029**.
+Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-030**.
 
 **Foundry?** column: `no` = can be done fully without Foundry · `test` = the work is offline, only the final check
 needs Foundry · `yes` = needs a running Foundry throughout.
