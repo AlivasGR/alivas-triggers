@@ -2,7 +2,7 @@
   "id": "alivas-engine-of-triggers",
   "title": "Alivas's Engine of Triggers",
   "description": "Triggers, reaction popups and rules automation for dnd5e 6 (2024 rules): effects that react to turns, hits, damage, saves and more; Shield/Counterspell-style reactions; auto-applied effects and concentration.",
-  "version": "0.12.3",
+  "version": "0.12.4",
   "authors": [
     {
       "name": "Alivas",
@@ -38,7 +38,7 @@
   "bugs": "https://github.com/AlivasGR/alivas-triggers/issues",
   "changelog": "https://github.com/AlivasGR/alivas-triggers/releases",
   "manifest": "https://github.com/AlivasGR/alivas-triggers/releases/latest/download/alivas-engine-of-triggers.json",
-  "download": "https://github.com/AlivasGR/alivas-triggers/releases/download/v0.12.3/alivas-engine-of-triggers.zip",
+  "download": "https://github.com/AlivasGR/alivas-triggers/releases/download/v0.12.4/alivas-engine-of-triggers.zip",
   "documentTypes": {
     "RegionBehavior": {
       "area": {}
