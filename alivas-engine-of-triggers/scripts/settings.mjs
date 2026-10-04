@@ -56,8 +56,9 @@ const DEFS = {
   coverDialog: bool("Cover choice in the attack dialog", "A \"Target's cover\" selector in the attack roll dialog (Half +2 AC, Three-Quarters +5 AC)."),
   coverButtons: bool("Cover buttons on attack cards", "\"½ cover\" / \"¾ cover\" buttons on attack chat cards, to apply cover after the roll (undoing a lost hit)."),
   damageTypeChoice: bool("Choose the damage type", "When the engine rolls damage that can be of several types (Sacred Weapon's Radiant, a Pact Weapon, Chromatic Orb, weapon options), the roller picks the type each time. Off: dnd5e's last choice on that item, else its first type."),
-  flanking: pick("Flanking", "2014 DMG optional rule (squares): you and a creature your faction regards as an ally on opposite sides or corners of an enemy, both adjacent, give each of you this on melee attack rolls against it. Not against a creature you can't see, nor while Incapacitated.", "advantage",
-    { off: "Off", advantage: "Advantage (DMG)", plus2: "+2 to hit", custom: "Custom modifier (below)" }),
+  flanking: pick("Flanking", "2014 DMG optional rule (squares): you and a creature your faction regards as an ally on opposite sides or corners of an enemy, both adjacent, give each of you this on melee attack rolls against it. Not against a creature you can't see, nor while Incapacitated. Surround (variant, any grid): a creature is flanked when two or more opponents wielding melee weapons have it in reach, at least two of them on opposite sides (size and elevation count); melee attacks against it get +1 per such opponent, up to the attacker's Proficiency Bonus.", "advantage",
+    { off: "Off", advantage: "Advantage (DMG)", plus2: "+2 to hit", custom: "Custom modifier (below)",
+      surround: "Surround: +1 per flanker, up to PB (stacks with Advantage)" }),
   flankingFormula: text("Flanking: custom modifier", "Added to melee attack rolls when Flanking is set to Custom (a number or formula, e.g. 1d4).", "2"),
   unseenAttacks: bool("Unseen attackers and targets", "Attack rolls against a target the attacker can't see have Disadvantage; attacks by an attacker the target can't see have Advantage. Uses token vision (darkness, Invisible, Blinded; Blindsight, Truesight and See Invisibility count). Scenes without token vision are unaffected."),
 

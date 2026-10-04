@@ -152,7 +152,7 @@ Headers of `reactions.mjs` / `main.mjs` document every field.
   (`factions-window.mjs`), opened from the combat tracker header or the Token HUD.
 - **What follows the table:** `Creatures.relation`, and through it selector sides, the `subjectIsAlly` /
   `subjectIsEnemy` filters, Opportunity Attacks, Sneak Attack's ally check, movement blocking and difficult terrain
-  (`maneuvers.mjs`) and flanking (`flanking.mjs`, 2014 DMG).
+  (`maneuvers.mjs`) and flanking (`flanking.mjs`: 2014 DMG, or the "surround" variant, +1 per flanker up to PB).
 - **Dispositions** are written from the party's relation (lead GM; Secret tokens are never rewritten).
 - **Border colours** are drawn per viewer from `perspective()`.
 - **Pickers** show colour chips.
