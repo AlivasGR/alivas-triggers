@@ -275,6 +275,9 @@ Hooks.on("updateItem", (item, changes, options, userId) => {
  */
 async function plan() {
   await loadPatches();
+  // The Combat Maneuvers sync (startup, setting changes) updates those items itself: let it finish first, and leave them
+  // out of the plan (patching them here too raced with it: the same items written twice at once).
+  await maneuverSync;
   const candidates = [
     ...game.actors.contents.flatMap(a => a.items.contents.map(item => ({ item, owner: a.name }))),
     ...game.items.contents.map(item => ({ item, owner: "" }))
@@ -282,6 +285,7 @@ async function plan() {
   const rows = [];
   for ( const { item, owner } of candidates ) {
     for ( const link of castLinks(item) ) rows.push(link);
+    if ( isManeuvers(item) ) continue;
     const patch = findPatch(item.toObject(), owner);
     if ( !patch ) continue;
     const current = item.getFlag(MODULE_ID, "version");
@@ -351,6 +355,8 @@ async function apply({ only }={}) {
   });
   for ( const row of rows ) {
     if ( (row.status !== "outdated") || row.skip ) continue;
+    // Still there? (something else may have replaced or deleted it since the plan was made)
+    if ( !fromUuidSync(row.item.uuid) ) { row.result = "skipped: no longer there"; continue; }
     try {
       if ( row.link ) await applyCastLink(row);
       else await applyOne(row.patch, row.item);
@@ -374,6 +380,7 @@ function planTable(rows, { selectable=false }={}) {
 }
 
 async function openDialog() {
+  if ( maneuverSyncing ) ui.notifications.info("Alivas's Box of Triggers: updating every creature's Combat Maneuvers first — the review opens when that's done.");
   const rows = await plan();
   const pending = rows.filter(r => r.status === "outdated").length;
   const { DialogV2 } = foundry.applications.api;
@@ -480,7 +487,16 @@ async function syncManeuverItem(item, patch) {
  * Lead GM: every world character/npc gets the item (setting on) and every copy matches the homebrew setting.
  * Idempotent; safe to run again on any setting change.
  */
-async function syncManeuvers() {
+function syncManeuvers() {
+  const run = async () => { maneuverSyncing = true; try { await runManeuverSync(); } finally { maneuverSyncing = false; } };
+  maneuverSync = maneuverSync.then(run, run);
+  return maneuverSync;
+}
+/** The running (or last) Combat Maneuvers sync; plan() waits for it. */
+let maneuverSync = Promise.resolve();
+let maneuverSyncing = false;
+
+async function runManeuverSync() {
   if ( !isLeadGM() ) return;
   await loadPatches();
   const patch = maneuverPatch();
@@ -493,18 +509,19 @@ async function syncManeuvers() {
       continue;
     }
     try {
-      let have = actor.items.filter(i => isManeuvers(i));
-      // An outdated copy (the patch's version went up) is replaced whole.
-      const old = have.filter(i => i.getFlag(MODULE_ID, "version") !== patch.version);
-      if ( old.length ) {
-        await actor.deleteEmbeddedDocuments("Item", old.map(i => i.id), { [MODULE_ID]: { patching: true } });
-        have = have.filter(i => !old.includes(i));
-      }
+      const have = actor.items.filter(i => isManeuvers(i));
       if ( !have.length ) {
-        if ( !grantOn() && !old.length ) continue;
+        if ( !grantOn() ) continue;
         const data = maneuverData();
         if ( data ) await actor.createEmbeddedDocuments("Item", [data], { keepId: true, [MODULE_ID]: { patching: true } });
-      } else for ( const item of have ) await syncManeuverItem(item, patch);
+        continue;
+      }
+      // An outdated copy (the patch's version went up) is patched in place (same id, as Review & apply would; the
+      // homebrew setting is honoured by buildPatched); a current one only follows the homebrew setting.
+      for ( const item of have ) {
+        if ( item.getFlag(MODULE_ID, "version") !== patch.version ) await applyOne(patch, item);
+        else await syncManeuverItem(item, patch);
+      }
     } catch(err) {
       console.error(`${MODULE_ID} | Combat Maneuvers sync failed for "${actor.name}"`, err);
     }
