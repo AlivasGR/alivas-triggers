@@ -1,0 +1,443 @@
+{
+  "_id": "poBDMR7j588Rsrf8",
+  "name": "Web",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "340",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Web (PHB 2024 p. 340). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "identifier": "web",
+    "level": 2,
+    "school": "con",
+    "properties": [
+      "vocal",
+      "somatic",
+      "material",
+      "concentration"
+    ],
+    "materials": {
+      "value": "a bit of spiderweb",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "range": {
+      "value": "60",
+      "units": "ft"
+    },
+    "duration": {
+      "value": "1",
+      "units": "hour"
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "cube",
+        "size": "20",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "",
+        "type": "",
+        "choice": false
+      }
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "2qIbfQ3CBoNmoLUR": {
+        "_id": "2qIbfQ3CBoNmoLUR",
+        "type": "save",
+        "name": "Web",
+        "sort": 0,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "value": 1,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "hour",
+          "value": "1",
+          "concentration": true,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "8uArbyn7jfXJsyNN",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "area": {
+              "triggers": [
+                {
+                  "label": "Web",
+                  "event": [
+                    "areaEnter",
+                    "areaTurnStart"
+                  ],
+                  "oncePerTurn": true,
+                  "action": {
+                    "type": "useActivity"
+                  }
+                },
+                {
+                  "label": "Web",
+                  "event": "areaLeave",
+                  "action": {
+                    "type": "removeStatus",
+                    "statuses": [
+                      "webbed"
+                    ],
+                    "to": {
+                      "who": "subject"
+                    }
+                  }
+                }
+              ]
+            },
+            "autoSave": [
+              {
+                "k": "statuses.webbed",
+                "o": "gte",
+                "v": 1
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "spellcasting",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "critical": {
+            "allow": false
+          },
+          "parts": []
+        },
+        "behaviors": [
+          {
+            "name": "",
+            "_id": "GxWpbaAOtS9BbB8s",
+            "type": "difficultTerrain",
+            "config": {
+              "types": [
+                "web"
+              ]
+            },
+            "level": {
+              "min": null,
+              "max": null
+            }
+          }
+        ]
+      },
+      "EVCItWpiPdaKdCkg": {
+        "_id": "EVCItWpiPdaKdCkg",
+        "type": "damage",
+        "name": "Burning Webs",
+        "sort": 10,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "damage": {
+          "critical": {
+            "allow": false
+          },
+          "parts": [
+            {
+              "number": 2,
+              "denomination": 4,
+              "bonus": "",
+              "types": [
+                "fire"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": 1
+              }
+            }
+          ]
+        }
+      },
+      "8gQg7pIwuM49SmV0": {
+        "_id": "8gQg7pIwuM49SmV0",
+        "type": "check",
+        "name": "Break Free",
+        "sort": 20,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "value": 1,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "check": {
+          "ability": "str",
+          "associated": [
+            "ath"
+          ],
+          "dc": {
+            "calculation": "spellcasting",
+            "formula": ""
+          }
+        }
+      }
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/creatures/webs/web-spider-casting-caught-purple.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "spell",
+          "identifier": "web",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "spell",
+          "identifier": "web",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplWeb0000000"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "8uArbyn7jfXJsyNN",
+      "name": "Restrained (Web)",
+      "img": "icons/creatures/webs/web-spider-casting-caught-purple.webp",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "restrained",
+        "webbed"
+      ],
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {},
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!poBDMR7j588Rsrf8.8uArbyn7jfXJsyNN"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1795000000000,
+    "modifiedTime": 1795000000000,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!poBDMR7j588Rsrf8"
+}

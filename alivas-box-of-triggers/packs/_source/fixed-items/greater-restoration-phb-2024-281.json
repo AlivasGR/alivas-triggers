@@ -1,0 +1,180 @@
+{
+  "_id": "w0hZK6qfHJyawZ4k",
+  "name": "Greater Restoration",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "281",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Greater Restoration (PHB 2024 p. 281). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "identifier": "greater-restoration",
+    "level": 5,
+    "school": "abj",
+    "properties": [
+      "vocal",
+      "somatic",
+      "material"
+    ],
+    "materials": {
+      "value": "diamond dust worth 100+ GP, which the spell consumes",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "range": {
+      "value": "",
+      "units": "touch"
+    },
+    "duration": {
+      "value": "",
+      "units": "inst"
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "",
+        "size": "",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "1",
+        "type": "creature",
+        "choice": false
+      }
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "LDlBgf24eX4r6Ao6": {
+        "_id": "LDlBgf24eX4r6Ao6",
+        "type": "utility",
+        "name": "Greater Restoration",
+        "sort": 0,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "value": 1,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "units": "touch",
+          "override": false
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "removeStatus",
+                "statuses": [
+                  "charmed",
+                  "petrified",
+                  "cursed"
+                ],
+                "to": {
+                  "who": "targets"
+                },
+                "choose": true
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      }
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/life/heart-hand-gold-green-light.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "spell",
+          "identifier": "greater-restoration",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "spell",
+          "identifier": "greater-restoration",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplGreaterRes"
+        }
+      ]
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1795000000000,
+    "modifiedTime": 1795000000000,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!w0hZK6qfHJyawZ4k"
+}
