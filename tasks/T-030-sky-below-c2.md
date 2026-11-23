@@ -1,6 +1,6 @@
 # T-030 — Sky Below Chapter 2 (Wormwrithings / Araj): Box patches from existing engine features
 
-- **Status:** needs-live-test
+- **Status:** done
 - **Foundry:** test
 - **Owner:** Alivas
 - **Area:** box
@@ -22,17 +22,18 @@ changes**. Every patch below uses existing mechanisms only. Mechanics that need 
   Thunder, 20 ft), Duct Crystal Node (Sleight of Hand DC 15, 2d8 Lightning). 5etools has no entry for these.
 
 ## Done
-All new files are in `alivas-box-of-triggers/packs/_source/fixed-items/`. Every patch is version 1 and **untested**.
+All new files are in `alivas-box-of-triggers/packs/_source/fixed-items/`. Every patch is version 1, live-tested
+2026-11-23 (Foundry 14.370, dnd5e 6.1.1).
 
 | File | Match | Mechanics |
 |---|---|---|
 | `eye-rays-beholder-mm-25-36.json` | name Eye Rays, feat, MM'25 p. 36 | **Eye Rays** utility (target 1 creature, 120 ft): `onUse` → `random` 1d10 gives the target a marker effect `Eye Ray: <ray>`; the marker's `applied` trigger runs that ray's save activity (DC 16) on its bearer, then removes itself. Rays: Charm (3d8 psychic, half; Charmed 1 h, ends when damaged), Paralyzing (Paralyzed 1 min, Con save at turn end), Fear (4d6 psychic, half; Frightened to end of next turn), Slowing (4d8 necrotic, half; movement ×0.5, `noReactions`, `actionOrBonus` to end of next turn), Enervation (3d8 poison, half; Poisoned + `noHealing` to end of next turn), Telekinetic (Str; `autoSave` Gargantuan; Restrained until the beholder's next turn; `onFail` `place` 30 ft), Sleep (`autoSave` Construct/Undead; Unconscious 1 min, ends when damaged), Petrification (Restrained; at its turn end `useActivity` "Petrification Ray (second save)" → Petrified on a failure; the Restrained effect then ends either way), Disintegration (8d8 force, half), Death (10d10 necrotic, half). |
 | `web-phb-2024-340.json` | identifier web + PHB 2024 / dnd5e `phbsplWeb0000000` | Save activity with its own `area.triggers`: `areaEnter` / `areaTurnStart` (`oncePerTurn`) → `useActivity` (Dex vs spell DC) → **Restrained (Web)** (statuses `restrained`, `webbed`); `areaLeave` → `removeStatus webbed`. `autoSave` for creatures already `webbed` (no stacking). Difficult terrain behavior kept from the SRD item. Extra activities: **Burning Webs** (2d4 fire) and **Break Free** (check activity, Str (Athletics) vs spell DC). |
-| `slow-phb-2024-318.json` | identifier slow + PHB 2024 / `phbsplSlow000000` | Save (Wis) on up to 6 creatures → **Slowed**: AC −2, Dex saves −2, movement ×0.5 (the SRD's changes), `noReactions`, `actionOrBonus`; Wis save at turn end (`removeOnSuccess`); turn-start note "one attack only"; `spell` event with a somatic component → `random` 1d4, on a 1 gives "Slow: the spell fails" (a note). |
+| `slow-phb-2024-318.json` | identifier slow + PHB 2024 / `phbsplSlow000000` | Targeted save (Wis) on up to 6 creatures (no template: a placed cube would take every creature inside, not "of your choice") → **Slowed**: AC −2, Dex saves −2, movement ×0.5 (the SRD's changes), `noReactions`, `actionOrBonus`; Wis save at turn end (`removeOnSuccess`); turn-start note "one attack only"; `spell` event with a somatic component → `random` 1d4, on a 1 gives "Slow: the spell fails" (a note). |
 | `greater-restoration-phb-2024-281.json` | identifier greater-restoration + PHB 2024 / `phbsplGreaterRes` | Utility, touch: `removeStatus` charmed / petrified / cursed on the target, `choose: true`. |
 | `spell-immunity-helmed-horror-mm-25-166.json` | name Spell Immunity, feat, MM'25 p. 166 | Transfer effect `ignoreDamageFrom` Heat Metal, Lightning Bolt, Magic Missile (identifier and name). |
 | `haul-orog-sky-below.json` | name Haul, feat, owner **Orog** | Melee attack (Str, reach 5, no damage); on a hit **Grappled (Haul)**: tether `{ range: 5, drag: true, dc: 14 }`. `requires: { maxSizeAbove: 0 }` (Medium or smaller). |
-| `meld-ward-sky-below.json` | name Meld Ward, feat | Transfer aura (5 ft, `areaEnter`, `oncePerTurn`) → save activity Con DC 15, 6d6 Force (half), **Restrained (Meld Ward)** (statuses `restrained`, `meld-bound`) with a turn-end note telling the DM to roll the repeat save. |
+| `meld-ward-sky-below.json` | name Meld Ward, feat | Transfer aura (5 ft, `areaEnter`; no `oncePerTurn`, which outside combat would let each creature trigger it only once per session) → save activity Con DC 15, 6d6 Force (half), **Restrained (Meld Ward)** (statuses `restrained`, `meld-bound`) with a turn-end note telling the DM to roll the repeat save. |
 | `circle-failsafe-sky-below.json` | name Circle Failsafe, feat | Transfer aura (5 ft, `areaEnter`) → Dex DC 15, 4d10 Force (half); `onFail` `push` 20 ft from the trap token. |
 | `library-glyph-sky-below.json` | name Library Glyph, feat | 1 use. Save activity, 20-ft-radius template on the trap token, Dex DC 15, 5d8 Thunder (half). The DM fires it by hand. |
 | `duct-crystal-node-sky-below.json` | name Duct Crystal Node, feat | **Pass the Node** (check activity, Dex (Sleight of Hand) DC 15) and **Discharge** (2d8 Lightning damage activity). |
@@ -41,50 +42,62 @@ All new files are in `alivas-box-of-triggers/packs/_source/fixed-items/`. Every 
 patch name, and place its token at the spot (the door, the circle, the library door). The Box fills in the
 mechanics. A ward is switched off during a dropout by disabling the item's aura effect.
 
-Checks run here:
-- (offline) Every file parses.
-- (offline) Activity keys equal their `_id`.
-- (offline) No duplicate item or effect ids.
-- (offline) A Python port of `strip-rules-text --check` (450-character limit, copied markup) passes.
+**Trap actor:** the trap's own token sits inside the Library Glyph's 20-ft template, so it is also targeted and takes
+the damage (the Engine targets a caster inside its own template). Give the trap actor immunity to Thunder, or ignore
+its HP.
 
-Not run here:
-- `npm run strip-rules-text`, `--check` and `npm run pack`: there is no Node.js on the machine this was written on.
+Checks:
+- (offline) `node scripts/strip-rules-text.cjs --check` passes; `npm run pack` builds.
+- (live 2026-11-23) All ten patches apply on actor creation (Patch on import) and load with every activity and
+  effect intact.
+- (live) **Eye Rays:** each ray was forced once (`formula` set to the number).
+  - The marker effect is always removed.
+  - 1: 3d8 psychic, Charmed 1 h; damage ends it.
+  - 2: Paralyzed; the turn-end Con save fails and keeps it, then succeeds and ends it.
+  - 3: 4d6 psychic, Frightened.
+  - 4: on a success, half damage and no effect; on a failure, movement multiplier 0.5, `noReactions`,
+    `actionOrBonus`, expiry turnEnd.
+  - 5: Poisoned; 10 healing at 50 HP left it at 50.
+  - 6: a Gargantuan target auto-succeeds; on a failure the target is placed 20 ft away (placement stubbed) and
+    Restrained until `sourceStart`.
+  - 7: an Undead target auto-succeeds; Unconscious (plus Prone) ends on damage.
+  - 8: Restrained; at the end of its turn a second save; the failure gives Petrified and Restrained is gone.
+  - 9 and 10: damage only.
+- (live) **Web:**
+  - A creature inside when it's cast gets no save.
+  - Entering: Dex DC 15 (spell DC), Restrained (Web).
+  - Turn start inside: a creature already webbed auto-succeeds (no stacking); a new one saves and is caught.
+  - Leaving ends Restrained (Web).
+  - Break Free is a Str (Athletics) DC 15 check card. Success doesn't end the effect; the DM removes it.
+- (live) **Slow:**
+  - The effect: AC −2, Dex save −2, multiplier 0.5.
+  - Somatic spells roll 1d4 (a 1 posts "the spell fails"); verbal-only spells roll nothing.
+  - Turn-start note; the turn-end Wis save ends it.
+  - Fixed during the test: the 40-ft cube template took every creature inside it, including one not chosen. Slow is
+    now targeted, up to 6.
+- (live) **Greater Restoration:** on a Charmed + Petrified target the caster picks one and only that one ends.
+- (live) **Spell Immunity:** Lightning Bolt and Magic Missile deal 0 to the Helmed Horror (chat says so); Fireball
+  dealt 35.
+- (live) **Haul:**
+  - Hit at 1d20+4+PB; Grappled (Haul) with tether dc 14.
+  - The Orog moves 10 ft and the target follows.
+  - A Large target is refused ("too large").
+- (live) **Meld Ward:**
+  - Entering: Con DC 15, 6d6 Force, half on a success; Restrained (Meld Ward) on a failure.
+  - Turn-end reminder note.
+  - Disabling the aura removes its region.
+  - Fixed during the test: `oncePerTurn` stopped a second entry outside combat; removed.
+- (live) **Circle Failsafe:** Dex DC 15, 4d10 Force; on a failure the creature is pushed 20 ft away from the trap.
+- (live) **Library Glyph:** a 20-ft template, Dex DC 15, 5d8 Thunder; the single use is spent and a second use is
+  refused.
+- (live) **Duct Crystal Node:** Pass the Node is a Dex (Sleight of Hand) DC 15 check card; Discharge posts its 2d8
+  Lightning damage card.
 
 ## Left
-1. **Pack and lint:** run `npm run strip-rules-text`, then `node scripts/strip-rules-text.cjs --check`, then
-   `npm run pack` (Foundry closed).
-2. **Live tests** (throwaway `ZZ` scene and actors):
-   - [ ] **Eye Rays** (Plutonium-imported 2025 Beholder `ZZ Beholder` vs `ZZ Target`): target, use Eye Rays → a d10
-     card, then the ray's save card at DC 16. Force each result once (temporarily set `formula` to the number):
-     - [ ] 1: half 3d8 psychic on a success; Charmed 1 h on a failure, ending when it takes damage.
-     - [ ] 2: Paralyzed; a Con save at each turn end ends it.
-     - [ ] 4: speed halved, no reaction prompt, Action or Bonus Action only, through the end of its next turn.
-     - [ ] 5: healing is blocked while Poisoned.
-     - [ ] 6: a Gargantuan target auto-succeeds; on a failure the GM is asked to place the target within 30 ft and it
-       is Restrained until the beholder's next turn.
-     - [ ] 7: an Undead target auto-succeeds; Unconscious ends when damaged.
-     - [ ] 8: Restrained; at the end of its next turn a second Con save; a failure gives Petrified, and Restrained is
-       gone either way.
-     - [ ] 9 and 10: damage only.
-     - [ ] The marker effect `Eye Ray: …` never stays on the target.
-   - [ ] **Web:** cast on an empty spot, then move `ZZ Target` in: Dex save, Restrained (Web) on a failure. Start its
-     turn inside: no second effect (`webbed` auto-succeeds). Move it out: Restrained (Web) ends. Creatures inside when
-     the web is cast get no save until they enter or start a turn. Break Free rolls Athletics vs the caster's DC.
-   - [ ] **Slow:** 6 targets. Failures get AC −2, Dex save −2, half speed, no reactions, Action or Bonus Action. Wis
-     save at each turn end. Casting Fire Bolt (somatic) while Slowed rolls 1d4 and notes "the spell fails" on a 1;
-     casting a spell with no somatic component rolls nothing.
-   - [ ] **Greater Restoration** on a Petrified + Charmed target: the caster picks one and it ends.
-   - [ ] **Spell Immunity:** Magic Missile and Lightning Bolt deal 0 to a Helmed Horror; a Fireball still hurts.
-   - [ ] **Haul** (actor named exactly `Orog`, feat "Haul"): a hit gives Grappled (Haul) with escape DC 14; Escape
-     Grapple rolls vs 14; the orog drags the target as it moves; a Large target is refused.
-   - [ ] **Meld Ward:** a token stepping next to the trap token rolls Con DC 15, takes 6d6 Force (half on a success),
-     and is Restrained on a failure; a turn-end note appears. Disabling the aura effect removes the area.
-   - [ ] **Circle Failsafe:** stepping in → Dex DC 15, 4d10 Force (half); on a failure the creature is pushed 20 ft
-     away from the trap token.
-   - [ ] **Library Glyph:** use it → a 20-ft template on the trap token, Dex saves for everyone inside, 5d8 Thunder
-     half on a success; the use is spent.
-   - [ ] **Duct Crystal Node:** Pass the Node prompts a DC 15 Sleight of Hand; Discharge rolls 2d8 Lightning.
-3. **Assumptions** (unverified):
+1. Nothing to test. The engine gaps and blocked items below are future work.
+2. Web outside combat: the Engine's area `oncePerTurn` keys on "no combat", so outside combat a creature triggers the
+   web only on its first entry per session. In combat it works as written. Engine behaviour, not changed here.
+3. **Assumptions** (all verified live 2026-11-23; kept for the record):
    - `onUse` → `random` → `giveEffect` onto a target the user doesn't own works through the GM relay, and the given
      effect's `applied` trigger runs on the GM.
    - `useActivity` from an effect given to another creature finds the beholder's item through `effect.origin`.
@@ -114,3 +127,4 @@ Not run here:
 ## Log
 - 2026-11-23 — Claude (Opus 5.5): wrote the 10 patches above from 5etools and dnd5e 6.1.x data, generated with a
   script, using existing engine features only. No Foundry and no Node on this machine: nothing packed or tested.
+- 2026-11-23 — Claude (Opus 5.5): live-tested all ten in Foundry 14.370 / dnd5e 6.1.1 on a throwaway ZZ scene. Fixed Slow (now targeted: the template caught creatures not chosen) and Meld Ward (dropped `oncePerTurn`). Status done.

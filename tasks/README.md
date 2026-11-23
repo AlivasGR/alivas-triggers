@@ -36,7 +36,7 @@ needs Foundry · `yes` = needs a running Foundry throughout.
 | [T-027](T-027-metamagic-charm-swing.md) | Twinned Spell upcast, complete Charm/Dominate patches, Swing Creature, new perspective rule (branch alliances) | done | test |
 | [T-028](T-028-factions-migration.md) | Factions: existing tokens keep their side on first load (migration) | done | test |
 | [T-029](T-029-flanking-surround.md) | Flanking variant "surround": +1 per flanker up to PB, size and elevation | needs-live-test | test |
-| [T-030](T-030-sky-below-c2.md) | Sky Below Chapter 2: Eye Rays, Web, Slow, Greater Restoration, Spell Immunity, Haul, Araj traps (Box only) | needs-live-test | test |
+| [T-030](T-030-sky-below-c2.md) | Sky Below Chapter 2: Eye Rays, Web, Slow, Greater Restoration, Spell Immunity, Haul, Araj traps (Box only) | done | test |
 
 Statuses: `open` · `in-progress` · `needs-live-test` · `blocked` · `done`. Keep this table in sync when you change a
 task's status. Done tasks stay listed until the next release, then the file is deleted (git keeps it).

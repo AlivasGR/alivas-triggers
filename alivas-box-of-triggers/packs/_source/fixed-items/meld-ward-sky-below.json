@@ -191,7 +191,6 @@
             {
               "label": "Meld Ward",
               "event": "areaEnter",
-              "oncePerTurn": true,
               "action": {
                 "type": "useActivity",
                 "activity": "Meld Ward"

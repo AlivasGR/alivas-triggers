@@ -42,15 +42,15 @@
       "template": {
         "count": "",
         "contiguous": false,
-        "type": "cube",
-        "size": "40",
+        "type": "",
+        "size": "",
         "units": "ft",
         "stationary": false
       },
       "affects": {
         "count": "6",
         "type": "creature",
-        "choice": true
+        "choice": false
       }
     },
     "activation": {
