@@ -1,0 +1,132 @@
+{
+  "_id": "w6dvV9vLTHa1ixyF",
+  "name": "Spell Immunity",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "MM'25",
+      "page": "166",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Spell Immunity (MM'25 p. 166). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "identifier": "spell-immunity",
+    "type": {
+      "value": "monster",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "requirements": "",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "activities": {}
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/defensive/shield-barrier-glowing-blue.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Spell Immunity",
+          "type": "feat",
+          "book": "MM'25",
+          "page": "166"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "s4vMw2ijfWCTLA0j",
+      "name": "Spell Immunity",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": true,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "ignoreDamageFrom": [
+            "heat-metal",
+            "Heat Metal",
+            "lightning-bolt",
+            "Lightning Bolt",
+            "magic-missile",
+            "Magic Missile"
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!w6dvV9vLTHa1ixyF.s4vMw2ijfWCTLA0j"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1795000000000,
+    "modifiedTime": 1795000000000,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!w6dvV9vLTHa1ixyF"
+}

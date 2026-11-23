@@ -1,0 +1,373 @@
+{
+  "_id": "OKkSPcnzSVYKNlBz",
+  "name": "Slow",
+  "type": "spell",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "318",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Slow (PHB 2024 p. 318). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "identifier": "slow",
+    "level": 3,
+    "school": "trs",
+    "properties": [
+      "vocal",
+      "somatic",
+      "material",
+      "concentration"
+    ],
+    "materials": {
+      "value": "a drop of molasses",
+      "consumed": false,
+      "cost": 0,
+      "supply": 0
+    },
+    "range": {
+      "value": "120",
+      "units": "ft"
+    },
+    "duration": {
+      "value": "1",
+      "units": "minute"
+    },
+    "target": {
+      "template": {
+        "count": "",
+        "contiguous": false,
+        "type": "cube",
+        "size": "40",
+        "units": "ft",
+        "stationary": false
+      },
+      "affects": {
+        "count": "6",
+        "type": "creature",
+        "choice": true
+      }
+    },
+    "activation": {
+      "type": "action",
+      "value": 1,
+      "condition": ""
+    },
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "method": "spell",
+    "prepared": 0,
+    "activities": {
+      "uvdnWmNSVPzxlPOD": {
+        "_id": "uvdnWmNSVPzxlPOD",
+        "type": "save",
+        "name": "Slow",
+        "sort": 0,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "value": 1,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "minute",
+          "value": "1",
+          "concentration": true,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "A6Q9wxKyi9694a8i",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "wis"
+          ],
+          "dc": {
+            "calculation": "spellcasting",
+            "formula": ""
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "critical": {
+            "allow": false
+          },
+          "parts": []
+        }
+      }
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/time/clock-stopwatch-white-blue.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "spell",
+          "identifier": "slow",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "spell",
+          "identifier": "slow",
+          "compendiumSource": "Compendium.dnd5e.spells24.Item.phbsplSlow000000"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "A6Q9wxKyi9694a8i",
+      "name": "Slowed",
+      "img": "icons/magic/time/clock-stopwatch-white-blue.webp",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.ac.bonus",
+            "type": "add",
+            "value": "-2",
+            "phase": "initial",
+            "priority": null,
+            "conditions": "{}"
+          },
+          {
+            "key": "system.attributes.movement.multiplier",
+            "type": "multiply",
+            "value": "0.5",
+            "phase": "initial",
+            "priority": null,
+            "conditions": "{}"
+          },
+          {
+            "key": "system.abilities.dex.bonuses.save",
+            "type": "add",
+            "value": "-2",
+            "phase": "initial",
+            "priority": null,
+            "conditions": "{}"
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "noReactions": true,
+          "actionOrBonus": true,
+          "triggers": [
+            {
+              "label": "Slow",
+              "event": "turnEnd",
+              "action": {
+                "type": "save",
+                "ability": "wis",
+                "dc": "source"
+              },
+              "then": "removeOnSuccess"
+            },
+            {
+              "label": "Slow",
+              "event": "turnStart",
+              "action": {
+                "type": "note",
+                "text": "If it takes the Attack action, it makes only one attack."
+              }
+            },
+            {
+              "label": "Slow",
+              "event": "spell",
+              "filter": [
+                {
+                  "k": "item.properties",
+                  "o": "has",
+                  "v": "somatic"
+                }
+              ],
+              "action": {
+                "type": "random",
+                "formula": "1d4",
+                "results": [
+                  {
+                    "roll": "1",
+                    "effect": "Slow: the spell fails",
+                    "label": "The spell fails"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!OKkSPcnzSVYKNlBz.A6Q9wxKyi9694a8i"
+    },
+    {
+      "_id": "pnpAHyfZNxCvzhPl",
+      "name": "Slow: the spell fails",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Slow",
+              "event": "applied",
+              "action": {
+                "type": "note",
+                "text": "the spell fails (25% chance)."
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!OKkSPcnzSVYKNlBz.pnpAHyfZNxCvzhPl"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1795000000000,
+    "modifiedTime": 1795000000000,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!OKkSPcnzSVYKNlBz"
+}
