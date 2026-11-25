@@ -1,0 +1,2437 @@
+{
+  "_id": "paEFzVPXO0zUHOaG",
+  "name": "Shedrak's Staff",
+  "type": "equipment",
+  "system": {
+    "source": {
+      "custom": "Sky Below (homebrew)",
+      "book": "",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Shedrak's Staff. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "identifier": "shedraks-staff",
+    "type": {
+      "value": "trinket",
+      "baseItem": ""
+    },
+    "properties": [],
+    "uses": {
+      "max": "1",
+      "spent": 0,
+      "recovery": [
+        {
+          "period": "turnStart",
+          "type": "recoverAll"
+        }
+      ]
+    },
+    "quantity": 1,
+    "weight": {
+      "value": 4,
+      "units": "lb"
+    },
+    "rarity": "",
+    "attunement": "",
+    "activities": {
+      "y89MxeWjHYT8CHOt": {
+        "_id": "y89MxeWjHYT8CHOt",
+        "type": "utility",
+        "name": "Eye Ray",
+        "sort": 0,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1",
+              "scaling": {}
+            }
+          ]
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "onUse": [
+              {
+                "type": "random",
+                "formula": "1d10",
+                "results": [
+                  {
+                    "roll": "1",
+                    "effect": "Eye Ray: Charm Ray",
+                    "label": "Charm Ray"
+                  },
+                  {
+                    "roll": "2",
+                    "effect": "Eye Ray: Paralyzing Ray",
+                    "label": "Paralyzing Ray"
+                  },
+                  {
+                    "roll": "3",
+                    "effect": "Eye Ray: Fear Ray",
+                    "label": "Fear Ray"
+                  },
+                  {
+                    "roll": "4",
+                    "effect": "Eye Ray: Slowing Ray",
+                    "label": "Slowing Ray"
+                  },
+                  {
+                    "roll": "5",
+                    "effect": "Eye Ray: Enervation Ray",
+                    "label": "Enervation Ray"
+                  },
+                  {
+                    "roll": "6",
+                    "effect": "Eye Ray: Telekinetic Ray",
+                    "label": "Telekinetic Ray"
+                  },
+                  {
+                    "roll": "7",
+                    "effect": "Eye Ray: Sleep Ray",
+                    "label": "Sleep Ray"
+                  },
+                  {
+                    "roll": "8",
+                    "effect": "Eye Ray: Petrification Ray",
+                    "label": "Petrification Ray"
+                  },
+                  {
+                    "roll": "9",
+                    "effect": "Eye Ray: Disintegration Ray",
+                    "label": "Disintegration Ray"
+                  },
+                  {
+                    "roll": "10",
+                    "effect": "Eye Ray: Death Ray",
+                    "label": "Death Ray"
+                  }
+                ],
+                "to": {
+                  "who": "targets"
+                }
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        }
+      },
+      "Yf8TeRb8GK6QMVJ4": {
+        "_id": "Yf8TeRb8GK6QMVJ4",
+        "type": "save",
+        "name": "Charm Ray",
+        "sort": 10,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "RVWOw7rg7DBWfeYM",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "wis"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "half",
+          "critical": {
+            "allow": false
+          },
+          "parts": [
+            {
+              "number": 3,
+              "denomination": 8,
+              "bonus": "",
+              "types": [
+                "psychic"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": 1
+              }
+            }
+          ]
+        }
+      },
+      "d7og5T2bYUKwBvvB": {
+        "_id": "d7og5T2bYUKwBvvB",
+        "type": "save",
+        "name": "Paralyzing Ray",
+        "sort": 20,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "OGAK7ByBjmdTKp2D",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "critical": {
+            "allow": false
+          },
+          "parts": []
+        }
+      },
+      "ob0yRuea8VM0r11b": {
+        "_id": "ob0yRuea8VM0r11b",
+        "type": "save",
+        "name": "Fear Ray",
+        "sort": 30,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "Zyq5mCzw6LFmyaVR",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "wis"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "half",
+          "critical": {
+            "allow": false
+          },
+          "parts": [
+            {
+              "number": 4,
+              "denomination": 6,
+              "bonus": "",
+              "types": [
+                "psychic"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": 1
+              }
+            }
+          ]
+        }
+      },
+      "CVkr2qxZOYf5M47p": {
+        "_id": "CVkr2qxZOYf5M47p",
+        "type": "save",
+        "name": "Slowing Ray",
+        "sort": 40,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "uw8uxw2PM0rD7Cde",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "half",
+          "critical": {
+            "allow": false
+          },
+          "parts": [
+            {
+              "number": 4,
+              "denomination": 8,
+              "bonus": "",
+              "types": [
+                "necrotic"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": 1
+              }
+            }
+          ]
+        }
+      },
+      "WgpjZvOTdLpGG7k6": {
+        "_id": "WgpjZvOTdLpGG7k6",
+        "type": "save",
+        "name": "Enervation Ray",
+        "sort": 50,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "hjvZjV4Ywu1DzVzn",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "half",
+          "critical": {
+            "allow": false
+          },
+          "parts": [
+            {
+              "number": 3,
+              "denomination": 8,
+              "bonus": "",
+              "types": [
+                "poison"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": 1
+              }
+            }
+          ]
+        }
+      },
+      "mo87CLStHMfBSSUx": {
+        "_id": "mo87CLStHMfBSSUx",
+        "type": "save",
+        "name": "Telekinetic Ray",
+        "sort": 60,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "xd41ATQunuhrxJgG",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "autoSave": [
+              {
+                "k": "traits.size",
+                "v": "grg"
+              }
+            ],
+            "onFail": [
+              {
+                "type": "place",
+                "range": 30
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "str"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "critical": {
+            "allow": false
+          },
+          "parts": []
+        }
+      },
+      "tt05yixxyrcREEaP": {
+        "_id": "tt05yixxyrcREEaP",
+        "type": "save",
+        "name": "Sleep Ray",
+        "sort": 70,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "YaYH67CWdFK3PiZk",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "autoSave": [
+              {
+                "k": "details.type.value",
+                "o": "in",
+                "v": [
+                  "construct",
+                  "undead"
+                ]
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "wis"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "critical": {
+            "allow": false
+          },
+          "parts": []
+        }
+      },
+      "jl43CmQ8AhiVZBIZ": {
+        "_id": "jl43CmQ8AhiVZBIZ",
+        "type": "save",
+        "name": "Petrification Ray (second save)",
+        "sort": 85,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "boLXVlzitPyvsHn1",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "critical": {
+            "allow": false
+          },
+          "parts": []
+        }
+      },
+      "65HaIt1A3YHUG8O6": {
+        "_id": "65HaIt1A3YHUG8O6",
+        "type": "save",
+        "name": "Petrification Ray",
+        "sort": 80,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "k2ihSIxM0cvf9HVp",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "critical": {
+            "allow": false
+          },
+          "parts": []
+        }
+      },
+      "BVAFjtm9Toog8K42": {
+        "_id": "BVAFjtm9Toog8K42",
+        "type": "save",
+        "name": "Disintegration Ray",
+        "sort": 90,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "half",
+          "critical": {
+            "allow": false
+          },
+          "parts": [
+            {
+              "number": 8,
+              "denomination": 8,
+              "bonus": "",
+              "types": [
+                "force"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": 1
+              }
+            }
+          ]
+        }
+      },
+      "gsp5XCk3kViqEeng": {
+        "_id": "gsp5XCk3kViqEeng",
+        "type": "save",
+        "name": "Death Ray",
+        "sort": 100,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": true,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "16"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "half",
+          "critical": {
+            "allow": false
+          },
+          "parts": [
+            {
+              "number": 10,
+              "denomination": 10,
+              "bonus": "",
+              "types": [
+                "necrotic"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "",
+                "number": 1
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/weapons/staves/staff-ornate-eye-red.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Shedrak's Staff",
+          "type": "equipment"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "RVWOw7rg7DBWfeYM",
+      "name": "Charmed (Charm Ray)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "charmed"
+      ],
+      "duration": {
+        "value": 3600,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Charm Ray",
+              "event": "damaged",
+              "action": {
+                "type": "note",
+                "text": "took damage — the charm ends."
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.RVWOw7rg7DBWfeYM"
+    },
+    {
+      "_id": "ydEqGRMzCzzv24Ut",
+      "name": "Eye Ray: Charm Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Charm Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Charm Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.ydEqGRMzCzzv24Ut"
+    },
+    {
+      "_id": "OGAK7ByBjmdTKp2D",
+      "name": "Paralyzed (Paralyzing Ray)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "paralyzed"
+      ],
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Paralyzing Ray",
+              "event": "turnEnd",
+              "action": {
+                "type": "save",
+                "ability": "con",
+                "dc": "source"
+              },
+              "then": "removeOnSuccess"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.OGAK7ByBjmdTKp2D"
+    },
+    {
+      "_id": "qM98vuZ9C7oENN6G",
+      "name": "Eye Ray: Paralyzing Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Paralyzing Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Paralyzing Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.qM98vuZ9C7oENN6G"
+    },
+    {
+      "_id": "Zyq5mCzw6LFmyaVR",
+      "name": "Frightened (Fear Ray)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "frightened"
+      ],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {},
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.Zyq5mCzw6LFmyaVR"
+    },
+    {
+      "_id": "st28vNi9LHfEZohF",
+      "name": "Eye Ray: Fear Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Fear Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Fear Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.st28vNi9LHfEZohF"
+    },
+    {
+      "_id": "uw8uxw2PM0rD7Cde",
+      "name": "Slowed (Slowing Ray)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "system.attributes.movement.multiplier",
+            "type": "multiply",
+            "value": "0.5",
+            "phase": "initial",
+            "priority": null,
+            "conditions": "{}"
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "noReactions": true,
+          "actionOrBonus": true
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.uw8uxw2PM0rD7Cde"
+    },
+    {
+      "_id": "u9QUPmA8DE5rPx3s",
+      "name": "Eye Ray: Slowing Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Slowing Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Slowing Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.u9QUPmA8DE5rPx3s"
+    },
+    {
+      "_id": "hjvZjV4Ywu1DzVzn",
+      "name": "Poisoned (Enervation Ray)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "poisoned"
+      ],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "noHealing": true
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.hjvZjV4Ywu1DzVzn"
+    },
+    {
+      "_id": "YNQ3uAUvH6FTiPGI",
+      "name": "Eye Ray: Enervation Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Enervation Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Enervation Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.YNQ3uAUvH6FTiPGI"
+    },
+    {
+      "_id": "xd41ATQunuhrxJgG",
+      "name": "Restrained (Telekinetic Ray)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "restrained"
+      ],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "sourceStart",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {},
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.xd41ATQunuhrxJgG"
+    },
+    {
+      "_id": "sbbTBEVH595dZbL4",
+      "name": "Eye Ray: Telekinetic Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Telekinetic Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Telekinetic Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.sbbTBEVH595dZbL4"
+    },
+    {
+      "_id": "YaYH67CWdFK3PiZk",
+      "name": "Unconscious (Sleep Ray)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "unconscious"
+      ],
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Sleep Ray",
+              "event": "damaged",
+              "action": {
+                "type": "note",
+                "text": "took damage — it wakes."
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.YaYH67CWdFK3PiZk"
+    },
+    {
+      "_id": "lwC36YIQzD4upiEh",
+      "name": "Eye Ray: Sleep Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Sleep Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Sleep Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.lwC36YIQzD4upiEh"
+    },
+    {
+      "_id": "boLXVlzitPyvsHn1",
+      "name": "Petrified (Petrification Ray)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "petrified"
+      ],
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {},
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.boLXVlzitPyvsHn1"
+    },
+    {
+      "_id": "k2ihSIxM0cvf9HVp",
+      "name": "Restrained (Petrification Ray)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "restrained"
+      ],
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Petrification Ray",
+              "event": "turnEnd",
+              "action": {
+                "type": "useActivity",
+                "activity": "Petrification Ray (second save)",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.k2ihSIxM0cvf9HVp"
+    },
+    {
+      "_id": "ZkP72eitn0qPGn6J",
+      "name": "Eye Ray: Petrification Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Petrification Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Petrification Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.ZkP72eitn0qPGn6J"
+    },
+    {
+      "_id": "nS4z4qfo73SGAwQm",
+      "name": "Eye Ray: Disintegration Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Disintegration Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Disintegration Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.nS4z4qfo73SGAwQm"
+    },
+    {
+      "_id": "eEgf3B8KYzaYXFsR",
+      "name": "Eye Ray: Death Ray",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 1,
+        "units": "rounds",
+        "expiry": "turnEnd",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Death Ray",
+              "event": "applied",
+              "action": {
+                "type": "useActivity",
+                "activity": "Death Ray",
+                "to": {
+                  "who": "bearer"
+                }
+              },
+              "then": "remove"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!paEFzVPXO0zUHOaG.eEgf3B8KYzaYXFsR"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1795000000000,
+    "modifiedTime": 1795000000000,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!paEFzVPXO0zUHOaG"
+}

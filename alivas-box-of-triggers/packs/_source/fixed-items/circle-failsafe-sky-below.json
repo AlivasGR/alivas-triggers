@@ -90,7 +90,7 @@
             "onFail": [
               {
                 "type": "push",
-                "distance": 20
+                "distance": 10
               }
             ]
           }
@@ -103,11 +103,11 @@
         },
         "save": {
           "ability": [
-            "dex"
+            "con"
           ],
           "dc": {
             "calculation": "",
-            "formula": "15"
+            "formula": "17"
           },
           "visible": true
         },
@@ -119,10 +119,10 @@
           "parts": [
             {
               "number": 4,
-              "denomination": 10,
+              "denomination": 8,
               "bonus": "",
               "types": [
-                "force"
+                "thunder"
               ],
               "custom": {
                 "enabled": false,
@@ -144,7 +144,7 @@
   "img": "icons/magic/symbols/circled-gem-pink.webp",
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "name": "Circle Failsafe",

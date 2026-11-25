@@ -1,0 +1,238 @@
+{
+  "_id": "vGUFprcanVE1A6QM",
+  "name": "Hold Person Glyph",
+  "type": "feat",
+  "system": {
+    "source": {
+      "custom": "Sky Below (homebrew)",
+      "book": "",
+      "page": "",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Hold Person Glyph. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "identifier": "hold-person-glyph",
+    "type": {
+      "value": "monster",
+      "subtype": ""
+    },
+    "properties": [],
+    "advancement": {},
+    "requirements": "",
+    "crewed": false,
+    "enchant": {},
+    "prerequisites": {
+      "items": [],
+      "repeatable": false
+    },
+    "uses": {
+      "max": "1",
+      "spent": 0,
+      "recovery": []
+    },
+    "activities": {
+      "hZIjDUrudfG1Nl1h": {
+        "_id": "hZIjDUrudfG1Nl1h",
+        "type": "save",
+        "name": "Hold Person Glyph",
+        "sort": 0,
+        "img": null,
+        "activation": {
+          "type": "special",
+          "value": null,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1",
+              "scaling": {}
+            }
+          ]
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "value": "30",
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "w6xRGZOpoHZgyN2i",
+            "level": {},
+            "onSave": false
+          }
+        ],
+        "flags": {
+          "alivas-engine-of-triggers": {
+            "autoSave": [
+              {
+                "o": "NOT",
+                "v": {
+                  "k": "details.type.value",
+                  "v": "humanoid"
+                }
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "save": {
+          "ability": [
+            "wis"
+          ],
+          "dc": {
+            "calculation": "",
+            "formula": "17"
+          },
+          "visible": true
+        },
+        "damage": {
+          "onSave": "none",
+          "critical": {
+            "allow": false
+          },
+          "parts": []
+        }
+      }
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/magic/control/debuff-energy-hold-blue-yellow.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "name": "Hold Person Glyph",
+          "type": "feat"
+        }
+      ]
+    }
+  },
+  "effects": [
+    {
+      "_id": "w6xRGZOpoHZgyN2i",
+      "name": "Paralyzed (Hold Person Glyph)",
+      "img": "icons/svg/aura.svg",
+      "description": "",
+      "type": "base",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [
+        "paralyzed"
+      ],
+      "duration": {
+        "value": 60,
+        "units": "seconds",
+        "expiry": "turnStart",
+        "expired": false
+      },
+      "system": {
+        "changes": [],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": true,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "triggers": [
+            {
+              "label": "Hold Person Glyph",
+              "event": "turnEnd",
+              "action": {
+                "type": "save",
+                "ability": "wis",
+                "dc": "source"
+              },
+              "then": "removeOnSuccess"
+            }
+          ]
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!vGUFprcanVE1A6QM.w6xRGZOpoHZgyN2i"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1795000000000,
+    "modifiedTime": 1795000000000,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!vGUFprcanVE1A6QM"
+}
