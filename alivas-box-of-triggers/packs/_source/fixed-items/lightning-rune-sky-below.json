@@ -1,6 +1,6 @@
 {
-  "_id": "vEhmdBACidAfAydi",
-  "name": "Library Glyph",
+  "_id": "9LAnB15y1MLfiK37",
+  "name": "Lightning Rune",
   "type": "feat",
   "system": {
     "source": {
@@ -12,10 +12,10 @@
       "revision": 1
     },
     "description": {
-      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Library Glyph. Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Lightning Rune. Patched items keep their own description; this entry carries no rules text.</em></p>",
       "chat": ""
     },
-    "identifier": "library-glyph",
+    "identifier": "lightning-rune",
     "type": {
       "value": "monster",
       "subtype": ""
@@ -35,10 +35,10 @@
       "recovery": []
     },
     "activities": {
-      "iZ5nquthJQ03PPNd": {
-        "_id": "iZ5nquthJQ03PPNd",
+      "yohLUSqs4KlDI9S6": {
+        "_id": "yohLUSqs4KlDI9S6",
         "type": "save",
-        "name": "Library Glyph",
+        "name": "Lightning Rune",
         "sort": 0,
         "img": null,
         "activation": {
@@ -80,8 +80,9 @@
             "contiguous": false,
             "type": "radius",
             "size": "20",
+            "width": "",
             "units": "ft",
-            "stationary": false
+            "stationary": true
           },
           "affects": {
             "count": "",
@@ -108,7 +109,7 @@
           ],
           "dc": {
             "calculation": "",
-            "formula": "15"
+            "formula": "17"
           },
           "visible": true
         },
@@ -123,7 +124,7 @@
               "denomination": 8,
               "bonus": "",
               "types": [
-                "thunder"
+                "lightning"
               ],
               "custom": {
                 "enabled": false,
@@ -142,13 +143,13 @@
   "ownership": {
     "default": 0
   },
-  "img": "icons/magic/symbols/runes-star-pentagon-blue.webp",
+  "img": "icons/magic/lightning/bolt-strike-blue.webp",
   "flags": {
     "alivas-box-of-triggers": {
       "version": 1,
       "match": [
         {
-          "name": "Library Glyph",
+          "name": "Lightning Rune",
           "type": "feat"
         }
       ]
@@ -167,5 +168,5 @@
     "exportSource": null
   },
   "sort": 0,
-  "_key": "!items!vEhmdBACidAfAydi"
+  "_key": "!items!9LAnB15y1MLfiK37"
 }
