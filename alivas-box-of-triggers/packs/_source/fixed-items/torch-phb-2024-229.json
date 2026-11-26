@@ -1,0 +1,344 @@
+{
+  "_id": "7d7WvMIwwuHEZymh",
+  "name": "Torch",
+  "type": "consumable",
+  "system": {
+    "source": {
+      "custom": "",
+      "book": "PHB 2024",
+      "page": "229",
+      "license": "",
+      "rules": "2024",
+      "revision": 1
+    },
+    "description": {
+      "value": "<p><em>Alivas's Box of Triggers — mechanics patch for Torch (PHB 2024 p. 229). Patched items keep their own description; this entry carries no rules text.</em></p>",
+      "chat": ""
+    },
+    "identifier": "torch",
+    "type": {
+      "value": "trinket",
+      "subtype": ""
+    },
+    "properties": [],
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": [],
+      "autoDestroy": false
+    },
+    "quantity": 1,
+    "weight": {
+      "value": 1,
+      "units": "lb"
+    },
+    "price": {
+      "value": 1,
+      "denomination": "cp"
+    },
+    "rarity": "",
+    "attunement": "",
+    "magicalBonus": null,
+    "damage": {
+      "base": {
+        "number": null,
+        "denomination": null,
+        "types": [],
+        "custom": {
+          "enabled": false
+        },
+        "scaling": {
+          "number": 1
+        }
+      },
+      "replace": false
+    },
+    "activities": {
+      "g9oICLDL8wdFLa1F": {
+        "_id": "g9oICLDL8wdFLa1F",
+        "type": "enchant",
+        "name": "Light",
+        "sort": 0,
+        "img": null,
+        "activation": {
+          "type": "bonus",
+          "value": 1,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "hour",
+          "value": "1",
+          "override": true
+        },
+        "range": {
+          "units": "self",
+          "override": false
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [
+          {
+            "_id": "had4RPWC63eYranS",
+            "level": {},
+            "riders": {
+              "activity": [],
+              "effect": [],
+              "item": []
+            }
+          }
+        ],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "enchant": {
+          "self": true
+        },
+        "restrictions": {
+          "allowMagical": true,
+          "type": "",
+          "categories": [],
+          "properties": []
+        }
+      },
+      "YS0gYobd3wIdcA5B": {
+        "_id": "YS0gYobd3wIdcA5B",
+        "type": "attack",
+        "name": "Attack",
+        "sort": 10,
+        "img": null,
+        "activation": {
+          "type": "action",
+          "value": 1,
+          "override": false
+        },
+        "consumption": {
+          "scaling": {
+            "allowed": false
+          },
+          "spellSlot": false,
+          "targets": []
+        },
+        "description": {
+          "chatFlavor": ""
+        },
+        "duration": {
+          "units": "inst",
+          "concentration": false,
+          "override": false
+        },
+        "range": {
+          "reach": 5,
+          "units": "ft",
+          "override": true
+        },
+        "target": {
+          "prompt": true,
+          "override": false,
+          "template": {
+            "contiguous": false,
+            "stationary": false,
+            "units": "ft"
+          },
+          "affects": {
+            "count": "1",
+            "type": "creature",
+            "choice": false
+          }
+        },
+        "uses": {
+          "spent": 0,
+          "max": "",
+          "recovery": []
+        },
+        "effects": [],
+        "flags": {},
+        "visibility": {
+          "level": {},
+          "requireAttunement": false,
+          "requireIdentification": false,
+          "requireMagic": false
+        },
+        "damage": {
+          "critical": {
+            "allow": true
+          },
+          "includeBase": false,
+          "parts": [
+            {
+              "number": null,
+              "denomination": null,
+              "bonus": "",
+              "types": [
+                "fire"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "1"
+              },
+              "scaling": {
+                "number": 1
+              }
+            }
+          ]
+        },
+        "attack": {
+          "ability": "str",
+          "bonus": "",
+          "flat": false,
+          "critical": {
+            "threshold": null
+          },
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
+        }
+      }
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "img": "icons/sundries/lights/torch-brown-lit.webp",
+  "flags": {
+    "alivas-box-of-triggers": {
+      "version": 1,
+      "match": [
+        {
+          "type": "consumable",
+          "identifier": "torch",
+          "book": "PHB 2024"
+        },
+        {
+          "type": "consumable",
+          "identifier": "torch",
+          "compendiumSource": "Compendium.dnd5e.equipment24.Item.phbagTorch000000"
+        }
+      ],
+      "keep": {
+        "activities": [
+          "attack"
+        ],
+        "paths": [
+          "system.uses",
+          "system.price"
+        ]
+      }
+    }
+  },
+  "effects": [
+    {
+      "_id": "had4RPWC63eYranS",
+      "name": "Lit",
+      "img": "icons/sundries/lights/torch-brown-lit.webp",
+      "description": "",
+      "type": "enchantment",
+      "transfer": false,
+      "disabled": false,
+      "statuses": [],
+      "duration": {
+        "value": 3600,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "system": {
+        "changes": [
+          {
+            "key": "name",
+            "type": "add",
+            "value": " (lit)",
+            "priority": null,
+            "phase": "initial",
+            "conditions": "{}",
+            "replacement": ""
+          }
+        ],
+        "origin": {
+          "actor": null,
+          "behavior": null,
+          "effect": null,
+          "item": null,
+          "message": null
+        },
+        "conditions": "{}",
+        "magical": false,
+        "rider": {
+          "statuses": []
+        }
+      },
+      "flags": {
+        "alivas-engine-of-triggers": {
+          "light": {
+            "bright": 20,
+            "dim": 40,
+            "color": "#ff9b3d",
+            "animation": "torch"
+          }
+        }
+      },
+      "origin": null,
+      "start": null,
+      "tint": "#ffffff",
+      "showIcon": 1,
+      "folder": null,
+      "sort": 0,
+      "_stats": {
+        "coreVersion": "14.368",
+        "systemId": "dnd5e",
+        "systemVersion": "6.0.5",
+        "createdTime": 1795000000000,
+        "modifiedTime": 1795000000000,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
+      "_key": "!items.effects!7d7WvMIwwuHEZymh.had4RPWC63eYranS"
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368",
+    "systemId": "dnd5e",
+    "systemVersion": "6.0.5",
+    "createdTime": 1795000000000,
+    "modifiedTime": 1795000000000,
+    "lastModifiedBy": null,
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!items!7d7WvMIwwuHEZymh"
+}
