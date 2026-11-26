@@ -261,9 +261,11 @@ function pileData(item, quantity) {
  * @param {TokenDocument} [options.pile]            Add to this pile instead of looking for one at the position.
  * @param {boolean} [options.skipTiming=false]      Skip the combat timing checks (Disarm).
  * @param {string} [options.verb="drops"]           Chat verb.
+ * @param {boolean} [options.keep=false]            Put copies in the pile and leave the actor's items alone (a thrown
+ *                                                  weapon: dnd5e has already lowered its quantity).
  * @returns {Promise<{tokenUuid:string, dropped:string[]}|null>}
  */
-export async function dropItems(actor, items, { position=null, pile=null, skipTiming=false, verb="drops", quiet=false }={}) {
+export async function dropItems(actor, items, { position=null, pile=null, skipTiming=false, verb="drops", quiet=false, keep=false }={}) {
   if ( !needIP("dropItems") ) return null;
   actor = actorOf(actor);
   if ( !actor ) return null;
@@ -273,7 +275,7 @@ export async function dropItems(actor, items, { position=null, pile=null, skipTi
     const gm = gmUser();
     if ( !gm ) { warn("dropItems: no GM is connected to drop another creature's items", { notify: true }); return null; }
     const entries = normalizeEntries(actor, items).map(e => ({ itemId: e.item.id, quantity: e.quantity }));
-    return Creatures.runAs(gm, "lootDrop", { actorUuid: actor.uuid, entries, position, pileUuid: pile?.uuid ?? null, verb });
+    return Creatures.runAs(gm, "lootDrop", { actorUuid: actor.uuid, entries, position, pileUuid: pile?.uuid ?? null, verb, keep, skipTiming, quiet });
   }
 
   // A carried body (bodies.mjs) isn't loot: dropping it puts the creature's token down there.
@@ -335,7 +337,7 @@ export async function dropItems(actor, items, { position=null, pile=null, skipTi
   scheduleRefresh(actorOf(tokenUuid));
 
   // Contents first: deleting a container may take its contents with it.
-  const removed = await ip("removeItems", actor, removals);
+  const removed = keep ? true : await ip("removeItems", actor, removals);
   if ( removed === undefined ) warn(`items were put in the pile but could not be removed from ${actor.name}; remove them by hand`, { notify: true });
 
   const names = moving.map(e => (e.quantity > 1 ? `${e.item.name} ×${e.quantity}` : e.item.name));
@@ -993,9 +995,9 @@ function registerHandlers() {
   Creatures.HANDLERS.lootUnlock = payload => unlockLocal(payload);
   Creatures.HANDLERS.lootDoorUnlock = payload => unlockDoorLocal(payload);
   Creatures.HANDLERS.lootDisarm = async ({ actorUuid, itemId }) => disarm(fromUuidSync(actorUuid), { item: itemId });
-  Creatures.HANDLERS.lootDrop = async ({ actorUuid, entries, position, pileUuid, verb }) => {
+  Creatures.HANDLERS.lootDrop = async ({ actorUuid, entries, position, pileUuid, verb, keep=false, skipTiming=false, quiet=false }) => {
     const actor = actorOf(actorUuid);
-    return dropItems(actor, entries.map(e => ({ item: e.itemId, quantity: e.quantity })), { position, pile: pileUuid ? tokenOf(pileUuid) : null, verb });
+    return dropItems(actor, entries.map(e => ({ item: e.itemId, quantity: e.quantity })), { position, pile: pileUuid ? tokenOf(pileUuid) : null, verb, keep, skipTiming, quiet });
   };
 }
 

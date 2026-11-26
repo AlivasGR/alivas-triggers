@@ -244,8 +244,11 @@ const reachOf = actor => 5 + (actor.items.some(i => i.system?.properties?.has?.(
 
 const incapacitated = actor => INCAPACITATED.some(s => actor?.statuses?.has(s));
 
-/** A random free square adjacent to a token (its own space if none is). Returns { x, y } in scene pixels. */
-function scatterSpot(token) {
+/**
+ * A random free square adjacent to a token (its own space if none is). Returns { x, y } in scene pixels. Also takes a
+ * 1×1 probe { id: null, parent: scene, width: 1, height: 1, _source: { x, y } } for a bare square (throw.mjs).
+ */
+export function scatterSpot(token) {
   const scene = token.parent;
   const s = scene.grid.size;
   const w = Math.max(1, Math.round(token.width)), h = Math.max(1, Math.round(token.height));
@@ -291,6 +294,9 @@ function weightLb(item, quantity) {
   const units = w?.units ?? "lb";
   return value * quantity * ((units === "kg") ? 2.2046 : 1);
 }
+
+/** One unit's weight in pounds (throw.mjs). */
+export const unitWeightLb = item => weightLb(item, 1);
 
 /** A check on an actor's controller's client. → { total, nat, success } or null. */
 async function check(actor, ability, dc, advantage=false) {

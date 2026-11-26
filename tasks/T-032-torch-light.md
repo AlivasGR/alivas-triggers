@@ -40,8 +40,6 @@ Checks:
   - **Burn-out:** after 3,601 s of game time the enchantment is gone and the light is off.
 
 ## Left
-- Not run with **Item Piles** itself; the pile was stood in by an unlinked token. If a real pile doesn't light, check
-  that the drop copies the item's effects.
 - A burnt-out torch stays in the inventory and can be relit: remove or reduce it by hand (the 1-hour use isn't
   consumed).
 - Lighting a stack (quantity above 1) lights the whole stack as one light source. Split one off first.
@@ -49,3 +47,6 @@ Checks:
 
 ## Log
 - 2026-11-26 — Claude (Opus 5.5): built and live-tested; no engine changes.
+- 2026-11-26 — Claude (Opus 5.5): v2 — also matches the Explorer's Pack and Dungeoneer's Pack torches
+  (`PKHfz87DirOHUBHn`, `gYKSyS7STTresmnS`); found during T-033. A pile created by Item Piles now gets the light
+  (T-033, `createToken`), tested with real Item Piles 3.3.4.

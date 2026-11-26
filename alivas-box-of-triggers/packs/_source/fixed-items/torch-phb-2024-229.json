@@ -233,7 +233,7 @@
   "img": "icons/sundries/lights/torch-brown-lit.webp",
   "flags": {
     "alivas-box-of-triggers": {
-      "version": 1,
+      "version": 2,
       "match": [
         {
           "type": "consumable",
@@ -244,6 +244,16 @@
           "type": "consumable",
           "identifier": "torch",
           "compendiumSource": "Compendium.dnd5e.equipment24.Item.phbagTorch000000"
+        },
+        {
+          "type": "consumable",
+          "identifier": "torch",
+          "compendiumSource": "Compendium.dnd5e.equipment24.Item.PKHfz87DirOHUBHn"
+        },
+        {
+          "type": "consumable",
+          "identifier": "torch",
+          "compendiumSource": "Compendium.dnd5e.equipment24.Item.gYKSyS7STTresmnS"
         }
       ],
       "keep": {

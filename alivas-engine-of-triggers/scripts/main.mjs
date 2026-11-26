@@ -159,6 +159,7 @@ import * as Economy from "./economy.mjs";
 import * as Interact from "./interact.mjs";
 import * as Bodies from "./bodies.mjs";
 import * as Trade from "./trade.mjs";
+import * as Throwing from "./throw.mjs";
 import * as Skills from "./skills.mjs";
 import * as Cover from "./cover.mjs";
 import * as Factions from "./factions.mjs";
@@ -220,6 +221,7 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
   // Hits: a critical, or not a fumble and total >= current AC.
   const roll = rolls?.[0];
   if ( !roll || !subject || Maneuvers.isBareAttack(subject) ) return;
+  const rolledAt = Array.from(game.user.targets);
   // A new attack replaces any earlier "absorbed by a duplicate" mark for this attacker and target.
   for ( const token of game.user.targets ) if ( token.actor ) absorbed.delete(absorbKey(token.actor, subject));
   // Cover chosen in the attack dialog (cover.mjs) raises each target's AC for this attack, unless the attacker ignores it.
@@ -275,6 +277,8 @@ Hooks.on("dnd5e.rollAttackV2", async (rolls, { subject }) => {
   } finally {
     if ( ledger ) await Cover.finishLedger(ledger, game.messages.contents.findLast(m => Cover.isAttackMessage(m)
       && (Cover.messageActivityUuid(m) === subject.uuid)));
+    // After hits, reactions, damage and onHit (throw.mjs lands thrown items here). On the rolling client.
+    Hooks.callAll("alivasTriggers.attackResolved", { activity: subject, roll, targets: rolledAt, landed });
   }
 });
 
@@ -646,6 +650,10 @@ Hooks.on("deleteActiveEffect", (effect, options, userId) => {
 // An item with a light enchantment changes hands: the old and new holders' light follows it.
 const hasItemLight = item => item.effects?.some(e => e.getFlag(MODULE_ID, "light"));
 Hooks.on("createItem", (item, options, userId) => { if ( (userId === game.userId) && hasItemLight(item) ) refreshLight(item.parent); });
+// A token created with a lit item already in its actor (an Item Piles pile made from a dropped torch) gets the light.
+Hooks.on("createToken", (token, options, userId) => {
+  if ( (userId === game.userId) && token.actor?.items?.some(hasItemLight) ) refreshLight(token.actor);
+});
 Hooks.on("deleteItem", (item, options, userId) => { if ( (userId === game.userId) && hasItemLight(item) ) refreshLight(item.parent); });
 
 /**
@@ -3267,13 +3275,14 @@ Hooks.once("ready", () => {
   const shared = { ACTIONS, announce, selectorContext, resolveFormula, runSteps, setting };
   Bodies.registerBodies(shared);
   Trade.registerTrade(shared);
+  Throwing.registerThrow();
   Skills.registerSkills(shared);
   game.modules.get(MODULE_ID).api = {
     ACTIONS, fire, autoApply, findUsageMessage,
     openEditor: doc => TriggerEditor.open(doc), describeTrigger, describeReaction,
     creatures: Creatures, workflow: Workflow, areas: Areas,
     registerAction, registerEditorSection, maneuvers: Maneuvers, loot: Loot, economy: Economy, interact: Interact,
-    bodies: Bodies, trade: Trade, skills: Skills, cover: Cover,
+    bodies: Bodies, trade: Trade, throwing: Throwing, skills: Skills, cover: Cover,
     factions: { enabled: Factions.enabled, factionOf: Factions.factionOf, relationOf: Factions.relationOf,
       relation: Factions.relation, perspective: Factions.perspective, lettersInUse: Factions.lettersInUse,
       tokensOf: Factions.tokensOf, getTable: Factions.getTable, setRelation: Factions.setRelation,

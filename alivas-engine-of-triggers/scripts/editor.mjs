@@ -1435,7 +1435,8 @@ export class TriggerEditor extends ApplicationV2 {
       if ( this.mode === "triggers" ) this.rules = readRules(this.document);
       if ( this.mode === "reactions" ) {
         const fragile = this.document.getFlag(MODULE_ID, "fragile");
-        this.itemFlags = { fragile: typeof fragile === "boolean" ? String(fragile) : "" };
+        this.itemFlags = { fragile: typeof fragile === "boolean" ? String(fragile) : "",
+          throwDamageType: String(this.document.getFlag(MODULE_ID, "throwDamageType") ?? "") };
       }
     }
     this.#saved = this.#snapshot();
@@ -1788,12 +1789,17 @@ export class TriggerEditor extends ApplicationV2 {
   /** Flags on the item itself that a GM may set by hand (the item's reactions editor is where item-level settings live). */
   #itemFlagsSection() {
     const f = this.itemFlags;
-    const set = f.fragile !== "";
+    const count = ["fragile", "throwDamageType"].filter(k => (f[k] ?? "") !== "").length;
+    const set = count > 0;
+    const damageTypes = Object.entries(CONFIG.DND5E.damageTypes ?? {}).map(([k, v]) => [k, game.i18n.localize(v.label ?? k)]);
     return `<details class="aet-rules"${set ? " open" : ""}><summary><i class="fa-solid fa-box"></i> Item settings
-      <span class="aet-muted">${set ? "1 set" : "none set — optional"}</span></summary>
+      <span class="aet-muted">${set ? `${count} set` : "none set — optional"}</span></summary>
       <div class="aet-fields"><label class="aet-inline"><span>Breaks when it falls</span><select data-itemflag="fragile">${options([["", "Let the engine guess (potions, vials, flasks, bottles, glass)"],
         ["true", "Always — it shatters when dropped or fumbled in a catch"], ["false", "Never — it survives a fall"]], f.fragile)}</select></label>
-        <p class="aet-muted">Used when trading: a thrown item that isn't caught lands as a pile, or shatters if fragile.</p></div></details>`;
+        <p class="aet-muted">Used when trading: a thrown item that isn't caught lands as a pile, or shatters if fragile.</p>
+        <label class="aet-inline"><span>Damage type when thrown</span><select data-itemflag="throwDamageType">${options([["", "Bludgeoning (default)"],
+          ...damageTypes.filter(([k]) => k !== "bludgeoning")], f.throwDamageType ?? "")}</select></label>
+        <p class="aet-muted">Used by "Throw…": an improvised throw deals this type. A weapon with dnd5e's Returning property never lands as a pile.</p></div></details>`;
   }
 
   /** Activity settings: pay from several pools, choose which effects apply. */
@@ -2901,6 +2907,8 @@ export class TriggerEditor extends ApplicationV2 {
       if ( this.mode === "reactions" ) {
         if ( this.itemFlags.fragile === "" ) update[`flags.${MODULE_ID}.-=fragile`] = null;
         else update[`flags.${MODULE_ID}.fragile`] = (this.itemFlags.fragile === "true");
+        if ( !this.itemFlags.throwDamageType ) update[`flags.${MODULE_ID}.-=throwDamageType`] = null;
+        else update[`flags.${MODULE_ID}.throwDamageType`] = this.itemFlags.throwDamageType;
       }
       await this.document.update(update);
     }

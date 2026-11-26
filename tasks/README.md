@@ -1,6 +1,6 @@
 # Tasks
 
-Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-033**.
+Open work, handoffs and work logs. One file per task: `T-<nnn>-<slug>.md`. Next free number: **T-034**.
 
 **Foundry?** column: `no` = can be done fully without Foundry · `test` = the work is offline, only the final check
 needs Foundry · `yes` = needs a running Foundry throughout.
@@ -39,6 +39,7 @@ needs Foundry · `yes` = needs a running Foundry throughout.
 | [T-030](T-030-sky-below-c2.md) | Sky Below Chapter 2: Eye Rays, Web, Slow, Greater Restoration, Spell Immunity, Haul, Araj traps (Box only) | done | test |
 | [T-031](T-031-sky-below-c2-update.md) | Sky Below Chapter 2 update: Shedrak's staff, Spectator, Shield Guardian, door glyphs, ward effects, The Welcome (Box only) | done | test |
 | [T-032](T-032-torch-light.md) | Torch: a lit torch sheds light for whoever holds it, including a loot pile | done | test |
+| [T-033](T-033-throwing-items.md) | Throwing items: improvised throws by weight and Strength, Thrown weapons land, lit torches land lit | done | test |
 
 Statuses: `open` · `in-progress` · `needs-live-test` · `blocked` · `done`. Keep this table in sync when you change a
 task's status. Done tasks stay listed until the next release, then the file is deleted (git keeps it).
